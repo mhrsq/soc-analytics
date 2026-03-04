@@ -24,6 +24,8 @@ import { WidgetWrapper } from "../components/WidgetWrapper";
 import { AddWidgetModal } from "../components/AddWidgetModal";
 import { EditWidgetModal } from "../components/EditWidgetModal";
 import { TicketDetailModal } from "../components/TicketDetailModal";
+import { KPIDetailModal } from "../components/KPIDetailModal";
+import type { KPIKey } from "../components/KPIDetailModal";
 import { Spinner } from "../components/Spinner";
 
 export function Dashboard() {
@@ -42,6 +44,7 @@ export function Dashboard() {
   const [addOpen, setAddOpen] = useState(false);
   const [editWidget, setEditWidget] = useState<WidgetConfig | null>(null);
   const [ticketId, setTicketId] = useState<number | null>(null);
+  const [kpiDetail, setKpiDetail] = useState<KPIKey | null>(null);
 
   const { widgets, editMode, setEditMode, addWidget, removeWidget, updateWidget, updateLayout, resetLayout, profiles, activeProfileId, switchProfile, setAsDefault, saveToNewProfile, deleteProfile } = useDashboard();
   const { width: containerWidth, containerRef } = useContainerWidth({ initialWidth: 1200 });
@@ -155,7 +158,7 @@ export function Dashboard() {
     if (widget.builtIn && !chartTypeChanged) {
       switch (widget.id) {
         case "kpi":
-          return <KPICards data={summary.data} loading={summary.loading} />;
+          return <KPICards data={summary.data} loading={summary.loading} onCardClick={setKpiDetail} />;
         case "volume":
           return <VolumeTrendChart data={volume.data} loading={volume.loading} bare />;
         case "validation":
@@ -258,6 +261,13 @@ export function Dashboard() {
       <AddWidgetModal open={addOpen} onClose={() => setAddOpen(false)} onAdd={addWidget} />
       <EditWidgetModal widget={editWidget} onClose={() => setEditWidget(null)} onSave={updateWidget} />
       <TicketDetailModal ticketId={ticketId} onClose={() => setTicketId(null)} />
+      <KPIDetailModal
+        kpiKey={kpiDetail}
+        summary={summary.data}
+        filters={f}
+        onClose={() => setKpiDetail(null)}
+        onTicketClick={(id) => { setKpiDetail(null); setTicketId(id); }}
+      />
     </div>
   );
 }

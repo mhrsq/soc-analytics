@@ -54,12 +54,21 @@ async def list_tickets(
     start: Optional[str] = Query(None),
     end: Optional[str] = Query(None),
     search: Optional[str] = Query(None, description="Search in subject"),
+    has_mttd: Optional[str] = Query(None, description="Filter to tickets with MTTD data"),
+    has_sla: Optional[str] = Query(None, description="Filter to tickets with SLA data"),
+    sort: Optional[str] = Query(None, description="Sort field: created_time, mttd_seconds"),
+    order: Optional[str] = Query(None, description="Sort order: asc, desc"),
     db: AsyncSession = Depends(get_db),
 ):
     """List tickets with filtering and pagination."""
     filters = []
     if status:
-        filters.append(Ticket.status == status)
+        # "Open" includes Assigned and In Progress for drilldown
+        open_statuses = {"Open", "Assigned", "In Progress"}
+        if status in open_statuses:
+            filters.append(Ticket.status.in_(open_statuses))
+        else:
+            filters.append(Ticket.status == status)
     if priority:
         filters.append(Ticket.priority == priority)
     if customer:
@@ -89,17 +98,28 @@ async def list_tickets(
                 filters.append(cast(Ticket.created_time, Date) <= val)
     if search:
         filters.append(Ticket.subject.ilike(f"%{search}%"))
+    if has_mttd and has_mttd.lower() == "true":
+        filters.append(Ticket.mttd_seconds != None)  # noqa: E711
+        filters.append(Ticket.mttd_seconds > 0)
+    if has_sla and has_sla.lower() == "true":
+        filters.append(Ticket.sla_met != None)  # noqa: E711
 
     # Count total
     count_q = select(func.count(Ticket.id)).where(*filters)
     total = (await db.execute(count_q)).scalar() or 0
+
+    # Determine sort order
+    sort_col = Ticket.created_time  # default
+    if sort == "mttd_seconds":
+        sort_col = Ticket.mttd_seconds
+    order_func = sort_col.desc() if (order or "desc") == "desc" else sort_col.asc()
 
     # Fetch page
     offset = (page - 1) * page_size
     q = (
         select(Ticket)
         .where(*filters)
-        .order_by(Ticket.created_time.desc())
+        .order_by(order_func)
         .offset(offset)
         .limit(page_size)
     )

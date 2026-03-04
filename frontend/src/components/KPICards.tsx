@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MetricsSummary } from "../types";
+import type { KPIKey } from "./KPIDetailModal";
 import {
   ShieldCheck,
   ShieldAlert,
@@ -13,6 +14,7 @@ import {
 interface Props {
   data: MetricsSummary | null;
   loading: boolean;
+  onCardClick?: (key: KPIKey) => void;
 }
 
 function fmt(seconds: number | null): string {
@@ -83,10 +85,10 @@ function AnimatedValue({ value, style, className }: { value: string; style?: Rea
 
 /* Single KPI card */
 function KPICard({
-  label, value, Icon, color, bg, borderColor, idx, tooltip,
+  label, value, Icon, color, bg, borderColor, idx, tooltip, onClick,
 }: {
   label: string; value: string; Icon: LucideIcon;
-  color: string; bg: string; borderColor: string; idx: number; tooltip?: string;
+  color: string; bg: string; borderColor: string; idx: number; tooltip?: string; onClick?: () => void;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const scale = useContainerScale(cardRef);
@@ -101,8 +103,9 @@ function KPICard({
   return (
     <div
       ref={cardRef}
-      className={`relative overflow-hidden rounded-xl transition-all duration-300 group h-full flex flex-col justify-center${tooltip ? " guide-tip guide-tip-below" : ""}`}
+      className={`relative rounded-xl transition-all duration-300 group h-full flex flex-col justify-center${tooltip ? " guide-tip guide-tip-below" : ""}${onClick ? " cursor-pointer hover:scale-[1.02] active:scale-[0.98]" : ""}`}
       data-tip={tooltip || undefined}
+      onClick={onClick}
       style={{
         padding: `${pad}px`,
         backgroundColor: "var(--theme-card-bg)",
@@ -154,7 +157,9 @@ function KPISkeleton() {
   );
 }
 
-export function KPICards({ data, loading }: Props) {
+const KPI_KEYS: KPIKey[] = ["total", "open", "tp", "fp", "mttd", "sla"];
+
+export function KPICards({ data, loading, onCardClick }: Props) {
   if (loading || !data) return <KPISkeleton />;
 
   const cards = [
@@ -236,6 +241,7 @@ export function KPICards({ data, loading }: Props) {
           borderColor={c.borderColor}
           tooltip={c.tooltip}
           idx={i}
+          onClick={onCardClick ? () => onCardClick(KPI_KEYS[i]) : undefined}
         />
       ))}
     </div>
