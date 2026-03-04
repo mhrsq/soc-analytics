@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Bell, BellOff, Volume2, VolumeX, X, ExternalLink, Trash2 } from "lucide-react";
+import { Bell, BellOff, Volume2, VolumeX, X, ExternalLink, Trash2, Upload, Play, Settings, Undo2 } from "lucide-react";
 import { useNotifications } from "../contexts/NotificationContext";
 
 function timeAgo(dateStr: string | null): string {
@@ -24,8 +24,11 @@ export function NotificationBell() {
   const {
     notifications, unreadCount, soundEnabled, toggleSound,
     markAllRead, dismissNotification, clearAll, isPolling,
+    volume, setVolume, customSoundName, setCustomSound, testSound,
   } = useNotifications();
   const [open, setOpen] = useState(false);
+  const [showSoundSettings, setShowSoundSettings] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const dropRef = useRef<HTMLDivElement>(null);
 
   // Close on outside click
@@ -33,6 +36,7 @@ export function NotificationBell() {
     function handleClick(e: MouseEvent) {
       if (dropRef.current && !dropRef.current.contains(e.target as Node)) {
         setOpen(false);
+        setShowSoundSettings(false);
       }
     }
     if (open) document.addEventListener("mousedown", handleClick);
@@ -40,8 +44,10 @@ export function NotificationBell() {
   }, [open]);
 
   const handleOpen = () => {
-    setOpen(v => !v);
-    if (!open && unreadCount > 0) markAllRead();
+    const willOpen = !open;
+    setOpen(willOpen);
+    if (willOpen && unreadCount > 0) markAllRead();
+    if (!willOpen) setShowSoundSettings(false);
   };
 
   return (
@@ -65,7 +71,7 @@ export function NotificationBell() {
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 max-h-[400px] flex flex-col rounded-xl shadow-2xl shadow-black/40 animate-fade-in-up z-50 overflow-hidden" style={{ backgroundColor: "var(--theme-surface-raised)", border: "1px solid var(--theme-surface-border)" }}>
+        <div className="absolute right-0 top-full mt-2 w-80 max-h-[480px] flex flex-col rounded-xl shadow-2xl shadow-black/40 animate-fade-in-up z-50 overflow-hidden" style={{ backgroundColor: "var(--theme-surface-raised)", border: "1px solid var(--theme-surface-border)" }}>
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid var(--theme-surface-border)" }}>
             <span className="text-xs font-semibold" style={{ color: "var(--theme-text-secondary)" }}>Notifications</span>
@@ -77,6 +83,14 @@ export function NotificationBell() {
                 title={soundEnabled ? "Mute notifications" : "Unmute notifications"}
               >
                 {soundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+              </button>
+              <button
+                onClick={() => setShowSoundSettings(v => !v)}
+                className="p-1 rounded transition-colors"
+                style={{ color: showSoundSettings ? "var(--theme-accent)" : "var(--theme-text-muted)" }}
+                title="Sound settings"
+              >
+                <Settings className="w-3.5 h-3.5" />
               </button>
               {notifications.length > 0 && (
                 <button
@@ -90,6 +104,81 @@ export function NotificationBell() {
               )}
             </div>
           </div>
+
+          {/* Sound settings panel */}
+          {showSoundSettings && (
+            <div className="px-4 py-3 space-y-3" style={{ borderBottom: "1px solid var(--theme-surface-border)", backgroundColor: "color-mix(in srgb, var(--theme-accent) 3%, transparent)" }}>
+              {/* Volume slider */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "var(--theme-text-muted)" }}>Volume</span>
+                  <span className="text-[10px] font-mono" style={{ color: "var(--theme-text-muted)" }}>{Math.round(volume * 100)}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={Math.round(volume * 100)}
+                  onChange={e => setVolume(parseInt(e.target.value) / 100)}
+                  className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+                  style={{
+                    background: `linear-gradient(to right, var(--theme-accent) ${volume * 100}%, color-mix(in srgb, var(--theme-text-muted) 30%, transparent) ${volume * 100}%)`,
+                  }}
+                />
+              </div>
+
+              {/* Custom sound upload */}
+              <div className="space-y-1.5">
+                <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "var(--theme-text-muted)" }}>Alert Sound</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-medium transition-colors hover:opacity-80"
+                    style={{ backgroundColor: "color-mix(in srgb, var(--theme-accent) 15%, transparent)", color: "var(--theme-accent)" }}
+                  >
+                    <Upload className="w-3 h-3" />
+                    Upload
+                  </button>
+                  {customSoundName && (
+                    <button
+                      onClick={() => setCustomSound(null)}
+                      className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-medium transition-colors hover:opacity-80"
+                      style={{ backgroundColor: "color-mix(in srgb, var(--theme-text-muted) 15%, transparent)", color: "var(--theme-text-muted)" }}
+                      title="Reset to default siren"
+                    >
+                      <Undo2 className="w-3 h-3" />
+                      Reset
+                    </button>
+                  )}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="audio/mpeg,audio/wav,audio/mp3,.mp3,.wav"
+                    className="hidden"
+                    onChange={e => {
+                      const file = e.target.files?.[0];
+                      if (file) setCustomSound(file);
+                      e.target.value = "";
+                    }}
+                  />
+                </div>
+                <p className="text-[9px]" style={{ color: "var(--theme-text-muted)", opacity: 0.7 }}>
+                  {customSoundName ? `Using: ${customSoundName}` : "Default: Siren alert"}
+                  {" · "}MP3/WAV, max ~2MB
+                </p>
+              </div>
+
+              {/* Test sound button */}
+              <button
+                onClick={testSound}
+                className="flex items-center gap-1.5 w-full justify-center px-3 py-2 rounded-lg text-[11px] font-semibold transition-all hover:opacity-80 active:scale-[0.98]"
+                style={{ backgroundColor: "color-mix(in srgb, var(--theme-accent) 20%, transparent)", color: "var(--theme-accent)" }}
+              >
+                <Play className="w-3.5 h-3.5" />
+                Test Sound
+              </button>
+            </div>
+          )}
 
           {/* List */}
           <div className="flex-1 overflow-y-auto">

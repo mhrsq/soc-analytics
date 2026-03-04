@@ -13,6 +13,11 @@ interface NotificationContextValue {
   lastPollTime: string | null;
   isPolling: boolean;
   pollNow: () => void;
+  volume: number;
+  setVolume: (v: number) => void;
+  customSoundName: string | null;
+  setCustomSound: (file: File | null) => void;
+  testSound: () => void;
 }
 
 const NotificationContext = createContext<NotificationContextValue | null>(null);
@@ -21,15 +26,18 @@ const POLL_INTERVAL = 3 * 60 * 1000; // 3 minutes
 const SOUND_KEY = "soc-notif-sound";
 const SEEN_KEY = "soc-notif-seen-ids";
 const LAST_POLL_KEY = "soc-notif-last-poll";
+const VOLUME_KEY = "soc-notif-volume";
+const CUSTOM_SOUND_KEY = "soc-notif-custom-sound";
+const CUSTOM_SOUND_NAME_KEY = "soc-notif-custom-sound-name";
 
-function playNotificationSound() {
+/** Play the default siren sound via Web Audio API */
+function playDefaultSiren(volume: number) {
   try {
     const ctx = new AudioContext();
     const t = ctx.currentTime;
-    const VOL = 0.45; // loud enough to wake the dead
-    const TOTAL = 2.4; // total duration in seconds
+    const VOL = volume;
+    const TOTAL = 2.4;
 
-    // ── Siren: two oscillators sweeping up/down like an ambulance ──
     const sirenA = ctx.createOscillator();
     const sirenB = ctx.createOscillator();
     const gainA = ctx.createGain();
@@ -43,7 +51,6 @@ function playNotificationSound() {
     sirenA.type = "sawtooth";
     sirenB.type = "square";
 
-    // Ambulance siren: sweep 600→1200→600 Hz, 3 cycles
     const cycles = 3;
     const cycleDur = TOTAL / cycles;
     for (let i = 0; i < cycles; i++) {
@@ -69,7 +76,6 @@ function playNotificationSound() {
     sirenB.start(t);
     sirenB.stop(t + TOTAL);
 
-    // ── Staccato trumpet blasts on top ──
     const blasts = 6;
     const blastDur = 0.12;
     for (let i = 0; i < blasts; i++) {
@@ -88,9 +94,26 @@ function playNotificationSound() {
       osc.stop(bt + blastDur);
     }
 
-    // Auto-close context after sound finishes
     setTimeout(() => ctx.close().catch(() => {}), (TOTAL + 0.5) * 1000);
   } catch { /* ignore audio errors */ }
+}
+
+/** Play a custom MP3/WAV stored as data URL */
+function playCustomSound(dataUrl: string, volume: number) {
+  try {
+    const audio = new Audio(dataUrl);
+    audio.volume = Math.min(1, Math.max(0, volume));
+    audio.play().catch(() => {});
+  } catch { /* ignore */ }
+}
+
+/** Play notification sound — custom if available, else default siren */
+function playNotificationSound(volume: number, customSoundUrl: string | null) {
+  if (customSoundUrl) {
+    playCustomSound(customSoundUrl, volume);
+  } else {
+    playDefaultSiren(volume);
+  }
 }
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
@@ -99,6 +122,20 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const [soundEnabled, setSoundEnabled] = useState(() => {
     try { return localStorage.getItem(SOUND_KEY) !== "false"; }
     catch { return true; }
+  });
+  const [volume, setVolumeState] = useState(() => {
+    try {
+      const v = localStorage.getItem(VOLUME_KEY);
+      return v !== null ? parseFloat(v) : 0.45;
+    } catch { return 0.45; }
+  });
+  const [customSoundUrl, setCustomSoundUrl] = useState<string | null>(() => {
+    try { return localStorage.getItem(CUSTOM_SOUND_KEY); }
+    catch { return null; }
+  });
+  const [customSoundName, setCustomSoundName] = useState<string | null>(() => {
+    try { return localStorage.getItem(CUSTOM_SOUND_NAME_KEY); }
+    catch { return null; }
   });
   const [lastPollTime, setLastPollTime] = useState<string | null>(() => {
     try { return localStorage.getItem(LAST_POLL_KEY); }
@@ -130,6 +167,45 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       return next;
     });
   }, []);
+
+  const setVolume = useCallback((v: number) => {
+    const clamped = Math.min(1, Math.max(0, v));
+    setVolumeState(clamped);
+    try { localStorage.setItem(VOLUME_KEY, String(clamped)); } catch { /* ignore */ }
+  }, []);
+
+  const setCustomSound = useCallback((file: File | null) => {
+    if (!file) {
+      // Remove custom sound
+      setCustomSoundUrl(null);
+      setCustomSoundName(null);
+      try {
+        localStorage.removeItem(CUSTOM_SOUND_KEY);
+        localStorage.removeItem(CUSTOM_SOUND_NAME_KEY);
+      } catch { /* ignore */ }
+      return;
+    }
+    // Read file as data URL and store
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      try {
+        localStorage.setItem(CUSTOM_SOUND_KEY, dataUrl);
+        localStorage.setItem(CUSTOM_SOUND_NAME_KEY, file.name);
+      } catch (e) {
+        // localStorage full — file too large
+        console.warn("Could not store custom sound:", e);
+        return;
+      }
+      setCustomSoundUrl(dataUrl);
+      setCustomSoundName(file.name);
+    };
+    reader.readAsDataURL(file);
+  }, []);
+
+  const testSound = useCallback(() => {
+    playNotificationSound(volume, customSoundUrl);
+  }, [volume, customSoundUrl]);
 
   const markAllRead = useCallback(() => {
     notifications.forEach(n => seenIdsRef.current.add(n.id));
@@ -174,7 +250,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       if (newTickets.length > 0 && initializedRef.current) {
         setNotifications(prev => [...newTickets, ...prev].slice(0, 50));
         setUnreadCount(prev => prev + newTickets.length);
-        if (soundEnabled) playNotificationSound();
+        if (soundEnabled) playNotificationSound(volume, customSoundUrl);
       }
 
       // Mark these as seen for next poll
@@ -194,7 +270,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsPolling(false);
     }
-  }, [soundEnabled, lastPollTime, saveSeen]);
+  }, [soundEnabled, volume, customSoundUrl, lastPollTime, saveSeen]);
 
   // Initial poll on mount — sets baseline without triggering notifications
   useEffect(() => {
@@ -227,6 +303,11 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         lastPollTime,
         isPolling,
         pollNow,
+        volume,
+        setVolume,
+        customSoundName,
+        setCustomSound,
+        testSound,
       }}
     >
       {children}

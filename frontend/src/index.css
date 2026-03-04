@@ -29,6 +29,27 @@
     margin: 0;
   }
 
+  /* Range slider thumb styling */
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--theme-accent, #38bdf8);
+    cursor: pointer;
+    border: 2px solid var(--theme-surface-raised, #1e293b);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--theme-accent, #38bdf8);
+    cursor: pointer;
+    border: 2px solid var(--theme-surface-raised, #1e293b);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  }
+
   /* Date input styling — inverted in dark mode */
   .dark-mode input[type="date"]::-webkit-calendar-picker-indicator {
     filter: invert(0.7);
