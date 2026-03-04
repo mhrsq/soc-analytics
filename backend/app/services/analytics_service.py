@@ -96,8 +96,8 @@ class AnalyticsService:
             "avg_mttd_display": _format_duration(avg_mttd),
             "sla_compliance_pct": sla_pct,
             "si_count": si,
-            "period_start": start_date,
-            "period_end": end_date,
+            "period_start": start_date.date() if isinstance(start_date, datetime) else start_date,
+            "period_end": end_date.date() if isinstance(end_date, datetime) else end_date,
         }
 
     async def get_volume_trend(
@@ -375,16 +375,19 @@ class AnalyticsService:
         end_date: Optional[date] = None,
         customer: Optional[str] = None,
     ) -> list:
-        """Build SQLAlchemy filter clauses from common params."""
+        """Build SQLAlchemy filter clauses from common params.
+        Accepts both date and datetime objects — datetime gives precise filtering."""
         filters = []
         if start_date:
-            filters.append(
-                cast(Ticket.created_time, Date) >= start_date
-            )
+            if isinstance(start_date, datetime):
+                filters.append(Ticket.created_time >= start_date)
+            else:
+                filters.append(cast(Ticket.created_time, Date) >= start_date)
         if end_date:
-            filters.append(
-                cast(Ticket.created_time, Date) <= end_date
-            )
+            if isinstance(end_date, datetime):
+                filters.append(Ticket.created_time <= end_date)
+            else:
+                filters.append(cast(Ticket.created_time, Date) <= end_date)
         if customer:
             filters.append(Ticket.customer == customer)
         return filters

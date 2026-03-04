@@ -1,6 +1,6 @@
 """Ticket API endpoints."""
 
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -14,6 +14,34 @@ from app.schemas import PaginatedTickets, TicketDetail, TicketListItem
 router = APIRouter(prefix="/api/tickets", tags=["tickets"])
 
 
+def _parse_time_param(value: str) -> tuple:
+    """Parse a time param as ISO datetime first, fallback to date.
+    Returns (parsed_value, is_datetime)."""
+    import re as _re
+    # Date-only check FIRST (YYYY-MM-DD) — must come before fromisoformat
+    # because Python 3.12 fromisoformat parses "2026-03-04" as datetime(2026,3,4,0,0)
+    if len(value) == 10 and _re.match(r"^\d{4}-\d{2}-\d{2}$", value):
+        try:
+            return date.fromisoformat(value), False
+        except ValueError:
+            pass
+    # Try full ISO datetime (e.g. 2026-03-04T07:22:36.317Z)
+    for fmt in ("%Y-%m-%dT%H:%M:%S.%fZ", "%Y-%m-%dT%H:%M:%SZ", "%Y-%m-%dT%H:%M:%S.%f+00:00", "%Y-%m-%dT%H:%M:%S+00:00"):
+        try:
+            return datetime.strptime(value, fmt).replace(tzinfo=timezone.utc), True
+        except ValueError:
+            continue
+    # Try ISO with timezone offset via fromisoformat
+    try:
+        dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt, True
+    except ValueError:
+        pass
+    return None, False
+
+
 @router.get("", response_model=PaginatedTickets)
 async def list_tickets(
     page: int = Query(1, ge=1),
@@ -23,8 +51,8 @@ async def list_tickets(
     customer: Optional[str] = Query(None),
     validation: Optional[str] = Query(None),
     technician: Optional[str] = Query(None),
-    start: Optional[date] = Query(None),
-    end: Optional[date] = Query(None),
+    start: Optional[str] = Query(None),
+    end: Optional[str] = Query(None),
     search: Optional[str] = Query(None, description="Search in subject"),
     db: AsyncSession = Depends(get_db),
 ):
@@ -46,9 +74,19 @@ async def list_tickets(
     if technician:
         filters.append(Ticket.technician == technician)
     if start:
-        filters.append(cast(Ticket.created_time, Date) >= start)
+        val, is_dt = _parse_time_param(start)
+        if val:
+            if is_dt:
+                filters.append(Ticket.created_time >= val)
+            else:
+                filters.append(cast(Ticket.created_time, Date) >= val)
     if end:
-        filters.append(cast(Ticket.created_time, Date) <= end)
+        val, is_dt = _parse_time_param(end)
+        if val:
+            if is_dt:
+                filters.append(Ticket.created_time <= val)
+            else:
+                filters.append(cast(Ticket.created_time, Date) <= val)
     if search:
         filters.append(Ticket.subject.ilike(f"%{search}%"))
 

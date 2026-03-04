@@ -18,7 +18,6 @@ export function presetToRange(preset: TimePreset): { start: string; end: string 
   if (preset === "all") return { start: "", end: "" };
   if (preset === "custom") return { start: "", end: "" };
   const now = new Date();
-  const end = now.toISOString().slice(0, 10);
   const ms: Record<string, number> = {
     last15m: 15 * 60_000,
     last1h: 3600_000,
@@ -26,7 +25,12 @@ export function presetToRange(preset: TimePreset): { start: string; end: string 
     last7d: 7 * 86400_000,
     last30d: 30 * 86400_000,
   };
-  const start = new Date(now.getTime() - (ms[preset] ?? 86400_000)).toISOString().slice(0, 10);
+  const startDate = new Date(now.getTime() - (ms[preset] ?? 86400_000));
+  // Short presets (< 24h) → full ISO datetime for precision
+  // Longer presets → date-only (YYYY-MM-DD) for day-level grouping
+  const useDateTime = preset === "last15m" || preset === "last1h";
+  const start = useDateTime ? startDate.toISOString() : startDate.toISOString().slice(0, 10);
+  const end = useDateTime ? now.toISOString() : now.toISOString().slice(0, 10);
   return { start, end };
 }
 

@@ -1,7 +1,7 @@
 """Metrics API endpoints."""
 
-from datetime import date
-from typing import Optional
+from datetime import date, datetime, timezone
+from typing import Optional, Union
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,96 +22,118 @@ from app.services.analytics_service import AnalyticsService
 router = APIRouter(prefix="/api/metrics", tags=["metrics"])
 
 
+def _parse_time(value: Optional[str]) -> Optional[Union[date, datetime]]:
+    """Parse ISO datetime or date string.
+    Date-only strings (YYYY-MM-DD) return date objects for day-level filtering.
+    Full datetime strings return datetime objects for precise filtering."""
+    if not value:
+        return None
+    # Date-only pattern (YYYY-MM-DD) → return date, not datetime
+    if len(value) == 10 and value[4] == "-" and value[7] == "-":
+        try:
+            return date.fromisoformat(value)
+        except ValueError:
+            return None
+    # Full ISO datetime
+    try:
+        dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt
+    except ValueError:
+        return None
+
+
 @router.get("/summary", response_model=MetricsSummary)
 async def get_summary(
-    start: Optional[date] = Query(None, description="Start date (YYYY-MM-DD)"),
-    end: Optional[date] = Query(None, description="End date (YYYY-MM-DD)"),
+    start: Optional[str] = Query(None, description="Start date/datetime (ISO)"),
+    end: Optional[str] = Query(None, description="End date/datetime (ISO)"),
     customer: Optional[str] = Query(None, description="Filter by customer"),
     db: AsyncSession = Depends(get_db),
 ):
     """Get KPI summary metrics."""
     svc = AnalyticsService(db)
-    return await svc.get_summary(start, end, customer)
+    return await svc.get_summary(_parse_time(start), _parse_time(end), customer)
 
 
 @router.get("/volume", response_model=list[VolumePoint])
 async def get_volume_trend(
-    start: Optional[date] = Query(None),
-    end: Optional[date] = Query(None),
+    start: Optional[str] = Query(None),
+    end: Optional[str] = Query(None),
     customer: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
     """Get ticket volume trend over time (daily)."""
     svc = AnalyticsService(db)
-    return await svc.get_volume_trend("daily", start, end, customer)
+    return await svc.get_volume_trend("daily", _parse_time(start), _parse_time(end), customer)
 
 
 @router.get("/validation", response_model=ValidationBreakdown)
 async def get_validation_breakdown(
-    start: Optional[date] = Query(None),
-    end: Optional[date] = Query(None),
+    start: Optional[str] = Query(None),
+    end: Optional[str] = Query(None),
     customer: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
     """Get TP/FP/Not Specified breakdown."""
     svc = AnalyticsService(db)
-    return await svc.get_validation_breakdown(start, end, customer)
+    return await svc.get_validation_breakdown(_parse_time(start), _parse_time(end), customer)
 
 
 @router.get("/priority", response_model=list[PriorityItem])
 async def get_priority_distribution(
-    start: Optional[date] = Query(None),
-    end: Optional[date] = Query(None),
+    start: Optional[str] = Query(None),
+    end: Optional[str] = Query(None),
     customer: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
     """Get ticket count by priority."""
     svc = AnalyticsService(db)
-    return await svc.get_priority_distribution(start, end, customer)
+    return await svc.get_priority_distribution(_parse_time(start), _parse_time(end), customer)
 
 
 @router.get("/customers", response_model=list[CustomerItem])
 async def get_customer_distribution(
-    start: Optional[date] = Query(None),
-    end: Optional[date] = Query(None),
+    start: Optional[str] = Query(None),
+    end: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
     """Get per-customer metrics."""
     svc = AnalyticsService(db)
-    return await svc.get_customer_distribution(start, end)
+    return await svc.get_customer_distribution(_parse_time(start), _parse_time(end))
 
 
 @router.get("/top-alerts", response_model=list[AlertRuleItem])
 async def get_top_alerts(
     limit: int = Query(10, ge=1, le=50),
-    start: Optional[date] = Query(None),
-    end: Optional[date] = Query(None),
+    start: Optional[str] = Query(None),
+    end: Optional[str] = Query(None),
     customer: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
     """Get most triggered Wazuh alert rules."""
     svc = AnalyticsService(db)
-    return await svc.get_top_alerts(limit, start, end, customer)
+    return await svc.get_top_alerts(limit, _parse_time(start), _parse_time(end), customer)
 
 
 @router.get("/mttd", response_model=list[MttdPoint])
 async def get_mttd_trend(
-    start: Optional[date] = Query(None),
-    end: Optional[date] = Query(None),
+    start: Optional[str] = Query(None),
+    end: Optional[str] = Query(None),
     customer: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
     """Get MTTD trend over time."""
     svc = AnalyticsService(db)
-    return await svc.get_mttd_trend(start, end, customer)
+    return await svc.get_mttd_trend(_parse_time(start), _parse_time(end), customer)
 
 
 @router.get("/analysts", response_model=list[AnalystPerformance])
 async def get_analyst_performance(
-    start: Optional[date] = Query(None),
-    end: Optional[date] = Query(None),
+    start: Optional[str] = Query(None),
+    end: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
     """Get analyst performance metrics."""
     svc = AnalyticsService(db)
-    return await svc.get_analyst_performance(start, end)
+    return await svc.get_analyst_performance(_parse_time(start), _parse_time(end))
