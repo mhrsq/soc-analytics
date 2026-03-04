@@ -22,7 +22,7 @@ interface NotificationContextValue {
 
 const NotificationContext = createContext<NotificationContextValue | null>(null);
 
-const POLL_INTERVAL = 3 * 60 * 1000; // 3 minutes
+const POLL_INTERVAL = 60 * 1000; // 60 seconds
 const SOUND_KEY = "soc-notif-sound";
 const SEEN_KEY = "soc-notif-seen-ids";
 const LAST_POLL_KEY = "soc-notif-last-poll";
@@ -36,7 +36,7 @@ function playDefaultSiren(volume: number) {
     const ctx = new AudioContext();
     const t = ctx.currentTime;
     const VOL = volume;
-    const TOTAL = 2.4;
+    const TOTAL = 4;
 
     const sirenA = ctx.createOscillator();
     const sirenB = ctx.createOscillator();
@@ -51,7 +51,7 @@ function playDefaultSiren(volume: number) {
     sirenA.type = "sawtooth";
     sirenB.type = "square";
 
-    const cycles = 3;
+    const cycles = 5;
     const cycleDur = TOTAL / cycles;
     for (let i = 0; i < cycles; i++) {
       const start = t + i * cycleDur;
@@ -76,7 +76,7 @@ function playDefaultSiren(volume: number) {
     sirenB.start(t);
     sirenB.stop(t + TOTAL);
 
-    const blasts = 6;
+    const blasts = 10;
     const blastDur = 0.12;
     for (let i = 0; i < blasts; i++) {
       const osc = ctx.createOscillator();
