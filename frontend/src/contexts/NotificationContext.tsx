@@ -25,27 +25,71 @@ const LAST_POLL_KEY = "soc-notif-last-poll";
 function playNotificationSound() {
   try {
     const ctx = new AudioContext();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.frequency.value = 880;
-    osc.type = "sine";
-    gain.gain.setValueAtTime(0.15, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.5);
-    // Second beep
-    const osc2 = ctx.createOscillator();
-    const gain2 = ctx.createGain();
-    osc2.connect(gain2);
-    gain2.connect(ctx.destination);
-    osc2.frequency.value = 1100;
-    osc2.type = "sine";
-    gain2.gain.setValueAtTime(0.15, ctx.currentTime + 0.15);
-    gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.6);
-    osc2.start(ctx.currentTime + 0.15);
-    osc2.stop(ctx.currentTime + 0.6);
+    const t = ctx.currentTime;
+    const VOL = 0.45; // loud enough to wake the dead
+    const TOTAL = 2.4; // total duration in seconds
+
+    // ── Siren: two oscillators sweeping up/down like an ambulance ──
+    const sirenA = ctx.createOscillator();
+    const sirenB = ctx.createOscillator();
+    const gainA = ctx.createGain();
+    const gainB = ctx.createGain();
+
+    sirenA.connect(gainA);
+    sirenB.connect(gainB);
+    gainA.connect(ctx.destination);
+    gainB.connect(ctx.destination);
+
+    sirenA.type = "sawtooth";
+    sirenB.type = "square";
+
+    // Ambulance siren: sweep 600→1200→600 Hz, 3 cycles
+    const cycles = 3;
+    const cycleDur = TOTAL / cycles;
+    for (let i = 0; i < cycles; i++) {
+      const start = t + i * cycleDur;
+      sirenA.frequency.setValueAtTime(600, start);
+      sirenA.frequency.linearRampToValueAtTime(1200, start + cycleDur * 0.5);
+      sirenA.frequency.linearRampToValueAtTime(600, start + cycleDur);
+      sirenB.frequency.setValueAtTime(620, start);
+      sirenB.frequency.linearRampToValueAtTime(1220, start + cycleDur * 0.5);
+      sirenB.frequency.linearRampToValueAtTime(620, start + cycleDur);
+    }
+
+    gainA.gain.setValueAtTime(VOL, t);
+    gainA.gain.setValueAtTime(VOL, t + TOTAL - 0.1);
+    gainA.gain.exponentialRampToValueAtTime(0.001, t + TOTAL);
+
+    gainB.gain.setValueAtTime(VOL * 0.3, t);
+    gainB.gain.setValueAtTime(VOL * 0.3, t + TOTAL - 0.1);
+    gainB.gain.exponentialRampToValueAtTime(0.001, t + TOTAL);
+
+    sirenA.start(t);
+    sirenA.stop(t + TOTAL);
+    sirenB.start(t);
+    sirenB.stop(t + TOTAL);
+
+    // ── Staccato trumpet blasts on top ──
+    const blasts = 6;
+    const blastDur = 0.12;
+    for (let i = 0; i < blasts; i++) {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.connect(g);
+      g.connect(ctx.destination);
+      osc.type = "square";
+      osc.frequency.value = i % 2 === 0 ? 1400 : 1600;
+      const bt = t + i * 0.2;
+      g.gain.setValueAtTime(0, bt);
+      g.gain.linearRampToValueAtTime(VOL * 0.5, bt + 0.02);
+      g.gain.setValueAtTime(VOL * 0.5, bt + blastDur - 0.02);
+      g.gain.linearRampToValueAtTime(0, bt + blastDur);
+      osc.start(bt);
+      osc.stop(bt + blastDur);
+    }
+
+    // Auto-close context after sound finishes
+    setTimeout(() => ctx.close().catch(() => {}), (TOTAL + 0.5) * 1000);
   } catch { /* ignore audio errors */ }
 }
 
