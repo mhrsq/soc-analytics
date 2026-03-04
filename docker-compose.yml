@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: soc-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: soc_analytics
+      POSTGRES_USER: soc
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-soc_s3cur3_pwd}
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./backend/db/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U soc -d soc_analytics"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: soc-redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: soc-backend
+    restart: unless-stopped
+    ports:
+      - "8500:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://soc:${DB_PASSWORD:-soc_s3cur3_pwd}@db:5432/soc_analytics
+      REDIS_URL: redis://redis:6379/0
+      SDP_BASE_URL: ${SDP_BASE_URL}
+      SDP_API_KEY: ${SDP_API_KEY}
+      CLAUDE_API_KEY: ${CLAUDE_API_KEY:-}
+      SYNC_INTERVAL_MINUTES: ${SYNC_INTERVAL_MINUTES:-5}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+
+  # React Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: soc-frontend
+    restart: unless-stopped
+    ports:
+      - "3500:3000"
+    environment:
+      VITE_API_URL: http://backend:8000
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+volumes:
+  pgdata:

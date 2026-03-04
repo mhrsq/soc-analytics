@@ -1,0 +1,210 @@
+"""Pydantic schemas for API request/response."""
+
+from datetime import date, datetime
+from typing import Optional
+from pydantic import BaseModel
+
+
+# --- Metrics ---
+
+class MetricsSummary(BaseModel):
+    total_tickets: int
+    open_tickets: int
+    tp_count: int
+    fp_count: int
+    ns_count: int
+    tp_rate: float
+    fp_rate: float
+    avg_mttd_seconds: Optional[float]
+    avg_mttd_display: Optional[str]
+    sla_compliance_pct: Optional[float]
+    si_count: int  # Security Incidents
+    period_start: Optional[date]
+    period_end: Optional[date]
+
+
+class VolumePoint(BaseModel):
+    date: date
+    total: int
+    tp_count: int
+    fp_count: int
+    ns_count: int
+
+
+class ValidationBreakdown(BaseModel):
+    true_positive: int
+    false_positive: int
+    not_specified: int
+    total: int
+
+
+class PriorityItem(BaseModel):
+    priority: str
+    count: int
+
+
+class CustomerItem(BaseModel):
+    customer: str
+    total: int
+    tp_count: int
+    fp_count: int
+    tp_rate: float
+    avg_mttd_seconds: Optional[float]
+
+
+class AlertRuleItem(BaseModel):
+    rule_id: Optional[str]
+    rule_name: str
+    count: int
+    tp_count: int
+    fp_count: int
+    tp_rate: float
+
+
+class MttdPoint(BaseModel):
+    date: date
+    avg_mttd_seconds: Optional[float]
+    median_mttd_seconds: Optional[float]
+    sla_compliant_pct: Optional[float]
+    total_measured: int
+
+
+class AnalystPerformance(BaseModel):
+    analyst: str
+    assigned: int
+    resolved: int
+    avg_mttr_seconds: Optional[float]
+    avg_mttr_display: Optional[str]
+    tp_found: int
+
+
+# --- Tickets ---
+
+class TicketListItem(BaseModel):
+    id: int
+    subject: str
+    status: str
+    priority: str
+    technician: Optional[str]
+    customer: Optional[str]
+    validation: Optional[str]
+    case_type: Optional[str]
+    created_time: Optional[datetime]
+    mttd_seconds: Optional[int]
+    sla_met: Optional[bool]
+
+
+class TicketDetail(BaseModel):
+    id: int
+    subject: str
+    description: Optional[str]
+    status: str
+    priority: str
+    technician: Optional[str]
+    group_name: Optional[str]
+    site_name: Optional[str]
+    customer: Optional[str]
+    validation: Optional[str]
+    attack_category: Optional[str]
+    case_type: Optional[str]
+    asset_name: Optional[str]
+    ip_address: Optional[str]
+    alert_time: Optional[datetime]
+    first_notif: Optional[datetime]
+    created_time: Optional[datetime]
+    completed_time: Optional[datetime]
+    mttd_seconds: Optional[int]
+    mttr_seconds: Optional[int]
+    sla_met: Optional[bool]
+    wazuh_rule_id: Optional[str]
+    wazuh_rule_name: Optional[str]
+
+
+class PaginatedTickets(BaseModel):
+    tickets: list[TicketListItem]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+
+
+# --- Sync ---
+
+class SyncStatus(BaseModel):
+    last_sync: Optional[datetime]
+    last_sync_type: Optional[str]
+    last_status: Optional[str]
+    tickets_synced: Optional[int]
+    total_in_db: int
+    is_running: bool
+
+
+class SyncTriggerResponse(BaseModel):
+    message: str
+    sync_id: Optional[int]
+
+
+# --- AI ---
+
+class AIInsightRequest(BaseModel):
+    period: str = "7d"  # 1d, 7d, 30d (used as fallback if start/end not given)
+    customer: Optional[str] = None
+    provider_id: Optional[int] = None  # Which LLM provider to use (None = default)
+    start_date: Optional[str] = None  # ISO date string e.g. "2026-03-01"
+    end_date: Optional[str] = None    # ISO date string e.g. "2026-03-04"
+
+
+class AIInsight(BaseModel):
+    narrative: str
+    anomalies: list[str]
+    recommendations: list[str]
+    generated_at: datetime
+    model_used: Optional[str] = None
+
+
+# --- LLM Providers ---
+
+class LlmProviderCreate(BaseModel):
+    provider: str           # openai, anthropic, xai, google
+    label: str
+    model: str
+    api_key: str
+    base_url: Optional[str] = None
+    is_default: bool = False
+
+
+class LlmProviderUpdate(BaseModel):
+    label: Optional[str] = None
+    model: Optional[str] = None
+    api_key: Optional[str] = None
+    base_url: Optional[str] = None
+    is_active: Optional[bool] = None
+    is_default: Optional[bool] = None
+
+
+class LlmProviderOut(BaseModel):
+    id: int
+    provider: str
+    label: str
+    model: str
+    api_key_hint: str        # masked key e.g. "sk-...abc"
+    base_url: Optional[str]
+    is_active: bool
+    is_default: bool
+    created_at: Optional[datetime]
+    last_tested: Optional[datetime]
+    test_status: Optional[str]
+
+
+class LlmTestResult(BaseModel):
+    success: bool
+    message: str
+    response_preview: Optional[str] = None
+    latency_ms: Optional[int] = None
+
+
+# --- Filters ---
+
+class DateRange(BaseModel):
+    start: Optional[date] = None
+    end: Optional[date] = None

@@ -1,0 +1,32 @@
+# Environment
+.env
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Node
+node_modules/
+dist/
+
+# Docker
+pgdata/
+
+# IDE
+.vscode/
+.idea/
+
+# DB dumps
+db_dump.sql
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Old files (from previous AI)
+# index.html
+# styles.css
+# app.js
