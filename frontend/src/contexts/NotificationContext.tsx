@@ -22,7 +22,7 @@ interface NotificationContextValue {
 
 const NotificationContext = createContext<NotificationContextValue | null>(null);
 
-const POLL_INTERVAL = 60 * 1000; // 60 seconds
+const POLL_INTERVAL = 3 * 60 * 1000; // 3 minutes
 const SOUND_KEY = "soc-notif-sound";
 const SEEN_KEY = "soc-notif-seen-ids";
 const LAST_POLL_KEY = "soc-notif-last-poll";

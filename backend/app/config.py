@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     CLAUDE_API_KEY: str = ""
 
     # Sync
-    SYNC_INTERVAL_MINUTES: int = 5
+    SYNC_INTERVAL_MINUTES: int = 3
     SDP_CONCURRENT_REQUESTS: int = 5
     SDP_PAGE_SIZE: int = 100
     MTTD_SLA_SECONDS: int = 900  # 15 minutes
