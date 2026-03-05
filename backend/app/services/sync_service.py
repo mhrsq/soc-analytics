@@ -138,7 +138,15 @@ class SyncService:
             self._is_running = False
 
     async def run_incremental_sync(self) -> int:
-        """Sync only new/updated tickets since last sync. Returns sync_log ID."""
+        """Sync new tickets AND recently updated tickets since last sync.
+
+        Two-phase approach:
+        1. Fetch new tickets (id > max_id in DB)
+        2. Fetch recently modified tickets (last_updated_time > last sync time)
+           This catches status changes, validation updates, UDF field edits, etc.
+
+        Returns sync_log ID.
+        """
         if self._is_running:
             logger.warning("Sync already running, skipping")
             return -1
@@ -152,6 +160,15 @@ class SyncService:
                 result = await session.execute(select(func.max(Ticket.id)))
                 max_id = result.scalar() or 0
 
+                # Get last successful sync time for the "modified" phase
+                result = await session.execute(
+                    select(SyncLog.finished_at)
+                    .where(SyncLog.status == "completed")
+                    .order_by(SyncLog.id.desc())
+                    .limit(1)
+                )
+                last_sync_time = result.scalar()
+
                 # Create sync log
                 log = SyncLog(
                     started_at=datetime.now(timezone.utc),
@@ -162,7 +179,7 @@ class SyncService:
                 await session.commit()
                 sync_id = log.id
 
-            # Fetch recent tickets (desc order, stop when we reach known IDs)
+            # ── Phase 1: New tickets ──
             tickets, total = await self.sdp.list_tickets(
                 start_index=1,
                 row_count=100,
@@ -171,9 +188,35 @@ class SyncService:
             )
 
             new_ids = [t["id"] for t in tickets if int(t["id"]) > max_id]
+            logger.info(f"Incremental sync: {len(new_ids)} new tickets found")
 
-            if not new_ids:
-                logger.info("Incremental sync: no new tickets")
+            # ── Phase 2: Recently modified tickets ──
+            modified_ids: list[int] = []
+            if last_sync_time:
+                try:
+                    mod_tickets, mod_total = await self.sdp.list_tickets(
+                        start_index=1,
+                        row_count=200,
+                        sort_field="last_updated_time",
+                        sort_order="desc",
+                        modified_since=last_sync_time,
+                    )
+                    # Only re-sync tickets we already have (existing ones that were updated)
+                    modified_ids = [
+                        t["id"] for t in mod_tickets
+                        if int(t["id"]) <= max_id and t["id"] not in new_ids
+                    ]
+                    logger.info(
+                        f"Incremental sync: {mod_total} modified in SDP since last sync, "
+                        f"{len(modified_ids)} existing tickets to re-sync"
+                    )
+                except Exception as e:
+                    logger.warning(f"Modified-ticket fetch failed (will still sync new): {e}")
+
+            all_ids = list(set(new_ids + modified_ids))
+
+            if not all_ids:
+                logger.info("Incremental sync: no new or modified tickets")
                 async with async_session() as session:
                     log_entry = await session.get(SyncLog, sync_id)
                     if log_entry:
@@ -181,13 +224,17 @@ class SyncService:
                         log_entry.tickets_synced = 0
                         log_entry.tickets_total = 0
                         log_entry.status = "completed"
+                        log_entry.details = {"new": 0, "updated": 0}
                         await session.commit()
                 return sync_id
 
-            logger.info(f"Incremental sync: {len(new_ids)} new tickets to sync")
+            logger.info(
+                f"Incremental sync: fetching details for {len(all_ids)} tickets "
+                f"({len(new_ids)} new + {len(modified_ids)} updated)"
+            )
 
-            # Fetch details
-            detail_tasks = [self.sdp.get_ticket_detail(tid) for tid in new_ids]
+            # Fetch details for all
+            detail_tasks = [self.sdp.get_ticket_detail(tid) for tid in all_ids]
             details = await asyncio.gather(*detail_tasks, return_exceptions=True)
 
             records = []
@@ -206,21 +253,28 @@ class SyncService:
             if records:
                 await self._upsert_tickets(records)
 
+            new_count = sum(1 for r in records if r["id"] in set(int(x) for x in new_ids))
+            updated_count = len(records) - new_count
+
             # Finalize
             async with async_session() as session:
                 log_entry = await session.get(SyncLog, sync_id)
                 if log_entry:
                     log_entry.finished_at = datetime.now(timezone.utc)
                     log_entry.tickets_synced = len(records)
-                    log_entry.tickets_total = len(new_ids)
+                    log_entry.tickets_total = len(all_ids)
                     log_entry.errors = errors
                     log_entry.status = "completed"
+                    log_entry.details = {"new": new_count, "updated": updated_count}
                     await session.commit()
 
             # Refresh materialized views
             await self._refresh_views()
 
-            logger.info(f"Incremental sync: {len(records)} new tickets synced, {errors} errors")
+            logger.info(
+                f"Incremental sync completed: {new_count} new, {updated_count} updated, "
+                f"{errors} errors"
+            )
             return sync_id
 
         except Exception as e:
