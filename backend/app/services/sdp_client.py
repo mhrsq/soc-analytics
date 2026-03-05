@@ -167,8 +167,9 @@ class SDPClient:
             else:
                 record[db_field] = str(value) if value else None
 
-        # Compute MTTD
-        if record.get("first_notif") and record.get("alert_time"):
+        # Compute MTTD — only for non-FP tickets (FP = false alarm, MTTD irrelevant)
+        is_fp = str(record.get("validation", "") or "").lower() == "false positive"
+        if not is_fp and record.get("first_notif") and record.get("alert_time"):
             delta = record["first_notif"] - record["alert_time"]
             record["mttd_seconds"] = max(0, int(delta.total_seconds()))
             record["sla_met"] = record["mttd_seconds"] <= settings.MTTD_SLA_SECONDS
