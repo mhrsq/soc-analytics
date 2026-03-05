@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Calendar, Building2, Check, Clock, Pencil, Plus, RotateCcw, ChevronDown, LayoutDashboard, Star, Copy, Trash2 } from "lucide-react";
 import type { FilterOptions } from "../types";
 import type { DashboardProfile } from "../contexts/DashboardContext";
+import { AutoRefreshControl } from "./AutoRefreshControl";
 
 export type TimePreset = "last15m" | "last1h" | "last24h" | "last7d" | "last30d" | "all" | "custom";
 
@@ -54,11 +55,12 @@ interface Props {
   onSetAsDefault: () => void;
   onSaveToNewProfile: (name: string) => void;
   onDeleteProfile: (id: string) => void;
+  onRefresh: () => void;
 }
 
 const inputCls = `rounded-lg px-3 py-1.5 text-xs focus:outline-none transition-colors duration-200 theme-input`;
 
-export function FilterBar({ filters, onApply, filterOptions, editMode, onToggleEdit, onAddWidget, onReset, profiles, activeProfileId, onSwitchProfile, onSetAsDefault, onSaveToNewProfile, onDeleteProfile }: Props) {
+export function FilterBar({ filters, onApply, filterOptions, editMode, onToggleEdit, onAddWidget, onReset, profiles, activeProfileId, onSwitchProfile, onSetAsDefault, onSaveToNewProfile, onDeleteProfile, onRefresh }: Props) {
   const [preset, setPreset] = useState<TimePreset>("last24h");
   const [draft, setDraft] = useState(filters);
   const [dirty, setDirty] = useState(false);
@@ -219,6 +221,12 @@ export function FilterBar({ filters, onApply, filterOptions, editMode, onToggleE
             ))}
           </select>
         </div>
+
+        {/* ── Separator ── */}
+        <div className="h-5 w-px hidden sm:block" style={{ backgroundColor: "var(--theme-surface-border)" }} />
+
+        {/* ── Auto Refresh ── */}
+        <AutoRefreshControl onRefresh={onRefresh} />
 
         {/* ── Spacer ── */}
         <div className="flex-1" />

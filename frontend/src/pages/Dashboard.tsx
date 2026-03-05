@@ -45,6 +45,7 @@ export function Dashboard() {
   const [editWidget, setEditWidget] = useState<WidgetConfig | null>(null);
   const [ticketId, setTicketId] = useState<number | null>(null);
   const [kpiDetail, setKpiDetail] = useState<KPIKey | null>(null);
+  const [refreshTick, setRefreshTick] = useState(0);
 
   const { widgets, editMode, setEditMode, addWidget, removeWidget, updateWidget, updateLayout, resetLayout, profiles, activeProfileId, switchProfile, setAsDefault, saveToNewProfile, deleteProfile } = useDashboard();
   const { width: containerWidth, containerRef } = useContainerWidth({ initialWidth: 1200 });
@@ -59,8 +60,8 @@ export function Dashboard() {
     setFilters(next);
   }, []);
 
-  // Data fetching — all re-trigger when filters change
-  const deps = [filters.start, filters.end, filters.customer];
+  // Data fetching — all re-trigger when filters change or refreshTick bumps
+  const deps = [filters.start, filters.end, filters.customer, refreshTick];
   const summary = useFetch(() => api.getSummary(f), deps);
   const volume = useFetch(() => api.getVolume(f), deps);
   const validation = useFetch(() => api.getValidation(f), deps);
@@ -77,6 +78,11 @@ export function Dashboard() {
     try { await api.triggerSync(false); }
     catch { /* ignore */ }
     finally { setTimeout(() => setSyncing(false), 2000); }
+  }, []);
+
+  // Auto-refresh handler — bumps the tick to re-trigger all useFetch hooks
+  const handleAutoRefresh = useCallback(() => {
+    setRefreshTick(t => t + 1);
   }, []);
 
   // Map DataSource → data for generic chart renderer
@@ -213,6 +219,7 @@ export function Dashboard() {
           onSetAsDefault={setAsDefault}
           onSaveToNewProfile={saveToNewProfile}
           onDeleteProfile={deleteProfile}
+          onRefresh={handleAutoRefresh}
         />
       </div>
 
