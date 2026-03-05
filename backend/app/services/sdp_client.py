@@ -82,40 +82,16 @@ class SDPClient:
         row_count: int = 100,
         sort_field: str = "id",
         sort_order: str = "desc",
-        modified_since: Optional[datetime] = None,
     ) -> tuple[list[dict], int]:
         """List SOC tickets (basic fields only, no UDF).
         
-        Args:
-            modified_since: If provided, only return tickets modified after this time.
-                            Uses SDP's last_updated_time field with AND criteria.
-        
         Returns (tickets, total_count).
         """
-        # Build search criteria — always filter by SOC account
-        if modified_since:
-            # Combine account filter + last_updated_time filter with AND
-            # SDP v3 API format: list of criteria joined by logical_operator
-            epoch_ms = str(int(modified_since.timestamp() * 1000))
-            search_criteria = [
-                {
-                    "field": "account.name",
-                    "condition": "is",
-                    "value": self.SOC_ACCOUNT,
-                },
-                {
-                    "field": "last_updated_time",
-                    "condition": "greater than",
-                    "value": epoch_ms,
-                    "logical_operator": "AND",
-                },
-            ]
-        else:
-            search_criteria = {
-                "field": "account.name",
-                "condition": "is",
-                "value": self.SOC_ACCOUNT,
-            }
+        search_criteria = {
+            "field": "account.name",
+            "condition": "is",
+            "value": self.SOC_ACCOUNT,
+        }
 
         input_data = {
             "list_info": {
