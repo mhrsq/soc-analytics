@@ -1,8 +1,32 @@
+import { useState, useMemo } from "react";
 import { Card } from "./Card";
 import { TierBadge } from "./AnalystScoreCard";
 import { TableSkeleton } from "./Spinner";
 import type { AnalystScore } from "../types";
-import { Trophy, Medal, Award } from "lucide-react";
+import { Trophy, Medal, Award, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
+
+type SortKey = "rank" | "analyst" | "tier" | "score" | "tickets" | "sla" | "mttd";
+type SortDir = "asc" | "desc";
+
+const TIER_ORDER: Record<string, number> = { S: 5, A: 4, B: 3, C: 2, D: 1 };
+
+function getSortValue(row: AnalystScore, key: SortKey, origIdx: number): number | string {
+  switch (key) {
+    case "rank": return origIdx;
+    case "analyst": return row.analyst.toLowerCase();
+    case "tier": return TIER_ORDER[row.tier] ?? 0;
+    case "score": return row.composite_score;
+    case "tickets": return row.stats.total_tickets;
+    case "sla": return row.stats.sla_pct ?? -1;
+    case "mttd": return row.stats.avg_mttd_seconds ?? 999999;
+    default: return 0;
+  }
+}
+
+function SortIcon({ col, sortKey, sortDir }: { col: SortKey; sortKey: SortKey; sortDir: SortDir }) {
+  if (col !== sortKey) return <ChevronsUpDown className="w-3 h-3 opacity-30" />;
+  return sortDir === "asc" ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />;
+}
 
 interface Props {
   data: AnalystScore[] | null;
@@ -37,6 +61,34 @@ function ScoreBar({ score, tier }: { score: number; tier: string }) {
 }
 
 export function AnalystLeaderboard({ data, loading, onSelect }: Props) {
+  const [sortKey, setSortKey] = useState<SortKey>("rank");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+
+  const sorted = useMemo(() => {
+    if (!data) return [];
+    // Build indexed array so we can reference original rank
+    const indexed = data.map((row, i) => ({ row, origIdx: i }));
+    if (sortKey === "rank" && sortDir === "asc") return indexed; // default order from API
+    return [...indexed].sort((a, b) => {
+      const va = getSortValue(a.row, sortKey, a.origIdx);
+      const vb = getSortValue(b.row, sortKey, b.origIdx);
+      let cmp = 0;
+      if (typeof va === "number" && typeof vb === "number") cmp = va - vb;
+      else cmp = String(va).localeCompare(String(vb));
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+  }, [data, sortKey, sortDir]);
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      // Default direction: desc for numeric columns, asc for text
+      setSortDir(key === "analyst" ? "asc" : "desc");
+    }
+  };
+
   if (loading || !data) {
     return <Card title="Leaderboard"><TableSkeleton rows={6} cols={6} /></Card>;
   }
@@ -51,43 +103,49 @@ export function AnalystLeaderboard({ data, loading, onSelect }: Props) {
     );
   }
 
+  const headers: { label: string; key: SortKey; tip: string; align: string; hide?: boolean }[] = [
+    { label: "#", key: "rank", tip: "", align: "text-left" },
+    { label: "Analyst", key: "analyst", tip: "", align: "text-left" },
+    { label: "Tier", key: "tier", tip: "Performance tier: S(90+) A(75+) B(60+) C(40+) D(<40)", align: "text-center" },
+    { label: "Score", key: "score", tip: "Composite score (0-100): weighted avg of 7 metrics", align: "text-center", hide: true },
+    { label: "Tickets", key: "tickets", tip: "Total tickets handled in this period", align: "text-center", hide: true },
+    { label: "SLA", key: "sla", tip: "% tickets responded within SLA target", align: "text-center", hide: true },
+    { label: "MTTD", key: "mttd", tip: "Mean Time to Detect — avg time to first response", align: "text-center", hide: true },
+  ];
+
   return (
     <Card title="Leaderboard" noPad>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr style={{ borderBottom: "1px solid var(--theme-surface-border)" }}>
-              {[
-                { label: "#", tip: "" },
-                { label: "Analyst", tip: "" },
-                { label: "Tier", tip: "Performance tier: S(90+) A(75+) B(60+) C(40+) D(<40)" },
-                { label: "Score", tip: "Composite score (0-100): weighted avg of 7 metrics" },
-                { label: "Tickets", tip: "Total tickets handled in this period" },
-                { label: "SLA", tip: "% tickets responded within SLA target" },
-                { label: "MTTD", tip: "Mean Time to Detect — avg time to first response" },
-              ].map((h, i) => (
+              {headers.map((h) => (
                 <th
-                  key={h.label}
-                  className={`text-xs font-medium pb-2.5 px-3 sm:px-5 ${i <= 1 ? "text-left" : "text-center"} ${i >= 3 ? "hidden sm:table-cell" : ""}`}
+                  key={h.key}
+                  className={`text-xs font-medium pb-2.5 px-3 sm:px-5 ${h.align} ${h.hide ? "hidden sm:table-cell" : ""} cursor-pointer select-none hover:opacity-80 transition-opacity`}
                   style={{ color: "var(--theme-text-muted)" }}
+                  onClick={() => toggleSort(h.key)}
                 >
-                  {h.tip ? (
-                    <span className="relative group/hdr cursor-help inline-flex items-center gap-1">
-                      {h.label}
-                      <svg className="w-3 h-3 opacity-40 group-hover/hdr:opacity-70" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1" fill="none"/><text x="8" y="12" textAnchor="middle" fontSize="10" fill="currentColor">i</text></svg>
-                      <span className="pointer-events-none absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2.5 py-1.5 rounded-lg text-[10px] leading-tight font-normal whitespace-nowrap opacity-0 group-hover/hdr:opacity-100 transition-opacity shadow-lg"
-                        style={{ backgroundColor: "var(--theme-surface-raised)", color: "var(--theme-text-secondary)", border: "1px solid var(--theme-surface-border)" }}>
-                        {h.tip}
+                  <span className="inline-flex items-center gap-1">
+                    {h.tip ? (
+                      <span className="relative group/hdr cursor-help inline-flex items-center gap-1">
+                        {h.label}
+                        <svg className="w-3 h-3 opacity-40 group-hover/hdr:opacity-70" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1" fill="none"/><text x="8" y="12" textAnchor="middle" fontSize="10" fill="currentColor">i</text></svg>
+                        <span className="pointer-events-none absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2.5 py-1.5 rounded-lg text-[10px] leading-tight font-normal whitespace-nowrap opacity-0 group-hover/hdr:opacity-100 transition-opacity shadow-lg"
+                          style={{ backgroundColor: "var(--theme-surface-raised)", color: "var(--theme-text-secondary)", border: "1px solid var(--theme-surface-border)" }}>
+                          {h.tip}
+                        </span>
                       </span>
-                    </span>
-                  ) : h.label}
+                    ) : h.label}
+                    <SortIcon col={h.key} sortKey={sortKey} sortDir={sortDir} />
+                  </span>
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {data.map((row, i) => {
-              const initials = row.analyst.split(" ").map((w) => w[0]).join("").slice(0, 2);
+            {sorted.map(({ row, origIdx: rankIdx }, i) => {
+              const initials = row.analyst.split(" ").map((w: string) => w[0]).join("").slice(0, 2);
               return (
                 <tr
                   key={row.analyst}
@@ -102,9 +160,9 @@ export function AnalystLeaderboard({ data, loading, onSelect }: Props) {
                 >
                   <td className="py-3 px-3 sm:px-5 w-10">
                     <div className="flex items-center justify-center">
-                      {i < 3 ? RANK_ICONS[i] : (
+                      {rankIdx < 3 ? RANK_ICONS[rankIdx] : (
                         <span className="text-xs font-mono" style={{ color: "var(--theme-text-muted)" }}>
-                          {i + 1}
+                          {rankIdx + 1}
                         </span>
                       )}
                     </div>

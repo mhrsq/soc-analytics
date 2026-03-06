@@ -60,7 +60,7 @@ function TeamKPIs({ data }: { data: AnalystScore[] }) {
             </div>
             <div>
               <p className="text-[10px] uppercase tracking-wider" style={{ color: "var(--theme-text-muted)" }}>{k.label}</p>
-              <p className="text-lg font-bold font-mono" style={{ color: "var(--theme-text-primary)" }}>{k.value}</p>
+              <p className="font-bold font-mono" style={{ fontSize: 28, lineHeight: 1.2, color: "var(--theme-text-primary)" }}>{k.value}</p>
             </div>
           </div>
           {/* Tier badges for Analysts card */}

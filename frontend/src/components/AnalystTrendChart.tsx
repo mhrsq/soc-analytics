@@ -291,7 +291,7 @@ export function TeamTrendChart({ selectedAnalysts, granularity = "weekly" }: Com
                 opacity: active ? 1 : 0.5,
               }}
             >
-              {shortNames[name] || name.split(" ")[0]}
+              {name}
             </button>
           );
         })}
@@ -333,7 +333,7 @@ export function TeamTrendChart({ selectedAnalysts, granularity = "weekly" }: Com
                 key={name}
                 type="monotone"
                 dataKey={name}
-                name={shortNames[name] || name.split(" ")[0]}
+                name={name}
                 stroke={color}
                 strokeWidth={2}
                 dot={{ r: 2.5, fill: color, strokeWidth: 0 }}
