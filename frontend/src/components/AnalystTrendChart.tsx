@@ -240,6 +240,8 @@ export function TeamTrendChart({ selectedAnalysts, granularity = "weekly" }: Com
     });
   }, [data]);
 
+  const shortNames = useMemo(() => buildShortNames(allAnalysts), [allAnalysts]);
+
   const toggleAnalyst = (name: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
@@ -268,7 +270,6 @@ export function TeamTrendChart({ selectedAnalysts, granularity = "weekly" }: Com
   }
 
   const activeAnalysts = allAnalysts.filter((a) => selected.has(a));
-  const shortNames = useMemo(() => buildShortNames(allAnalysts), [allAnalysts]);
 
   return (
     <div>
