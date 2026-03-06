@@ -57,6 +57,8 @@ actionable insights in Bahasa Indonesia. Be concise and data-driven. Focus on:
         period: str = "7d",
         customer: Optional[str] = None,
         provider_id: Optional[int] = None,
+        start_date=None,
+        end_date=None,
     ) -> dict:
         """Generate AI narrative insights from metrics data."""
         provider = await self._get_provider(provider_id)
@@ -67,7 +69,7 @@ actionable insights in Bahasa Indonesia. Be concise and data-driven. Focus on:
                 return await self._call_anthropic_legacy(metrics, period, customer)
             return self._fallback_insights(metrics, period)
 
-        prompt = self._build_prompt(metrics, period, customer)
+        prompt = self._build_prompt(metrics, period, customer, start_date, end_date)
 
         try:
             text = await self._call_llm(provider, prompt)
@@ -161,10 +163,17 @@ actionable insights in Bahasa Indonesia. Be concise and data-driven. Focus on:
             logger.error(f"Legacy AI call failed: {e}")
             return self._fallback_insights(metrics, period)
 
-    def _build_prompt(self, metrics: dict, period: str, customer: Optional[str]) -> str:
-        period_label = {"1d": "hari ini", "7d": "7 hari terakhir", "30d": "30 hari terakhir"}.get(
-            period, period
-        )
+    def _build_prompt(self, metrics: dict, period: str, customer: Optional[str], start_date=None, end_date=None) -> str:
+        if start_date and end_date:
+            days = (end_date - start_date).days
+            if days <= 1:
+                period_label = f"hari ini ({start_date.strftime('%d %b %Y')})"
+            else:
+                period_label = f"{days} hari ({start_date.strftime('%d %b')} - {end_date.strftime('%d %b %Y')})"
+        else:
+            period_label = {"1d": "hari ini", "7d": "7 hari terakhir", "30d": "30 hari terakhir"}.get(
+                period, period
+            )
         customer_label = f" untuk customer {customer}" if customer else ""
 
         return f"""Analisis data SOC berikut untuk periode {period_label}{customer_label}:

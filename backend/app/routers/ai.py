@@ -50,7 +50,23 @@ async def generate_insights(
     summary["customers"] = customers
     summary["analysts"] = analysts
 
+    # Compute period label from actual date range
+    days_diff = (end_date - start_date).days
+    if days_diff <= 1:
+        period_str = "1d"
+    elif days_diff <= 7:
+        period_str = f"{days_diff}d"
+    elif days_diff <= 30:
+        period_str = f"{days_diff}d"
+    else:
+        period_str = f"{days_diff}d"
+
     # Generate insights
     ai = AIService(db)
-    result = await ai.generate_insights(summary, req.period, req.customer, provider_id=req.provider_id)
+    result = await ai.generate_insights(
+        summary, period_str, req.customer,
+        provider_id=req.provider_id,
+        start_date=start_date,
+        end_date=end_date,
+    )
     return result
