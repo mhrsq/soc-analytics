@@ -19,6 +19,17 @@ const ANALYST_COLORS = [
   "#14B8A6", "#EC4899", "#F97316", "#06B6D4", "#84CC16",
 ];
 
+const SHORT_MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+/** Convert period_start "2025-02-03" → "3 Feb" (same year) or "3 Feb '25" (different year) */
+function formatPeriodLabel(periodStart?: string, periodEnd?: string): string {
+  if (!periodStart) return "";
+  const [y, m, d] = periodStart.split("-").map(Number);
+  const now = new Date();
+  const label = `${d} ${SHORT_MONTHS[m - 1]}`;
+  return y !== now.getFullYear() ? `${label} '${String(y).slice(2)}` : label;
+}
+
 /** Build a map of full names → short display names, disambiguating collisions */
 function buildShortNames(fullNames: string[]): Record<string, string> {
   const firstNames = fullNames.map((n) => n.split(" ")[0]);
@@ -64,7 +75,7 @@ export function AnalystTrendChart({ analyst, granularity = "weekly", compact = f
 
   const chartData = useMemo(() => {
     return points.map((p) => ({
-      period: p.period.replace(/^\d{4}-/, ""),
+      period: formatPeriodLabel(p.period_start, p.period_end),
       fullPeriod: p.period,
       score: metric === "composite" ? p.composite_score : p.metrics[metric],
       tickets: p.total_tickets,
@@ -230,7 +241,7 @@ export function TeamTrendChart({ selectedAnalysts, granularity = "weekly" }: Com
   const chartData = useMemo(() => {
     return data.map((d) => {
       const point: Record<string, string | number> = {
-        period: d.period.replace(/^\d{4}-/, ""),
+        period: formatPeriodLabel(d.period_start, d.period_end),
         fullPeriod: d.period,
       };
       d.analysts.forEach((a) => {
