@@ -528,9 +528,9 @@ Gunakan Bahasa Indonesia. Bersikap objektif dan berbasis data."""
                 resolved=st["resolved"],
                 tp_count=st["tp_count"],
                 fp_count=st["fp_count"],
-                avg_mttd_seconds=int(st["avg_mttd_seconds"]) if st["avg_mttd_seconds"] else None,
-                avg_mttr_seconds=int(st["avg_mttr_seconds"]) if st["avg_mttr_seconds"] else None,
-                sla_pct=int(st["sla_pct"] * 10) if st["sla_pct"] is not None else None,
+                avg_mttd_seconds=int(st["avg_mttd_seconds"]) if st.get("avg_mttd_seconds") else None,
+                avg_mttr_seconds=int(st["avg_mttr_seconds"]) if st.get("avg_mttr_seconds") else None,
+                sla_pct=int(st["sla_pct"] * 10) if st.get("sla_pct") is not None else 0,
             )
             self.session.add(snap)
             count += 1
