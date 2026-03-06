@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Card } from "./Card";
 import { Spinner } from "./Spinner";
 import { api } from "../api/client";
@@ -201,9 +203,9 @@ export function AIInsightsPanel({ customer, startDate, endDate }: Props) {
               <p className="text-[11px] font-semibold mb-1.5" style={{ color: "var(--theme-text-muted)" }}>
                 Ringkasan
               </p>
-              <p className="text-sm leading-relaxed" style={{ color: "var(--theme-text-secondary)" }}>
-                {insight.narrative}
-              </p>
+              <div className="prose-ai text-sm leading-relaxed" style={{ color: "var(--theme-text-secondary)" }}>
+                <Md>{insight.narrative}</Md>
+              </div>
             </div>
           </div>
 
@@ -225,7 +227,7 @@ export function AIInsightsPanel({ customer, startDate, endDate }: Props) {
                       style={{ color: "var(--theme-text-secondary)" }}
                     >
                       <span className="w-1 h-1 rounded-full bg-cyber-orange mt-2 flex-shrink-0" />
-                      {a}
+                      <span className="prose-ai flex-1 min-w-0"><Md>{a}</Md></span>
                     </li>
                   ))}
                 </ul>
@@ -251,7 +253,7 @@ export function AIInsightsPanel({ customer, startDate, endDate }: Props) {
                       style={{ color: "var(--theme-text-secondary)" }}
                     >
                       <span className="w-1 h-1 rounded-full bg-cyber-green mt-2 flex-shrink-0" />
-                      {r}
+                      <span className="prose-ai flex-1 min-w-0"><Md>{r}</Md></span>
                     </li>
                   ))}
                 </ul>
@@ -273,6 +275,90 @@ export function AIInsightsPanel({ customer, startDate, endDate }: Props) {
         </div>
       )}
     </Card>
+  );
+}
+
+/* ─── Markdown renderer for AI output ─── */
+function Md({ children }: { children: string }) {
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      components={{
+        // Strip wrapping <p> when inline
+        p: ({ children }) => <span>{children}</span>,
+        strong: ({ children }) => (
+          <strong style={{ color: "var(--theme-text-primary)", fontWeight: 600 }}>{children}</strong>
+        ),
+        em: ({ children }) => (
+          <em style={{ color: "var(--theme-accent)", fontStyle: "italic" }}>{children}</em>
+        ),
+        code: ({ children, className }) => {
+          const isBlock = className?.includes("language-");
+          return isBlock ? (
+            <pre
+              className="rounded-lg p-3 my-2 text-xs overflow-x-auto"
+              style={{ backgroundColor: "var(--theme-surface-base)", border: "1px solid var(--theme-surface-border)" }}
+            >
+              <code>{children}</code>
+            </pre>
+          ) : (
+            <code
+              className="px-1.5 py-0.5 rounded text-[11px] font-mono"
+              style={{ backgroundColor: "var(--theme-surface-base)", color: "var(--theme-accent)", border: "1px solid var(--theme-surface-border)" }}
+            >
+              {children}
+            </code>
+          );
+        },
+        pre: ({ children }) => <>{children}</>,
+        ul: ({ children }) => <ul className="list-disc pl-4 space-y-1 my-1.5">{children}</ul>,
+        ol: ({ children }) => <ol className="list-decimal pl-4 space-y-1 my-1.5">{children}</ol>,
+        li: ({ children }) => <li>{children}</li>,
+        a: ({ href, children }) => (
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-2"
+            style={{ color: "var(--theme-accent)" }}
+          >
+            {children}
+          </a>
+        ),
+        h1: ({ children }) => <h3 className="text-sm font-bold mt-3 mb-1" style={{ color: "var(--theme-text-primary)" }}>{children}</h3>,
+        h2: ({ children }) => <h4 className="text-sm font-bold mt-3 mb-1" style={{ color: "var(--theme-text-primary)" }}>{children}</h4>,
+        h3: ({ children }) => <h5 className="text-xs font-bold mt-2 mb-1" style={{ color: "var(--theme-text-primary)" }}>{children}</h5>,
+        blockquote: ({ children }) => (
+          <blockquote
+            className="pl-3 my-2 text-xs italic"
+            style={{ borderLeft: "2px solid var(--theme-accent)", color: "var(--theme-text-muted)" }}
+          >
+            {children}
+          </blockquote>
+        ),
+        table: ({ children }) => (
+          <div className="overflow-x-auto my-2">
+            <table className="text-xs w-full" style={{ borderCollapse: "collapse" }}>{children}</table>
+          </div>
+        ),
+        thead: ({ children }) => (
+          <thead style={{ backgroundColor: "var(--theme-surface-base)" }}>{children}</thead>
+        ),
+        th: ({ children }) => (
+          <th className="px-2 py-1.5 text-left font-semibold" style={{ borderBottom: "1px solid var(--theme-surface-border)", color: "var(--theme-text-primary)" }}>
+            {children}
+          </th>
+        ),
+        td: ({ children }) => (
+          <td className="px-2 py-1.5" style={{ borderBottom: "1px solid var(--theme-surface-border)", color: "var(--theme-text-secondary)" }}>
+            {children}
+          </td>
+        ),
+        hr: () => <hr className="my-3" style={{ borderColor: "var(--theme-surface-border)" }} />,
+      }}
+    >
+      {children}
+    </ReactMarkdown>
   );
 }
 
