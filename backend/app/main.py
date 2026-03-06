@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 # Scheduler for periodic sync
 scheduler_task = None
+full_sync_task = None
 
 
 async def _periodic_sync():
@@ -61,28 +62,60 @@ async def _periodic_sync():
         await asyncio.sleep(interval)
 
 
+async def _daily_full_sync():
+    """Background task: full re-sync every day at 00:00 WIB (17:00 UTC)."""
+    from app.routers.sync import get_sync_service
+    from datetime import datetime, timezone, timedelta
+
+    sync_svc = get_sync_service()
+    WIB = timezone(timedelta(hours=7))
+
+    while True:
+        # Calculate seconds until next 00:00 WIB
+        now_wib = datetime.now(WIB)
+        next_midnight = now_wib.replace(hour=0, minute=0, second=0, microsecond=0)
+        if next_midnight <= now_wib:
+            next_midnight += timedelta(days=1)
+        wait_seconds = (next_midnight - now_wib).total_seconds()
+
+        logger.info(
+            f"Daily full sync scheduled in {wait_seconds/3600:.1f}h "
+            f"(next: {next_midnight.strftime('%Y-%m-%d %H:%M WIB')})"
+        )
+        await asyncio.sleep(wait_seconds)
+
+        try:
+            logger.info("Starting daily full re-sync (00:00 WIB)")
+            await sync_svc.run_initial_sync()
+            logger.info("Daily full re-sync completed")
+        except Exception as e:
+            logger.error(f"Daily full sync error: {type(e).__name__}: {repr(e)}")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan: startup and shutdown."""
-    global scheduler_task
+    global scheduler_task, full_sync_task
 
     logger.info("SOC Analytics Dashboard starting up")
     logger.info(f"SDP URL: {settings.SDP_BASE_URL}")
     logger.info(f"Sync interval: {settings.SYNC_INTERVAL_MINUTES} minutes")
     logger.info(f"AI enabled: {bool(settings.CLAUDE_API_KEY)}")
 
-    # Start periodic sync
+    # Start periodic sync + daily full sync
     scheduler_task = asyncio.create_task(_periodic_sync())
+    full_sync_task = asyncio.create_task(_daily_full_sync())
 
     yield
 
     # Shutdown
-    if scheduler_task:
-        scheduler_task.cancel()
-        try:
-            await scheduler_task
-        except asyncio.CancelledError:
-            pass
+    for task in (scheduler_task, full_sync_task):
+        if task:
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
     logger.info("SOC Analytics Dashboard shut down")
 
 
