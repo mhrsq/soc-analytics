@@ -199,8 +199,11 @@ class AnalystScoringService:
 
         scored = []
         for r in rows:
+            avg_mttd = float(r.avg_mttd) if r.avg_mttd is not None else None
+            avg_mttr = float(r.avg_mttr) if r.avg_mttr is not None else None
+
             metrics = {
-                "speed": _clamp(_score_speed(r.avg_mttd)),
+                "speed": _clamp(_score_speed(avg_mttd)),
                 "detection": _clamp(_score_detection(r.tp_count, r.total)),
                 "accuracy": _clamp(_score_accuracy(r.tp_count, r.fp_count, r.total)),
                 "volume": _clamp(_score_volume(r.total, team_avg)),
@@ -225,10 +228,10 @@ class AnalystScoringService:
                     "tp_count": r.tp_count,
                     "fp_count": r.fp_count,
                     "ns_count": r.ns_count,
-                    "avg_mttd_seconds": round(r.avg_mttd, 1) if r.avg_mttd else None,
-                    "avg_mttd_display": _format_duration(r.avg_mttd),
-                    "avg_mttr_seconds": round(r.avg_mttr, 1) if r.avg_mttr else None,
-                    "avg_mttr_display": _format_duration(r.avg_mttr),
+                    "avg_mttd_seconds": round(avg_mttd, 1) if avg_mttd else None,
+                    "avg_mttd_display": _format_duration(avg_mttd),
+                    "avg_mttr_seconds": round(avg_mttr, 1) if avg_mttr else None,
+                    "avg_mttr_display": _format_duration(avg_mttr),
                     "sla_met": r.sla_met,
                     "sla_total": r.sla_total,
                     "sla_pct": sla_pct,

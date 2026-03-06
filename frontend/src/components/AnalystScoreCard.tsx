@@ -75,9 +75,21 @@ export function AnalystScoreCard({ data, rank, onClick }: Props) {
               {data.analyst}
             </p>
             <div className="flex items-center gap-2 mt-0.5">
-              <TierBadge tier={data.tier} size="sm" />
-              <span className="text-xs font-mono font-semibold" style={{ color: c.text }}>
-                {data.composite_score.toFixed(1)}
+              <span className="relative group/tb cursor-help">
+                <TierBadge tier={data.tier} size="sm" />
+                <span className="pointer-events-none absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2.5 py-1.5 rounded-lg text-[10px] leading-tight font-normal whitespace-nowrap opacity-0 group-hover/tb:opacity-100 transition-opacity shadow-lg"
+                  style={{ backgroundColor: "var(--theme-surface-raised)", color: "var(--theme-text-secondary)", border: "1px solid var(--theme-surface-border)" }}>
+                  {data.tier === "S" ? "Tier S: Exceptional (90-100)" : data.tier === "A" ? "Tier A: Excellent (75-89)" : data.tier === "B" ? "Tier B: Good (60-74)" : data.tier === "C" ? "Tier C: Average (40-59)" : "Tier D: Needs Improvement (<40)"}
+                </span>
+              </span>
+              <span className="relative group/sc cursor-help">
+                <span className="text-xs font-mono font-semibold" style={{ color: c.text }}>
+                  {data.composite_score.toFixed(1)}
+                </span>
+                <span className="pointer-events-none absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2.5 py-1.5 rounded-lg text-[10px] leading-tight font-normal whitespace-nowrap opacity-0 group-hover/sc:opacity-100 transition-opacity shadow-lg"
+                  style={{ backgroundColor: "var(--theme-surface-raised)", color: "var(--theme-text-secondary)", border: "1px solid var(--theme-surface-border)" }}>
+                  Composite score (0-100): weighted avg of 7 metrics
+                </span>
               </span>
             </div>
           </div>

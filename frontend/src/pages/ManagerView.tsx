@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { api } from "../api/client";
 import { useFetch } from "../hooks/useFetch";
 import { Card } from "../components/Card";
@@ -8,7 +8,15 @@ import { AnalystScoreCard } from "../components/AnalystScoreCard";
 import { AnalystDetailModal } from "../components/AnalystDetailModal";
 import { TeamTrendChart } from "../components/AnalystTrendChart";
 import type { AnalystScore } from "../types";
-import { Users, Trophy, TrendingUp, Target, ChevronDown, BarChart3 } from "lucide-react";
+import { Users, Trophy, TrendingUp, Target, ChevronDown, BarChart3, Settings2, Eye, EyeOff, Info } from "lucide-react";
+
+const STORAGE_KEY = "soc-manager-excluded-analysts";
+function loadExcluded(): Set<string> {
+  try { return new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]")); } catch { return new Set(); }
+}
+function saveExcluded(s: Set<string>) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify([...s]));
+}
 
 // Period presets
 const PERIOD_OPTIONS = [
@@ -60,10 +68,13 @@ function TeamKPIs({ data }: { data: AnalystScore[] }) {
             <div className="flex gap-1.5 mt-2">
               {["S", "A", "B", "C", "D"].filter((t) => tierCounts[t]).map((t) => {
                 const colors: Record<string, string> = { S: "#FFD700", A: "#22C55E", B: "#3B82F6", C: "#F59E0B", D: "#EF4444" };
+                const tierLabels: Record<string, string> = { S: "Tier S: Exceptional (90-100)", A: "Tier A: Excellent (75-89)", B: "Tier B: Good (60-74)", C: "Tier C: Average (40-59)", D: "Tier D: Needs Improvement (<40)" };
                 return (
-                  <span key={t} className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ backgroundColor: `color-mix(in srgb, ${colors[t]} 15%, transparent)`, color: colors[t] }}>
-                    {t}×{tierCounts[t]}
-                  </span>
+                  <Tip key={t} text={tierLabels[t]}>
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ backgroundColor: `color-mix(in srgb, ${colors[t]} 15%, transparent)`, color: colors[t] }}>
+                      {t}×{tierCounts[t]}
+                    </span>
+                  </Tip>
                 );
               })}
             </div>
@@ -76,17 +87,53 @@ function TeamKPIs({ data }: { data: AnalystScore[] }) {
 
 type ViewMode = "cards" | "table";
 
+/* Tooltip wrapper */
+function Tip({ text, children }: { text: string; children: React.ReactNode }) {
+  return (
+    <span className="relative group/tip cursor-help">
+      {children}
+      <span className="pointer-events-none absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2.5 py-1.5 rounded-lg text-[10px] leading-tight font-normal whitespace-nowrap opacity-0 group-hover/tip:opacity-100 transition-opacity shadow-lg"
+        style={{ backgroundColor: "var(--theme-surface-raised)", color: "var(--theme-text-secondary)", border: "1px solid var(--theme-surface-border)" }}>
+        {text}
+      </span>
+    </span>
+  );
+}
+
 export function ManagerView() {
   const [periodDays, setPeriodDays] = useState(30);
   const [selectedAnalyst, setSelectedAnalyst] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("cards");
+  const [excluded, setExcluded] = useState<Set<string>>(loadExcluded);
+  const [showExcludePanel, setShowExcludePanel] = useState(false);
 
   const range = useMemo(() => getDateRange(periodDays), [periodDays]);
 
-  const { data, loading } = useFetch<AnalystScore[]>(
+  const { data: rawData, loading } = useFetch<AnalystScore[]>(
     () => api.getAnalystScores({ start: range.start, end: range.end }),
     [range.start, range.end]
   );
+
+  // All unique analyst names seen (for the exclude panel)
+  const allAnalysts = useMemo(() => {
+    if (!rawData) return [];
+    return rawData.map((a) => a.analyst).sort();
+  }, [rawData]);
+
+  // Filter out excluded analysts
+  const data = useMemo(() => {
+    if (!rawData) return null;
+    return rawData.filter((a) => !excluded.has(a.analyst));
+  }, [rawData, excluded]);
+
+  const toggleExclude = useCallback((name: string) => {
+    setExcluded((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name); else next.add(name);
+      saveExcluded(next);
+      return next;
+    });
+  }, []);
 
   return (
     <div className="space-y-4 sm:space-y-6 py-4 sm:py-6">
@@ -96,6 +143,67 @@ export function ManagerView() {
           Analyst Performance
         </h2>
         <div className="flex items-center gap-2">
+          {/* Analyst Filter Button */}
+          <div className="relative">
+            <button
+              onClick={() => setShowExcludePanel(!showExcludePanel)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+              style={{
+                backgroundColor: excluded.size > 0 ? "color-mix(in srgb, #F59E0B 15%, transparent)" : "color-mix(in srgb, var(--theme-surface-raised) 80%, transparent)",
+                color: excluded.size > 0 ? "#F59E0B" : "var(--theme-text-muted)",
+                border: `1px solid ${excluded.size > 0 ? "#F59E0B40" : "var(--theme-surface-border)"}`,
+              }}
+            >
+              <Settings2 className="w-3.5 h-3.5" />
+              {excluded.size > 0 && <span>{excluded.size} hidden</span>}
+            </button>
+
+            {/* Exclude Panel Dropdown */}
+            {showExcludePanel && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowExcludePanel(false)} />
+                <div
+                  className="absolute right-0 top-full mt-2 z-50 w-72 rounded-xl shadow-2xl p-4 space-y-3"
+                  style={{ backgroundColor: "var(--theme-card-bg)", border: "1px solid var(--theme-card-border)" }}
+                >
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--theme-text-muted)" }}>Manage Analysts</h4>
+                    {excluded.size > 0 && (
+                      <button
+                        onClick={() => { setExcluded(new Set()); saveExcluded(new Set()); }}
+                        className="text-[10px] px-2 py-0.5 rounded-full"
+                        style={{ color: "var(--theme-accent)", backgroundColor: "color-mix(in srgb, var(--theme-accent) 10%, transparent)" }}
+                      >
+                        Show All
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[10px]" style={{ color: "var(--theme-text-muted)" }}>Toggle analysts off to hide them from scoring &amp; charts (e.g. resigned staff).</p>
+                  <div className="max-h-60 overflow-y-auto space-y-1 pr-1">
+                    {allAnalysts.map((name) => {
+                      const isExcluded = excluded.has(name);
+                      return (
+                        <button
+                          key={name}
+                          onClick={() => toggleExclude(name)}
+                          className="flex items-center gap-2 w-full px-2.5 py-1.5 rounded-lg text-xs transition-all text-left"
+                          style={{
+                            backgroundColor: isExcluded ? "color-mix(in srgb, #EF4444 8%, transparent)" : "color-mix(in srgb, var(--theme-surface-raised) 40%, transparent)",
+                            color: isExcluded ? "var(--theme-text-muted)" : "var(--theme-text-primary)",
+                            opacity: isExcluded ? 0.5 : 1,
+                          }}
+                        >
+                          {isExcluded ? <EyeOff className="w-3.5 h-3.5 shrink-0 text-red-400" /> : <Eye className="w-3.5 h-3.5 shrink-0" style={{ color: "#22C55E" }} />}
+                          <span className={`truncate ${isExcluded ? "line-through" : ""}`}>{name}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
           {/* View mode toggle */}
           <div className="flex rounded-lg overflow-hidden" style={{ border: "1px solid var(--theme-surface-border)" }}>
             {(["cards", "table"] as ViewMode[]).map((mode) => (

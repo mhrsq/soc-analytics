@@ -57,13 +57,30 @@ export function AnalystLeaderboard({ data, loading, onSelect }: Props) {
         <table className="w-full text-sm">
           <thead>
             <tr style={{ borderBottom: "1px solid var(--theme-surface-border)" }}>
-              {["#", "Analyst", "Tier", "Score", "Tickets", "SLA", "MTTD"].map((h, i) => (
+              {[
+                { label: "#", tip: "" },
+                { label: "Analyst", tip: "" },
+                { label: "Tier", tip: "Performance tier: S(90+) A(75+) B(60+) C(40+) D(<40)" },
+                { label: "Score", tip: "Composite score (0-100): weighted avg of 7 metrics" },
+                { label: "Tickets", tip: "Total tickets handled in this period" },
+                { label: "SLA", tip: "% tickets responded within SLA target" },
+                { label: "MTTD", tip: "Mean Time to Detect — avg time to first response" },
+              ].map((h, i) => (
                 <th
-                  key={h}
+                  key={h.label}
                   className={`text-xs font-medium pb-2.5 px-3 sm:px-5 ${i <= 1 ? "text-left" : "text-center"} ${i >= 3 ? "hidden sm:table-cell" : ""}`}
                   style={{ color: "var(--theme-text-muted)" }}
                 >
-                  {h}
+                  {h.tip ? (
+                    <span className="relative group/hdr cursor-help inline-flex items-center gap-1">
+                      {h.label}
+                      <svg className="w-3 h-3 opacity-40 group-hover/hdr:opacity-70" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1" fill="none"/><text x="8" y="12" textAnchor="middle" fontSize="10" fill="currentColor">i</text></svg>
+                      <span className="pointer-events-none absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2.5 py-1.5 rounded-lg text-[10px] leading-tight font-normal whitespace-nowrap opacity-0 group-hover/hdr:opacity-100 transition-opacity shadow-lg"
+                        style={{ backgroundColor: "var(--theme-surface-raised)", color: "var(--theme-text-secondary)", border: "1px solid var(--theme-surface-border)" }}>
+                        {h.tip}
+                      </span>
+                    </span>
+                  ) : h.label}
                 </th>
               ))}
             </tr>
@@ -110,7 +127,13 @@ export function AnalystLeaderboard({ data, loading, onSelect }: Props) {
                     </div>
                   </td>
                   <td className="py-3 px-3 sm:px-5 text-center">
-                    <TierBadge tier={row.tier} size="sm" />
+                    <span className="relative group/tb cursor-help inline-block">
+                      <TierBadge tier={row.tier} size="sm" />
+                      <span className="pointer-events-none absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2.5 py-1.5 rounded-lg text-[10px] leading-tight font-normal whitespace-nowrap opacity-0 group-hover/tb:opacity-100 transition-opacity shadow-lg"
+                        style={{ backgroundColor: "var(--theme-surface-raised)", color: "var(--theme-text-secondary)", border: "1px solid var(--theme-surface-border)" }}>
+                        {row.tier === "S" ? "Exceptional (90-100)" : row.tier === "A" ? "Excellent (75-89)" : row.tier === "B" ? "Good (60-74)" : row.tier === "C" ? "Average (40-59)" : "Needs Improvement (<40)"}
+                      </span>
+                    </span>
                   </td>
                   <td className="py-3 px-3 sm:px-5 text-center hidden sm:table-cell">
                     <ScoreBar score={row.composite_score} tier={row.tier} />

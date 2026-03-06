@@ -19,6 +19,25 @@ const ANALYST_COLORS = [
   "#14B8A6", "#EC4899", "#F97316", "#06B6D4", "#84CC16",
 ];
 
+/** Build a map of full names → short display names, disambiguating collisions */
+function buildShortNames(fullNames: string[]): Record<string, string> {
+  const firstNames = fullNames.map((n) => n.split(" ")[0]);
+  const counts: Record<string, number> = {};
+  firstNames.forEach((f) => (counts[f] = (counts[f] || 0) + 1));
+  const result: Record<string, string> = {};
+  fullNames.forEach((full) => {
+    const parts = full.split(" ");
+    const first = parts[0];
+    if (counts[first] > 1 && parts.length > 1) {
+      // Collision: use "FirstName LastInitial." e.g. "Muhammad A."
+      result[full] = `${first} ${parts[parts.length - 1][0]}.`;
+    } else {
+      result[full] = first;
+    }
+  });
+  return result;
+}
+
 interface SingleTrendProps {
   analyst: string;
   granularity?: "weekly" | "monthly";
@@ -249,6 +268,7 @@ export function TeamTrendChart({ selectedAnalysts, granularity = "weekly" }: Com
   }
 
   const activeAnalysts = allAnalysts.filter((a) => selected.has(a));
+  const shortNames = useMemo(() => buildShortNames(allAnalysts), [allAnalysts]);
 
   return (
     <div>
@@ -262,6 +282,7 @@ export function TeamTrendChart({ selectedAnalysts, granularity = "weekly" }: Com
               key={name}
               onClick={() => toggleAnalyst(name)}
               className="text-[10px] font-medium px-2 py-1 rounded-full transition-all"
+              title={name}
               style={{
                 backgroundColor: active ? `color-mix(in srgb, ${color} 20%, transparent)` : "transparent",
                 color: active ? color : "var(--theme-text-muted)",
@@ -269,7 +290,7 @@ export function TeamTrendChart({ selectedAnalysts, granularity = "weekly" }: Com
                 opacity: active ? 1 : 0.5,
               }}
             >
-              {name.split(" ")[0]}
+              {shortNames[name] || name.split(" ")[0]}
             </button>
           );
         })}
@@ -311,7 +332,7 @@ export function TeamTrendChart({ selectedAnalysts, granularity = "weekly" }: Com
                 key={name}
                 type="monotone"
                 dataKey={name}
-                name={name.split(" ")[0]}
+                name={shortNames[name] || name.split(" ")[0]}
                 stroke={color}
                 strokeWidth={2}
                 dot={{ r: 2.5, fill: color, strokeWidth: 0 }}
