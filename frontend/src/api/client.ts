@@ -39,6 +39,11 @@ import type {
   LlmProviderCreate,
   LlmProviderUpdate,
   LlmTestResult,
+  AnalystScore,
+  AnalystDetail,
+  AnalystAIReview,
+  AnalystTrend,
+  TeamTrendPoint,
 } from "../types";
 
 interface Filters {
@@ -131,4 +136,33 @@ export const api = {
     request<{ tickets: { id: number; subject: string; priority: string; customer: string | null; created_time: string | null; synced_at: string | null }[]; count: number }>(
       `/tickets/recent${qs({ since })}`
     ),
+
+  // ── Analyst Scoring (Manager View) ──
+  getAnalystScores: (f: Filters = {}) =>
+    request<AnalystScore[]>(`/analysts/scores${qs(f)}`),
+
+  getAnalystDetail: (name: string, f: Filters = {}) =>
+    request<AnalystDetail>(`/analysts/${encodeURIComponent(name)}/detail${qs(f)}`),
+
+  getAnalystAIReview: (name: string, opts: { provider_id?: number; start_date?: string; end_date?: string }) =>
+    request<AnalystAIReview>(`/analysts/${encodeURIComponent(name)}/ai-review`, {
+      method: "POST",
+      body: JSON.stringify(opts),
+    }),
+
+  // ── Analyst Trend (Phase 2) ──
+  getAnalystTrend: (name: string, granularity = "weekly", limit = 26) =>
+    request<AnalystTrend>(
+      `/analysts/${encodeURIComponent(name)}/trend${qs({ granularity, limit: String(limit) })}`
+    ),
+
+  getTeamTrend: (granularity = "weekly", limit = 26) =>
+    request<TeamTrendPoint[]>(
+      `/analysts/team/trend${qs({ granularity, limit: String(limit) })}`
+    ),
+
+  backfillSnapshots: (weeks = 26, granularity = "weekly") =>
+    request<{ message: string }>(`/analysts/snapshots/backfill${qs({ weeks: String(weeks), granularity })}`, {
+      method: "POST",
+    }),
 };

@@ -208,3 +208,122 @@ class LlmTestResult(BaseModel):
 class DateRange(BaseModel):
     start: Optional[date] = None
     end: Optional[date] = None
+
+
+# --- Analyst Scoring (Manager View) ---
+
+class AnalystMetrics(BaseModel):
+    speed: float
+    detection: float
+    accuracy: float
+    volume: float
+    sla: float
+    throughput: float
+    complexity: float
+
+
+class AnalystStats(BaseModel):
+    total_tickets: int
+    resolved: int
+    tp_count: int
+    fp_count: int
+    ns_count: int
+    avg_mttd_seconds: Optional[float]
+    avg_mttd_display: Optional[str]
+    avg_mttr_seconds: Optional[float]
+    avg_mttr_display: Optional[str]
+    sla_met: int
+    sla_total: int
+    sla_pct: Optional[float]
+    high_priority: int
+    security_incidents: int
+
+
+class AnalystScore(BaseModel):
+    analyst: str
+    tier: str
+    composite_score: float
+    metrics: AnalystMetrics
+    stats: AnalystStats
+
+
+class AnalystCustomerItem(BaseModel):
+    customer: str
+    count: int
+
+
+class AnalystAlertItem(BaseModel):
+    rule_name: str
+    count: int
+
+
+class AnalystTicketItem(BaseModel):
+    id: int
+    subject: str
+    status: str
+    priority: str
+    validation: Optional[str]
+    created_time: Optional[str]
+    mttd_seconds: Optional[int]
+    sla_met: Optional[bool]
+
+
+class AnalystDetail(BaseModel):
+    analyst: str
+    tier: str
+    composite_score: float
+    metrics: AnalystMetrics
+    stats: AnalystStats
+    top_customers: list[AnalystCustomerItem]
+    top_alerts: list[AnalystAlertItem]
+    recent_tickets: list[AnalystTicketItem]
+
+
+class AnalystAIReviewRequest(BaseModel):
+    provider_id: Optional[int] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+
+
+class AnalystAIReview(BaseModel):
+    analyst: str
+    review: str
+    provider: Optional[str] = None
+    generated_at: datetime
+
+
+# --- Analyst Trend (Phase 2) ---
+
+class TrendPointMetrics(BaseModel):
+    speed: float
+    detection: float
+    accuracy: float
+    volume: float
+    sla: float
+    throughput: float
+    complexity: float
+
+
+class TrendPoint(BaseModel):
+    period: str                        # e.g. "2026-W09" or "2026-03"
+    period_start: str                  # ISO date
+    period_end: str                    # ISO date
+    composite_score: float
+    tier: str
+    metrics: TrendPointMetrics
+    total_tickets: int
+    resolved: int
+    sla_pct: Optional[float]
+
+
+class AnalystTrend(BaseModel):
+    analyst: str
+    granularity: str
+    points: list[TrendPoint]
+
+
+class TeamTrendPoint(BaseModel):
+    period: str
+    period_start: str
+    period_end: str
+    analysts: list[dict]               # [{analyst, composite_score, tier}]

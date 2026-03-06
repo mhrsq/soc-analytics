@@ -69,6 +69,36 @@ class LlmProvider(Base):
     test_status = Column(String(20))                     # ok, failed, untested
 
 
+class AnalystSnapshot(Base):
+    __tablename__ = "analyst_snapshots"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    analyst = Column(String(200), nullable=False)
+    period_start = Column(DateTime(timezone=True), nullable=False)
+    period_end = Column(DateTime(timezone=True), nullable=False)
+    granularity = Column(String(20), nullable=False, default="weekly")  # weekly, monthly
+    composite_score = Column(Integer)  # stored as 0-1000 (10x for precision)
+    speed_score = Column(Integer)
+    detection_score = Column(Integer)
+    accuracy_score = Column(Integer)
+    volume_score = Column(Integer)
+    sla_score = Column(Integer)
+    throughput_score = Column(Integer)
+    complexity_score = Column(Integer)
+    total_tickets = Column(Integer)
+    resolved = Column(Integer)
+    tp_count = Column(Integer)
+    fp_count = Column(Integer)
+    avg_mttd_seconds = Column(Integer)
+    avg_mttr_seconds = Column(Integer)
+    sla_pct = Column(Integer)  # stored as 0-1000
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+    __table_args__ = (
+        Index("uq_analyst_snapshot", "analyst", "period_start", "granularity", unique=True),
+    )
+
+
 class SyncLog(Base):
     __tablename__ = "sync_log"
 

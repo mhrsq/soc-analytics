@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 import { Dashboard } from "./pages/Dashboard";
-import { Shield, Wifi, WifiOff, Palette, Settings2 } from "lucide-react";
+import { ManagerView } from "./pages/ManagerView";
+import { Shield, Wifi, WifiOff, Palette, Settings2, LayoutDashboard, Users } from "lucide-react";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import { DashboardProvider } from "./contexts/DashboardContext";
 import { NotificationBell } from "./components/NotificationBell";
 import { ThemePanel } from "./components/ThemePanel";
 import { LLMSettingsPanel } from "./components/LLMSettingsPanel";
+
+type Page = "dashboard" | "manager";
 
 function LiveClock() {
   const [now, setNow] = useState(new Date());
@@ -56,6 +59,7 @@ function ConnectionStatus() {
 function AppShell() {
   const [themeOpen, setThemeOpen] = useState(false);
   const [llmOpen, setLlmOpen] = useState(false);
+  const [page, setPage] = useState<Page>("dashboard");
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--theme-surface-base)" }}>
@@ -75,6 +79,31 @@ function AppShell() {
               <span className="text-[10px] leading-tight hidden sm:block" style={{ color: "var(--theme-text-muted)" }}>
                 MTM Managed Security
               </span>
+            </div>
+            {/* Page Toggle */}
+            <div className="flex ml-2 sm:ml-4 rounded-lg overflow-hidden" style={{ border: "1px solid var(--theme-surface-border)" }}>
+              <button
+                onClick={() => setPage("dashboard")}
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-medium transition-all"
+                style={{
+                  backgroundColor: page === "dashboard" ? "color-mix(in srgb, var(--theme-accent) 15%, transparent)" : "transparent",
+                  color: page === "dashboard" ? "var(--theme-accent)" : "var(--theme-text-muted)",
+                }}
+              >
+                <LayoutDashboard className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Dashboard</span>
+              </button>
+              <button
+                onClick={() => setPage("manager")}
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-medium transition-all"
+                style={{
+                  backgroundColor: page === "manager" ? "color-mix(in srgb, var(--theme-accent) 15%, transparent)" : "transparent",
+                  color: page === "manager" ? "var(--theme-accent)" : "var(--theme-text-muted)",
+                }}
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Manager</span>
+              </button>
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-4">
@@ -107,7 +136,7 @@ function AppShell() {
 
       {/* Main Content */}
       <main className="mx-auto px-3 sm:px-6 pb-6">
-        <Dashboard />
+        {page === "dashboard" ? <Dashboard /> : <ManagerView />}
       </main>
 
       {/* Footer */}

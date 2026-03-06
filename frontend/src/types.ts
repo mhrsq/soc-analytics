@@ -269,3 +269,111 @@ export interface LlmTestResult {
   response_preview: string | null;
   latency_ms: number | null;
 }
+
+// ── Analyst Scoring (Manager View) ──
+
+export interface AnalystMetrics {
+  speed: number;
+  detection: number;
+  accuracy: number;
+  volume: number;
+  sla: number;
+  throughput: number;
+  complexity: number;
+}
+
+export interface AnalystStats {
+  total_tickets: number;
+  resolved: number;
+  tp_count: number;
+  fp_count: number;
+  ns_count: number;
+  avg_mttd_seconds: number | null;
+  avg_mttd_display: string | null;
+  avg_mttr_seconds: number | null;
+  avg_mttr_display: string | null;
+  sla_met: number;
+  sla_total: number;
+  sla_pct: number | null;
+  high_priority: number;
+  security_incidents: number;
+}
+
+export interface AnalystScore {
+  analyst: string;
+  tier: string;
+  composite_score: number;
+  metrics: AnalystMetrics;
+  stats: AnalystStats;
+}
+
+export interface AnalystCustomerItem {
+  customer: string;
+  count: number;
+}
+
+export interface AnalystAlertItem {
+  rule_name: string;
+  count: number;
+}
+
+export interface AnalystTicketItem {
+  id: number;
+  subject: string;
+  status: string;
+  priority: string;
+  validation: string | null;
+  created_time: string | null;
+  mttd_seconds: number | null;
+  sla_met: boolean | null;
+}
+
+export interface AnalystDetail extends AnalystScore {
+  top_customers: AnalystCustomerItem[];
+  top_alerts: AnalystAlertItem[];
+  recent_tickets: AnalystTicketItem[];
+}
+
+export interface AnalystAIReview {
+  analyst: string;
+  review: string;
+  provider: string | null;
+  generated_at: string;
+}
+
+// ── Analyst Trend (Phase 2) ──
+
+export interface TrendPointMetrics {
+  speed: number;
+  detection: number;
+  accuracy: number;
+  volume: number;
+  sla: number;
+  throughput: number;
+  complexity: number;
+}
+
+export interface TrendPoint {
+  period: string;
+  period_start: string;
+  period_end: string;
+  composite_score: number;
+  tier: string;
+  metrics: TrendPointMetrics;
+  total_tickets: number;
+  resolved: number;
+  sla_pct: number | null;
+}
+
+export interface AnalystTrend {
+  analyst: string;
+  granularity: string;
+  points: TrendPoint[];
+}
+
+export interface TeamTrendPoint {
+  period: string;
+  period_start: string;
+  period_end: string;
+  analysts: { analyst: string; composite_score: number; tier: string }[];
+}

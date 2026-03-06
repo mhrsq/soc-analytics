@@ -50,6 +50,7 @@ CREATE INDEX IF NOT EXISTS idx_tickets_technician ON tickets(technician);
 CREATE INDEX IF NOT EXISTS idx_tickets_sla ON tickets(sla_met);
 CREATE INDEX IF NOT EXISTS idx_tickets_case_type ON tickets(case_type);
 CREATE INDEX IF NOT EXISTS idx_tickets_alert_time ON tickets(alert_time);
+CREATE INDEX IF NOT EXISTS idx_tickets_technician_created ON tickets(technician, created_time) WHERE technician IS NOT NULL;
 
 -- Sync tracking
 CREATE TABLE IF NOT EXISTS sync_log (
@@ -78,6 +79,35 @@ CREATE TABLE IF NOT EXISTS llm_providers (
     last_tested  TIMESTAMP WITH TIME ZONE,
     test_status  VARCHAR(20) DEFAULT 'untested'
 );
+
+-- Analyst performance snapshots (weekly/monthly trend tracking)
+CREATE TABLE IF NOT EXISTS analyst_snapshots (
+    id              SERIAL PRIMARY KEY,
+    analyst         VARCHAR(200) NOT NULL,
+    period_start    TIMESTAMP WITH TIME ZONE NOT NULL,
+    period_end      TIMESTAMP WITH TIME ZONE NOT NULL,
+    granularity     VARCHAR(20) NOT NULL DEFAULT 'weekly',
+    composite_score INTEGER,
+    speed_score     INTEGER,
+    detection_score INTEGER,
+    accuracy_score  INTEGER,
+    volume_score    INTEGER,
+    sla_score       INTEGER,
+    throughput_score INTEGER,
+    complexity_score INTEGER,
+    total_tickets   INTEGER,
+    resolved        INTEGER,
+    tp_count        INTEGER,
+    fp_count        INTEGER,
+    avg_mttd_seconds INTEGER,
+    avg_mttr_seconds INTEGER,
+    sla_pct         INTEGER,
+    created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE (analyst, period_start, granularity)
+);
+
+CREATE INDEX IF NOT EXISTS idx_snapshots_analyst ON analyst_snapshots(analyst);
+CREATE INDEX IF NOT EXISTS idx_snapshots_period ON analyst_snapshots(period_start, granularity);
 
 -- Daily metrics materialized view
 CREATE MATERIALIZED VIEW IF NOT EXISTS mv_daily_metrics AS

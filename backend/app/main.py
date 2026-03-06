@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
-from app.routers import ai, metrics, sync, tickets, llm
+from app.routers import ai, analysts, metrics, sync, tickets, llm
 
 settings = get_settings()
 
@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 # Scheduler for periodic sync
 scheduler_task = None
 full_sync_task = None
+snapshot_task = None
 
 
 async def _periodic_sync():
@@ -62,6 +63,46 @@ async def _periodic_sync():
         await asyncio.sleep(interval)
 
 
+async def _weekly_snapshot():
+    """Background task: create weekly analyst score snapshots every Sunday 01:00 WIB."""
+    from datetime import datetime, timezone, timedelta, date
+    from app.database import async_session
+    from app.services.analyst_service import AnalystScoringService
+
+    WIB = timezone(timedelta(hours=7))
+
+    # Wait for app to start
+    await asyncio.sleep(30)
+
+    while True:
+        now_wib = datetime.now(WIB)
+        # Next Sunday 01:00 WIB
+        days_until_sunday = (6 - now_wib.weekday()) % 7
+        if days_until_sunday == 0 and now_wib.hour >= 1:
+            days_until_sunday = 7
+        next_run = now_wib.replace(hour=1, minute=0, second=0, microsecond=0) + timedelta(days=days_until_sunday)
+        wait_seconds = (next_run - now_wib).total_seconds()
+
+        logger.info(
+            f"Weekly snapshot scheduled in {wait_seconds/3600:.1f}h "
+            f"(next: {next_run.strftime('%Y-%m-%d %H:%M WIB')})"
+        )
+        await asyncio.sleep(wait_seconds)
+
+        try:
+            logger.info("Starting weekly analyst snapshot")
+            async with async_session() as db:
+                svc = AnalystScoringService(db)
+                # Snapshot for the past week
+                today = date.today()
+                period_end = today
+                period_start = today - timedelta(days=7)
+                count = await svc.create_snapshot(period_start, period_end, "weekly")
+                logger.info(f"Weekly snapshot complete: {count} analysts")
+        except Exception as e:
+            logger.error(f"Weekly snapshot error: {type(e).__name__}: {repr(e)}")
+
+
 async def _daily_full_sync():
     """Background task: full re-sync every day at 00:00 WIB (17:00 UTC)."""
     from app.routers.sync import get_sync_service
@@ -95,21 +136,22 @@ async def _daily_full_sync():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan: startup and shutdown."""
-    global scheduler_task, full_sync_task
+    global scheduler_task, full_sync_task, snapshot_task
 
     logger.info("SOC Analytics Dashboard starting up")
     logger.info(f"SDP URL: {settings.SDP_BASE_URL}")
     logger.info(f"Sync interval: {settings.SYNC_INTERVAL_MINUTES} minutes")
     logger.info(f"AI enabled: {bool(settings.CLAUDE_API_KEY)}")
 
-    # Start periodic sync + daily full sync
+    # Start periodic sync + daily full sync + weekly snapshot
     scheduler_task = asyncio.create_task(_periodic_sync())
     full_sync_task = asyncio.create_task(_daily_full_sync())
+    snapshot_task = asyncio.create_task(_weekly_snapshot())
 
     yield
 
     # Shutdown
-    for task in (scheduler_task, full_sync_task):
+    for task in (scheduler_task, full_sync_task, snapshot_task):
         if task:
             task.cancel()
             try:
@@ -139,6 +181,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(metrics.router)
+app.include_router(analysts.router)
 app.include_router(tickets.router)
 app.include_router(sync.router)
 app.include_router(ai.router)
