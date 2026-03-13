@@ -3,10 +3,10 @@ import { MapContainer, TileLayer, Polyline, CircleMarker, Tooltip, useMap } from
 import "leaflet/dist/leaflet.css";
 import { api } from "../api/client";
 import { Spinner } from "../components/Spinner";
-import type { AttackArc, AssetLocation, SiemLocation, TopologyNode } from "../types";
+import type { AttackArc, TopologyNode } from "../types";
 import {
-  Settings2, Crosshair, Shield, Server, RefreshCw,
-  ChevronDown, Plus, Trash2, MapPin, X, Wifi, Database, Cloud, Monitor,
+  Crosshair, Shield, Server, RefreshCw,
+  ChevronDown, Database, Cloud, Monitor, Wifi,
   Play, Pause, Square, Clock, SkipForward, SkipBack,
 } from "lucide-react";
 
@@ -105,13 +105,10 @@ function ReplayLabel({ attack, visible }: { attack: AttackArc; visible: boolean 
 // ── Main Component ─────────────────────────────────────────────
 export function ThreatMapView() {
   const [attacks, setAttacks] = useState<AttackArc[]>([]);
-  const [assets, setAssets] = useState<AssetLocation[]>([]);
-  const [siems, setSiems] = useState<SiemLocation[]>([]);
   const [topoNodes, setTopoNodes] = useState<TopologyNode[]>([]);
   const [customers, setCustomers] = useState<string[]>([]);
   const [customer, setCustomer] = useState<string>("");
   const [loading, setLoading] = useState(true);
-  const [configOpen, setConfigOpen] = useState(false);
 
   // ── Replay state ──
   const [replayOpen, setReplayOpen] = useState(false);
@@ -133,15 +130,11 @@ export function ThreatMapView() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [attackData, assetData, siemData, topoData] = await Promise.all([
+      const [attackData, topoData] = await Promise.all([
         api.getAttacks(customer ? { customer } : {}, 500),
-        api.getAssetLocations(customer || undefined),
-        api.getSiemLocations(customer || undefined),
         api.getTopologyNodes(),
       ]);
       setAttacks(attackData);
-      setAssets(assetData);
-      setSiems(siemData);
       setTopoNodes(topoData);
     } catch (e) {
       console.error("Failed to load threat map data:", e);
@@ -289,22 +282,6 @@ export function ThreatMapView() {
           <AnimatedArc key={i} positions={arc.positions} color={arc.color} weight={arc.weight} opacity={0.7} />
         ))}
 
-        {/* Asset markers */}
-        {assets.map((a) => (
-          <CircleMarker key={`asset-${a.id}`} center={[a.lat, a.lng]} radius={6}
-            pathOptions={{ color: ICON_TYPES[a.icon_type]?.color || "#00D4FF", fillColor: ICON_TYPES[a.icon_type]?.color || "#00D4FF", fillOpacity: 0.7, weight: 2 }}>
-            <Tooltip><span className="text-xs">🖥 {a.label || a.asset_name} ({a.customer})</span></Tooltip>
-          </CircleMarker>
-        ))}
-
-        {/* SIEM markers */}
-        {siems.map((s) => (
-          <CircleMarker key={`siem-${s.id}`} center={[s.lat, s.lng]} radius={8}
-            pathOptions={{ color: "#FF00FF", fillColor: "#FF00FF", fillOpacity: 0.6, weight: 2 }}>
-            <Tooltip><span className="text-xs">📡 {s.label} ({s.location_type})</span></Tooltip>
-          </CircleMarker>
-        ))}
-
         {/* Topology node markers */}
         {topoNodes.filter((n) => n.lat != null && n.lng != null && (!customer || n.customer === customer)).map((n) => {
           const cfg = ICON_TYPES[n.node_type] || ICON_TYPES.server;
@@ -384,11 +361,6 @@ export function ThreatMapView() {
             className={`p-1.5 rounded border transition-colors ${replayOpen ? "bg-cyan-500/20 border-cyan-500/30 text-cyan-400" : "bg-white/5 border-white/10 text-white/60 hover:text-cyan-400"}`}
             title="Event Replay">
             <Clock className="w-4 h-4" />
-          </button>
-          <button onClick={() => setConfigOpen(!configOpen)}
-            className={`p-1.5 rounded border transition-colors ${configOpen ? "bg-cyan-500/20 border-cyan-500/30 text-cyan-400" : "bg-white/5 border-white/10 text-white/60 hover:text-cyan-400"}`}
-            title="Configure Assets & SIEMs">
-            <Settings2 className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -512,291 +484,6 @@ export function ThreatMapView() {
         </div>
       )}
 
-      {/* Config Panel */}
-      {configOpen && (
-        <ConfigPanel
-          customer={customer}
-          customers={customers}
-          assets={assets}
-          siems={siems}
-          onClose={() => setConfigOpen(false)}
-          onRefresh={loadData}
-        />
-      )}
-    </div>
-  );
-}
-
-
-// ── Config Panel (Asset & SIEM management) ─────────────────────
-interface ConfigPanelProps {
-  customer: string;
-  customers: string[];
-  assets: AssetLocation[];
-  siems: SiemLocation[];
-  onClose: () => void;
-  onRefresh: () => void;
-}
-
-function ConfigPanel({ customer, customers, assets, siems, onClose, onRefresh }: ConfigPanelProps) {
-  const [tab, setTab] = useState<"assets" | "siems">("assets");
-  const [ticketAssets, setTicketAssets] = useState<{ asset_name: string; count: number }[]>([]);
-  const [addMode, setAddMode] = useState(false);
-
-  // Form state
-  const [form, setForm] = useState({
-    customer: customer || "",
-    asset_name: "",
-    label: "",
-    lat: "",
-    lng: "",
-    icon_type: "server",
-    location_type: "on-prem",
-    siem_label: "",
-  });
-
-  useEffect(() => {
-    api.getTicketAssets(customer || undefined).then(setTicketAssets);
-  }, [customer]);
-
-  const handleSaveAsset = async () => {
-    if (!form.customer || !form.asset_name || !form.lat || !form.lng) return;
-    await api.upsertAssetLocation({
-      customer: form.customer,
-      asset_name: form.asset_name,
-      label: form.label || undefined,
-      lat: parseFloat(form.lat),
-      lng: parseFloat(form.lng),
-      icon_type: form.icon_type,
-    });
-    setAddMode(false);
-    setForm({ ...form, asset_name: "", label: "", lat: "", lng: "" });
-    onRefresh();
-  };
-
-  const handleSaveSiem = async () => {
-    if (!form.siem_label || !form.lat || !form.lng) return;
-    await api.upsertSiemLocation({
-      customer: form.customer || undefined,
-      label: form.siem_label,
-      location_type: form.location_type,
-      lat: parseFloat(form.lat),
-      lng: parseFloat(form.lng),
-    });
-    setAddMode(false);
-    setForm({ ...form, siem_label: "", lat: "", lng: "" });
-    onRefresh();
-  };
-
-  const handleDelete = async (type: "asset" | "siem", id: number) => {
-    if (type === "asset") await api.deleteAssetLocation(id);
-    else await api.deleteSiemLocation(id);
-    onRefresh();
-  };
-
-  const inputCls = "w-full px-2 py-1.5 rounded-lg text-xs focus:outline-none transition-colors theme-input";
-  const selectCls = `${inputCls} appearance-none pr-7 cursor-pointer`;
-  const chevronCls = "absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 pointer-events-none" as const;
-
-  return (
-    <div className="absolute top-0 right-0 bottom-0 z-[1100] w-80 overflow-y-auto"
-      style={{ background: "rgba(10,10,26,0.95)", borderLeft: "1px solid rgba(0,212,255,0.15)" }}>
-
-      {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b border-white/5">
-        <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-          <Settings2 className="w-4 h-4 text-cyan-400" />
-          Map Configuration
-        </h3>
-        <button onClick={onClose} className="text-white/40 hover:text-white">
-          <X className="w-4 h-4" />
-        </button>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex border-b border-white/5">
-        {(["assets", "siems"] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => { setTab(t); setAddMode(false); }}
-            className={`flex-1 px-3 py-2 text-xs font-medium transition-colors ${tab === t ? "text-cyan-400 border-b-2 border-cyan-400" : "text-white/40 hover:text-white/60"}`}
-          >
-            {t === "assets" ? "Assets" : "SIEMs"}
-          </button>
-        ))}
-      </div>
-
-      <div className="p-3 space-y-3">
-        {/* Add button */}
-        {!addMode && (
-          <button
-            onClick={() => setAddMode(true)}
-            className="w-full flex items-center justify-center gap-1.5 py-2 rounded text-xs font-medium bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 hover:bg-cyan-500/20 transition-colors"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            Add {tab === "assets" ? "Asset Location" : "SIEM Location"}
-          </button>
-        )}
-
-        {/* Add form */}
-        {addMode && tab === "assets" && (
-          <div className="space-y-2 p-3 rounded bg-white/3 border border-white/5">
-            <p className="text-[10px] uppercase tracking-wider text-cyan-500/60 font-semibold">New Asset</p>
-
-            <div className="relative">
-              <select
-                value={form.customer}
-                onChange={(e) => setForm({ ...form, customer: e.target.value })}
-                className={selectCls}
-              >
-                <option value="">Select Customer</option>
-                {customers.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
-              <ChevronDown className={chevronCls} style={{ color: "var(--theme-text-muted)" }} />
-            </div>
-
-            {/* Show ticket assets as suggestions */}
-            <div>
-              <div className="relative">
-                <select
-                  value={form.asset_name}
-                  onChange={(e) => setForm({ ...form, asset_name: e.target.value })}
-                  className={selectCls}
-                >
-                  <option value="">Select Asset (from tickets)</option>
-                  {ticketAssets.map((a) => (
-                    <option key={a.asset_name} value={a.asset_name}>{a.asset_name} ({a.count} tickets)</option>
-                  ))}
-                </select>
-                <ChevronDown className={chevronCls} style={{ color: "var(--theme-text-muted)" }} />
-              </div>
-              <input
-                value={form.asset_name}
-                onChange={(e) => setForm({ ...form, asset_name: e.target.value })}
-                placeholder="Or type asset name manually"
-                className={`${inputCls} mt-1`}
-              />
-            </div>
-
-            <input value={form.label} onChange={(e) => setForm({ ...form, label: e.target.value })} placeholder="Display label (optional)" className={inputCls} />
-
-            <div className="grid grid-cols-2 gap-2">
-              <input value={form.lat} onChange={(e) => setForm({ ...form, lat: e.target.value })} placeholder="Latitude" type="number" step="any" className={inputCls} />
-              <input value={form.lng} onChange={(e) => setForm({ ...form, lng: e.target.value })} placeholder="Longitude" type="number" step="any" className={inputCls} />
-            </div>
-
-            <div className="relative">
-              <select value={form.icon_type} onChange={(e) => setForm({ ...form, icon_type: e.target.value })} className={selectCls}>
-                <option value="server">🖥 Server</option>
-                <option value="firewall">🛡 Firewall</option>
-                <option value="endpoint">💻 Endpoint</option>
-                <option value="database">🗄 Database</option>
-                <option value="cloud">☁ Cloud</option>
-              </select>
-              <ChevronDown className={chevronCls} style={{ color: "var(--theme-text-muted)" }} />
-            </div>
-
-            <div className="flex gap-2">
-              <button onClick={handleSaveAsset} className="flex-1 py-1.5 rounded text-xs font-medium bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-colors">
-                Save
-              </button>
-              <button onClick={() => setAddMode(false)} className="flex-1 py-1.5 rounded text-xs font-medium bg-white/5 text-white/50 hover:bg-white/10 transition-colors">
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
-
-        {addMode && tab === "siems" && (
-          <div className="space-y-2 p-3 rounded bg-white/3 border border-white/5">
-            <p className="text-[10px] uppercase tracking-wider text-cyan-500/60 font-semibold">New SIEM</p>
-
-            <div className="relative">
-              <select value={form.customer} onChange={(e) => setForm({ ...form, customer: e.target.value })} className={selectCls}>
-                <option value="">Shared (All Customers)</option>
-                {customers.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
-              <ChevronDown className={chevronCls} style={{ color: "var(--theme-text-muted)" }} />
-            </div>
-
-            <input value={form.siem_label} onChange={(e) => setForm({ ...form, siem_label: e.target.value })} placeholder="SIEM Label (e.g. MTM SOC)" className={inputCls} />
-
-            <div className="relative">
-              <select value={form.location_type} onChange={(e) => setForm({ ...form, location_type: e.target.value })} className={selectCls}>
-                <option value="on-prem">On-Premise (MTM Office)</option>
-                <option value="customer-site">Customer Site</option>
-                <option value="cloud">Cloud</option>
-              </select>
-              <ChevronDown className={chevronCls} style={{ color: "var(--theme-text-muted)" }} />
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <input value={form.lat} onChange={(e) => setForm({ ...form, lat: e.target.value })} placeholder="Latitude" type="number" step="any" className={inputCls} />
-              <input value={form.lng} onChange={(e) => setForm({ ...form, lng: e.target.value })} placeholder="Longitude" type="number" step="any" className={inputCls} />
-            </div>
-
-            <div className="flex gap-2">
-              <button onClick={handleSaveSiem} className="flex-1 py-1.5 rounded text-xs font-medium bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-colors">
-                Save
-              </button>
-              <button onClick={() => setAddMode(false)} className="flex-1 py-1.5 rounded text-xs font-medium bg-white/5 text-white/50 hover:bg-white/10 transition-colors">
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Existing items list */}
-        {tab === "assets" && (
-          <div className="space-y-1.5">
-            {assets.length === 0 && !addMode && (
-              <p className="text-center text-xs text-white/30 py-4">No asset locations configured</p>
-            )}
-            {assets.map((a) => (
-              <div key={a.id} className="flex items-center justify-between p-2 rounded bg-white/3 border border-white/5 group">
-                <div className="flex items-center gap-2 min-w-0">
-                  <MapPin className="w-3.5 h-3.5 flex-shrink-0" style={{ color: ICON_TYPES[a.icon_type]?.color || "#00D4FF" }} />
-                  <div className="min-w-0">
-                    <p className="text-xs text-white/80 truncate">{a.label || a.asset_name}</p>
-                    <p className="text-[10px] text-white/30 truncate">{a.customer} · {a.lat.toFixed(4)}, {a.lng.toFixed(4)}</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => handleDelete("asset", a.id)}
-                  className="opacity-0 group-hover:opacity-100 p-1 rounded text-red-400/60 hover:text-red-400 hover:bg-red-500/10 transition-all"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {tab === "siems" && (
-          <div className="space-y-1.5">
-            {siems.length === 0 && !addMode && (
-              <p className="text-center text-xs text-white/30 py-4">No SIEM locations configured</p>
-            )}
-            {siems.map((s) => (
-              <div key={s.id} className="flex items-center justify-between p-2 rounded bg-white/3 border border-white/5 group">
-                <div className="flex items-center gap-2 min-w-0">
-                  <Wifi className="w-3.5 h-3.5 flex-shrink-0 text-fuchsia-400" />
-                  <div className="min-w-0">
-                    <p className="text-xs text-white/80 truncate">{s.label}</p>
-                    <p className="text-[10px] text-white/30 truncate">{s.location_type} · {s.lat.toFixed(4)}, {s.lng.toFixed(4)}</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => handleDelete("siem", s.id)}
-                  className="opacity-0 group-hover:opacity-100 p-1 rounded text-red-400/60 hover:text-red-400 hover:bg-red-500/10 transition-all"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
     </div>
   );
 }

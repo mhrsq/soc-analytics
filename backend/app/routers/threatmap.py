@@ -1,6 +1,7 @@
 """Threat Map API endpoints — attack arcs, asset locations, SIEM locations."""
 
 import logging
+from datetime import date, datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -22,6 +23,24 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/threatmap", tags=["Threat Map"])
 
 
+def _parse_time(value: Optional[str]):
+    """Parse ISO datetime or date string to a proper datetime/date object."""
+    if not value:
+        return None
+    if len(value) == 10 and value[4] == "-" and value[7] == "-":
+        try:
+            return date.fromisoformat(value)
+        except ValueError:
+            return None
+    try:
+        dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt
+    except ValueError:
+        return None
+
+
 # ── Attack Data ─────────────────────────────────────────────────
 
 @router.get("/attacks", response_model=list[AttackArc])
@@ -38,10 +57,12 @@ async def get_attacks(
     filters = [Ticket.ip_address.isnot(None), Ticket.ip_address != ""]
     if customer:
         filters.append(Ticket.customer == customer)
-    if start:
-        filters.append(Ticket.created_time >= start)
-    if end:
-        filters.append(Ticket.created_time <= end)
+    parsed_start = _parse_time(start)
+    if parsed_start:
+        filters.append(Ticket.created_time >= parsed_start)
+    parsed_end = _parse_time(end)
+    if parsed_end:
+        filters.append(Ticket.created_time <= parsed_end)
 
     q = (
         select(
@@ -69,13 +90,13 @@ async def get_attacks(
     all_ips = list({r.ip_address for r in rows if r.ip_address})
     geo_data = await batch_geolocate(all_ips)
 
-    # Get asset locations for matching
-    customer_names = list({r.customer for r in rows if r.customer})
-    asset_q = select(AssetLocation).where(AssetLocation.customer.in_(customer_names)) if customer_names else select(AssetLocation)
-    asset_result = await db.execute(asset_q)
-    asset_map: dict[str, AssetLocation] = {}
-    for a in asset_result.scalars().all():
-        asset_map[f"{a.customer}:{a.asset_name}"] = a
+    # Get topology nodes for target location matching (by hostname/asset_name)
+    topo_q = select(TopologyNode).where(TopologyNode.lat.isnot(None), TopologyNode.lng.isnot(None))
+    topo_result = await db.execute(topo_q)
+    topo_map: dict[str, TopologyNode] = {}
+    for n in topo_result.scalars().all():
+        if n.hostname:
+            topo_map[f"{n.customer}:{n.hostname}"] = n
 
     # Build attack arcs
     arcs = []
@@ -84,9 +105,9 @@ async def get_attacks(
         private = is_private_ip(ip)
         geo = geo_data.get(ip)
 
-        # Find target asset location
-        asset_key = f"{r.customer}:{r.asset_name}" if r.customer and r.asset_name else None
-        asset = asset_map.get(asset_key) if asset_key else None
+        # Find target location from topology nodes
+        topo_key = f"{r.customer}:{r.asset_name}" if r.customer and r.asset_name else None
+        node = topo_map.get(topo_key) if topo_key else None
 
         arc = AttackArc(
             ticket_id=r.id,
@@ -96,8 +117,8 @@ async def get_attacks(
             source_country=geo.get("country") if geo else None,
             source_city=geo.get("city") if geo else None,
             target_asset=r.asset_name,
-            target_lat=asset.lat if asset else None,
-            target_lng=asset.lng if asset else None,
+            target_lat=node.lat if node else None,
+            target_lng=node.lng if node else None,
             priority=r.priority,
             attack_category=r.attack_category,
             validation=r.validation,

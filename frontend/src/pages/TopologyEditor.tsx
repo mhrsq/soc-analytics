@@ -88,6 +88,7 @@ export function TopologyEditor() {
   const [panelOpen, setPanelOpen] = useState(false);
   const [addMode, setAddMode] = useState(false);
   const [customers, setCustomers] = useState<string[]>([]);
+  const [ticketAssets, setTicketAssets] = useState<{ asset_name: string; count: number }[]>([]);
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
   const dragSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -112,14 +113,16 @@ export function TopologyEditor() {
   // Load data
   const loadData = useCallback(async () => {
     try {
-      const [nodeData, linkData, opts] = await Promise.all([
+      const [nodeData, linkData, opts, assetData] = await Promise.all([
         api.getTopologyNodes(),
         api.getTopologyLinks(),
         api.getFilterOptions(),
+        api.getTicketAssets(),
       ]);
       setTopoNodes(nodeData);
       setTopoLinks(linkData);
       setCustomers(opts.customers);
+      setTicketAssets(assetData);
 
       // Convert to ReactFlow nodes
       setNodes(
@@ -542,8 +545,22 @@ export function TopologyEditor() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase tracking-wider text-cyan-500/60 block mb-1">Hostname</label>
-                  <input value={nodeForm.hostname} onChange={(e) => setNodeForm({ ...nodeForm, hostname: e.target.value })} placeholder="e.g. srv-web-01.dc.local" className={inputCls} />
+                  <label className="text-[10px] uppercase tracking-wider text-cyan-500/60 block mb-1">Hostname / Asset</label>
+                  <div className="relative">
+                    <select
+                      value={nodeForm.hostname}
+                      onChange={(e) => setNodeForm({ ...nodeForm, hostname: e.target.value })}
+                      className={selectCls}
+                    >
+                      <option value="">Select from tickets...</option>
+                      {ticketAssets
+                        .filter((a) => !nodeForm.customer || a.asset_name.toLowerCase().includes(nodeForm.customer.toLowerCase()) || true)
+                        .map((a) => (
+                          <option key={a.asset_name} value={a.asset_name}>{a.asset_name} ({a.count} tickets)</option>
+                        ))}
+                    </select>
+                    <ChevronDown className={chevronCls} style={{ color: "var(--theme-text-muted)" }} />
+                  </div>
                 </div>
                 <div>
                   <label className="text-[10px] uppercase tracking-wider text-cyan-500/60 block mb-1">Customer</label>
