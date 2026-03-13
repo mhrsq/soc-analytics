@@ -370,11 +370,12 @@ export function ThreatMapView() {
         <div className="flex items-center gap-2">
           <div className="relative">
             <select value={customer} onChange={(e) => setCustomer(e.target.value)}
-              className="appearance-none pl-3 pr-7 py-1.5 rounded text-xs font-medium cursor-pointer bg-white/5 border border-white/10 text-white/80 focus:outline-none focus:border-cyan-500/50">
+              className="appearance-none pl-3 pr-8 py-1.5 rounded-lg text-xs font-medium cursor-pointer"
+              style={{ backgroundColor: "color-mix(in srgb, var(--theme-surface-raised) 80%, transparent)", color: "var(--theme-text-secondary)", border: "1px solid var(--theme-surface-border)" }}>
               <option value="">All Customers</option>
               {customers.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
-            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-white/40 pointer-events-none" />
+            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none" style={{ color: "var(--theme-text-muted)" }} />
           </div>
           <button onClick={loadData} className="p-1.5 rounded bg-white/5 border border-white/10 text-white/60 hover:text-cyan-400 hover:border-cyan-500/30 transition-colors" title="Refresh">
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
@@ -440,14 +441,18 @@ export function ThreatMapView() {
                   <SkipForward className="w-4 h-4" />
                 </button>
               </div>
-              <select value={replaySpeed} onChange={(e) => setReplaySpeed(Number(e.target.value))}
-                className="px-2 py-1 rounded text-xs bg-white/5 border border-white/10 text-white/80 focus:outline-none [color-scheme:dark]">
-                <option value={0.5}>0.5x</option>
-                <option value={1}>1x</option>
-                <option value={2}>2x</option>
-                <option value={4}>4x</option>
-                <option value={8}>8x</option>
-              </select>
+              <div className="relative">
+                <select value={replaySpeed} onChange={(e) => setReplaySpeed(Number(e.target.value))}
+                  className="appearance-none pl-2 pr-7 py-1 rounded-lg text-xs cursor-pointer"
+                  style={{ backgroundColor: "color-mix(in srgb, var(--theme-surface-raised) 80%, transparent)", color: "var(--theme-text-secondary)", border: "1px solid var(--theme-surface-border)" }}>
+                  <option value={0.5}>0.5x</option>
+                  <option value={1}>1x</option>
+                  <option value={2}>2x</option>
+                  <option value={4}>4x</option>
+                  <option value={8}>8x</option>
+                </select>
+                <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 pointer-events-none" style={{ color: "var(--theme-text-muted)" }} />
+              </div>
               <div className="flex-1 flex items-center gap-2 min-w-[120px]">
                 <input type="range" min={0} max={replayData.length} value={replayIndex}
                   onChange={(e) => { setReplayPlaying(false); setReplayIndex(Number(e.target.value)); }}
@@ -589,7 +594,9 @@ function ConfigPanel({ customer, customers, assets, siems, onClose, onRefresh }:
     onRefresh();
   };
 
-  const inputCls = "w-full px-2 py-1.5 rounded text-xs bg-white/5 border border-white/10 text-white/90 placeholder-white/30 focus:outline-none focus:border-cyan-500/50 [color-scheme:dark]";
+  const inputCls = "w-full px-2 py-1.5 rounded-lg text-xs focus:outline-none transition-colors theme-input";
+  const selectCls = `${inputCls} appearance-none pr-7 cursor-pointer`;
+  const chevronCls = "absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 pointer-events-none" as const;
 
   return (
     <div className="absolute top-0 right-0 bottom-0 z-[1100] w-80 overflow-y-auto"
@@ -636,27 +643,33 @@ function ConfigPanel({ customer, customers, assets, siems, onClose, onRefresh }:
           <div className="space-y-2 p-3 rounded bg-white/3 border border-white/5">
             <p className="text-[10px] uppercase tracking-wider text-cyan-500/60 font-semibold">New Asset</p>
 
-            <select
-              value={form.customer}
-              onChange={(e) => setForm({ ...form, customer: e.target.value })}
-              className={inputCls}
-            >
-              <option value="">Select Customer</option>
-              {customers.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
+            <div className="relative">
+              <select
+                value={form.customer}
+                onChange={(e) => setForm({ ...form, customer: e.target.value })}
+                className={selectCls}
+              >
+                <option value="">Select Customer</option>
+                {customers.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+              <ChevronDown className={chevronCls} style={{ color: "var(--theme-text-muted)" }} />
+            </div>
 
             {/* Show ticket assets as suggestions */}
             <div>
-              <select
-                value={form.asset_name}
-                onChange={(e) => setForm({ ...form, asset_name: e.target.value })}
-                className={inputCls}
-              >
-                <option value="">Select Asset (from tickets)</option>
-                {ticketAssets.map((a) => (
-                  <option key={a.asset_name} value={a.asset_name}>{a.asset_name} ({a.count} tickets)</option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  value={form.asset_name}
+                  onChange={(e) => setForm({ ...form, asset_name: e.target.value })}
+                  className={selectCls}
+                >
+                  <option value="">Select Asset (from tickets)</option>
+                  {ticketAssets.map((a) => (
+                    <option key={a.asset_name} value={a.asset_name}>{a.asset_name} ({a.count} tickets)</option>
+                  ))}
+                </select>
+                <ChevronDown className={chevronCls} style={{ color: "var(--theme-text-muted)" }} />
+              </div>
               <input
                 value={form.asset_name}
                 onChange={(e) => setForm({ ...form, asset_name: e.target.value })}
@@ -672,13 +685,16 @@ function ConfigPanel({ customer, customers, assets, siems, onClose, onRefresh }:
               <input value={form.lng} onChange={(e) => setForm({ ...form, lng: e.target.value })} placeholder="Longitude" type="number" step="any" className={inputCls} />
             </div>
 
-            <select value={form.icon_type} onChange={(e) => setForm({ ...form, icon_type: e.target.value })} className={inputCls}>
-              <option value="server">🖥 Server</option>
-              <option value="firewall">🛡 Firewall</option>
-              <option value="endpoint">💻 Endpoint</option>
-              <option value="database">🗄 Database</option>
-              <option value="cloud">☁ Cloud</option>
-            </select>
+            <div className="relative">
+              <select value={form.icon_type} onChange={(e) => setForm({ ...form, icon_type: e.target.value })} className={selectCls}>
+                <option value="server">🖥 Server</option>
+                <option value="firewall">🛡 Firewall</option>
+                <option value="endpoint">💻 Endpoint</option>
+                <option value="database">🗄 Database</option>
+                <option value="cloud">☁ Cloud</option>
+              </select>
+              <ChevronDown className={chevronCls} style={{ color: "var(--theme-text-muted)" }} />
+            </div>
 
             <div className="flex gap-2">
               <button onClick={handleSaveAsset} className="flex-1 py-1.5 rounded text-xs font-medium bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-colors">
@@ -695,18 +711,24 @@ function ConfigPanel({ customer, customers, assets, siems, onClose, onRefresh }:
           <div className="space-y-2 p-3 rounded bg-white/3 border border-white/5">
             <p className="text-[10px] uppercase tracking-wider text-cyan-500/60 font-semibold">New SIEM</p>
 
-            <select value={form.customer} onChange={(e) => setForm({ ...form, customer: e.target.value })} className={inputCls}>
-              <option value="">Shared (All Customers)</option>
-              {customers.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
+            <div className="relative">
+              <select value={form.customer} onChange={(e) => setForm({ ...form, customer: e.target.value })} className={selectCls}>
+                <option value="">Shared (All Customers)</option>
+                {customers.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+              <ChevronDown className={chevronCls} style={{ color: "var(--theme-text-muted)" }} />
+            </div>
 
             <input value={form.siem_label} onChange={(e) => setForm({ ...form, siem_label: e.target.value })} placeholder="SIEM Label (e.g. MTM SOC)" className={inputCls} />
 
-            <select value={form.location_type} onChange={(e) => setForm({ ...form, location_type: e.target.value })} className={inputCls}>
-              <option value="on-prem">On-Premise (MTM Office)</option>
-              <option value="customer-site">Customer Site</option>
-              <option value="cloud">Cloud</option>
-            </select>
+            <div className="relative">
+              <select value={form.location_type} onChange={(e) => setForm({ ...form, location_type: e.target.value })} className={selectCls}>
+                <option value="on-prem">On-Premise (MTM Office)</option>
+                <option value="customer-site">Customer Site</option>
+                <option value="cloud">Cloud</option>
+              </select>
+              <ChevronDown className={chevronCls} style={{ color: "var(--theme-text-muted)" }} />
+            </div>
 
             <div className="grid grid-cols-2 gap-2">
               <input value={form.lat} onChange={(e) => setForm({ ...form, lat: e.target.value })} placeholder="Latitude" type="number" step="any" className={inputCls} />

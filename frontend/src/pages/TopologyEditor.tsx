@@ -414,7 +414,9 @@ export function TopologyEditor() {
     }
   };
 
-  const inputCls = "w-full px-2 py-1.5 rounded text-xs bg-white/5 border border-white/10 text-white/90 placeholder-white/30 focus:outline-none focus:border-cyan-500/50 [color-scheme:dark]";
+  const inputCls = "w-full px-2 py-1.5 rounded-lg text-xs focus:outline-none transition-colors theme-input";
+  const selectCls = `${inputCls} appearance-none pr-7 cursor-pointer`;
+  const chevronCls = "absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 pointer-events-none" as const;
 
   return (
     <div className="relative w-full" style={{ height: "calc(100vh - 56px)", background: "#0a0a1a" }}>
@@ -531,12 +533,12 @@ export function TopologyEditor() {
                 <div>
                   <label className="text-[10px] uppercase tracking-wider text-cyan-500/60 block mb-1">Type</label>
                   <div className="relative">
-                    <select value={nodeForm.node_type} onChange={(e) => setNodeForm({ ...nodeForm, node_type: e.target.value })} className={inputCls}>
+                    <select value={nodeForm.node_type} onChange={(e) => setNodeForm({ ...nodeForm, node_type: e.target.value })} className={selectCls}>
                       {Object.entries(NODE_TYPE_CONFIG).map(([k, v]) => (
                         <option key={k} value={k}>{v.label}</option>
                       ))}
                     </select>
-                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-white/40 pointer-events-none" />
+                    <ChevronDown className={chevronCls} style={{ color: "var(--theme-text-muted)" }} />
                   </div>
                 </div>
                 <div>
@@ -546,11 +548,11 @@ export function TopologyEditor() {
                 <div>
                   <label className="text-[10px] uppercase tracking-wider text-cyan-500/60 block mb-1">Customer</label>
                   <div className="relative">
-                    <select value={nodeForm.customer} onChange={(e) => setNodeForm({ ...nodeForm, customer: e.target.value })} className={inputCls}>
+                    <select value={nodeForm.customer} onChange={(e) => setNodeForm({ ...nodeForm, customer: e.target.value })} className={selectCls}>
                       <option value="">None</option>
                       {customers.map((c) => <option key={c} value={c}>{c}</option>)}
                     </select>
-                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-white/40 pointer-events-none" />
+                    <ChevronDown className={chevronCls} style={{ color: "var(--theme-text-muted)" }} />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
@@ -592,9 +594,12 @@ export function TopologyEditor() {
               <>
                 <div>
                   <label className="text-[10px] uppercase tracking-wider text-cyan-500/60 block mb-1">Link Type</label>
-                  <select value={linkForm.link_type} onChange={(e) => setLinkForm({ ...linkForm, link_type: e.target.value })} className={inputCls}>
-                    {LINK_TYPES.map((t) => <option key={t} value={t}>{t.toUpperCase()}</option>)}
-                  </select>
+                  <div className="relative">
+                    <select value={linkForm.link_type} onChange={(e) => setLinkForm({ ...linkForm, link_type: e.target.value })} className={selectCls}>
+                      {LINK_TYPES.map((t) => <option key={t} value={t}>{t.toUpperCase()}</option>)}
+                    </select>
+                    <ChevronDown className={chevronCls} style={{ color: "var(--theme-text-muted)" }} />
+                  </div>
                 </div>
                 <div>
                   <label className="text-[10px] uppercase tracking-wider text-cyan-500/60 block mb-1">Label</label>
