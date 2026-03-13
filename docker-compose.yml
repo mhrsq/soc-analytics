@@ -68,6 +68,13 @@ services:
     restart: unless-stopped
     ports:
       - "3500:3000"
+    environment:
+      VITE_API_URL: http://backend:8000
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
 
   # Nginx Reverse Proxy (login page + routing)
   nginx:
@@ -82,13 +89,6 @@ services:
     depends_on:
       - backend
       - frontend
-    environment:
-      VITE_API_URL: http://backend:8000
-    depends_on:
-      - backend
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
 
 volumes:
   pgdata:
