@@ -424,7 +424,7 @@ export function ThreatMapView() {
                 </button>
               </div>
               <select value={replaySpeed} onChange={(e) => setReplaySpeed(Number(e.target.value))}
-                className="px-2 py-1 rounded text-xs bg-white/5 border border-white/10 text-white/80 focus:outline-none">
+                className="px-2 py-1 rounded text-xs bg-white/5 border border-white/10 text-white/80 focus:outline-none [color-scheme:dark]">
                 <option value={0.5}>0.5x</option>
                 <option value={1}>1x</option>
                 <option value={2}>2x</option>
@@ -568,7 +568,7 @@ function ConfigPanel({ customer, customers, assets, siems, onClose, onRefresh }:
     onRefresh();
   };
 
-  const inputCls = "w-full px-2 py-1.5 rounded text-xs bg-white/5 border border-white/10 text-white/90 placeholder-white/30 focus:outline-none focus:border-cyan-500/50";
+  const inputCls = "w-full px-2 py-1.5 rounded text-xs bg-white/5 border border-white/10 text-white/90 placeholder-white/30 focus:outline-none focus:border-cyan-500/50 [color-scheme:dark]";
 
   return (
     <div className="absolute top-0 right-0 bottom-0 z-[1100] w-80 overflow-y-auto"

@@ -414,7 +414,7 @@ export function TopologyEditor() {
     }
   };
 
-  const inputCls = "w-full px-2 py-1.5 rounded text-xs bg-white/5 border border-white/10 text-white/90 placeholder-white/30 focus:outline-none focus:border-cyan-500/50";
+  const inputCls = "w-full px-2 py-1.5 rounded text-xs bg-white/5 border border-white/10 text-white/90 placeholder-white/30 focus:outline-none focus:border-cyan-500/50 [color-scheme:dark]";
 
   return (
     <div className="relative w-full" style={{ height: "calc(100vh - 56px)", background: "#0a0a1a" }}>
