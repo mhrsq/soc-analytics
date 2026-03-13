@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Polyline, CircleMarker, Tooltip, useMap } from
 import "leaflet/dist/leaflet.css";
 import { api } from "../api/client";
 import { Spinner } from "../components/Spinner";
-import type { AttackArc, AssetLocation, SiemLocation } from "../types";
+import type { AttackArc, AssetLocation, SiemLocation, TopologyNode } from "../types";
 import {
   Settings2, Crosshair, Shield, Server, RefreshCw,
   ChevronDown, Plus, Trash2, MapPin, X, Wifi, Database, Cloud, Monitor,
@@ -30,6 +30,9 @@ const ICON_TYPES: Record<string, { icon: typeof Server; color: string }> = {
   endpoint: { icon: Monitor, color: "#00FF88" },
   database: { icon: Database, color: "#FFD700" },
   cloud: { icon: Cloud, color: "#FF00FF" },
+  siem: { icon: Wifi, color: "#FF073A" },
+  router: { icon: Server, color: "#8B5CF6" },
+  switch: { icon: Server, color: "#06B6D4" },
 };
 
 // ── Animated polyline with dashes ──────────────────────────────
@@ -104,6 +107,7 @@ export function ThreatMapView() {
   const [attacks, setAttacks] = useState<AttackArc[]>([]);
   const [assets, setAssets] = useState<AssetLocation[]>([]);
   const [siems, setSiems] = useState<SiemLocation[]>([]);
+  const [topoNodes, setTopoNodes] = useState<TopologyNode[]>([]);
   const [customers, setCustomers] = useState<string[]>([]);
   const [customer, setCustomer] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -129,14 +133,16 @@ export function ThreatMapView() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [attackData, assetData, siemData] = await Promise.all([
+      const [attackData, assetData, siemData, topoData] = await Promise.all([
         api.getAttacks(customer ? { customer } : {}, 500),
         api.getAssetLocations(customer || undefined),
         api.getSiemLocations(customer || undefined),
+        api.getTopologyNodes(),
       ]);
       setAttacks(attackData);
       setAssets(assetData);
       setSiems(siemData);
+      setTopoNodes(topoData);
     } catch (e) {
       console.error("Failed to load threat map data:", e);
     } finally {
@@ -298,6 +304,17 @@ export function ThreatMapView() {
             <Tooltip><span className="text-xs">📡 {s.label} ({s.location_type})</span></Tooltip>
           </CircleMarker>
         ))}
+
+        {/* Topology node markers */}
+        {topoNodes.filter((n) => n.lat != null && n.lng != null && (!customer || n.customer === customer)).map((n) => {
+          const cfg = ICON_TYPES[n.node_type] || ICON_TYPES.server;
+          return (
+            <CircleMarker key={`topo-${n.id}`} center={[n.lat!, n.lng!]} radius={7}
+              pathOptions={{ color: cfg.color, fillColor: cfg.color, fillOpacity: 0.6, weight: 2 }}>
+              <Tooltip><span className="text-xs">🔷 {n.label}{n.hostname ? ` (${n.hostname})` : ""}{n.customer ? ` · ${n.customer}` : ""}</span></Tooltip>
+            </CircleMarker>
+          );
+        })}
 
         {/* Attack source clusters */}
         {(() => {
@@ -471,6 +488,10 @@ export function ThreatMapView() {
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-fuchsia-400" />
             <span className="text-[10px] text-white/60">SIEM</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full" style={{ background: "#8B5CF6" }} />
+            <span className="text-[10px] text-white/60">Topology Node</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-yellow-400 opacity-50" />
