@@ -80,6 +80,15 @@ export interface SyncStatus {
   is_running: boolean;
 }
 
+export interface SDPConnectionStatus {
+  connected: boolean;
+  api_key_valid: boolean;
+  base_url: string;
+  api_key_masked: string;
+  ticket_count: number | null;
+  error: string | null;
+}
+
 export interface AIInsight {
   narrative: string;
   anomalies: string[];

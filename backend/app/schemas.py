@@ -139,6 +139,15 @@ class SyncStatus(BaseModel):
     is_running: bool
 
 
+class SDPConnectionStatus(BaseModel):
+    connected: bool
+    api_key_valid: bool
+    base_url: str
+    api_key_masked: str
+    ticket_count: Optional[int] = None
+    error: Optional[str] = None
+
+
 class SyncTriggerResponse(BaseModel):
     message: str
     sync_id: Optional[int]

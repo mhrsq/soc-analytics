@@ -5,7 +5,7 @@ import { CustomerView } from "./pages/CustomerView";
 import { ThreatMapView } from "./pages/ThreatMapView";
 import { TopologyEditor } from "./pages/TopologyEditor";
 import { UserManagement } from "./components/UserManagement";
-import { Wifi, WifiOff, Palette, Settings2, LayoutDashboard, Users, Building2, Globe, Shield, LogOut, Network } from "lucide-react";
+import { Wifi, WifiOff, Palette, Settings2, LayoutDashboard, Users, Building2, Globe, Shield, LogOut, Network, ServerCrash, Server, KeyRound } from "lucide-react";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import { DashboardProvider } from "./contexts/DashboardContext";
@@ -13,7 +13,8 @@ import { CustomerDashboardProvider } from "./contexts/CustomerDashboardContext";
 import { NotificationBell } from "./components/NotificationBell";
 import { ThemePanel } from "./components/ThemePanel";
 import { LLMSettingsPanel } from "./components/LLMSettingsPanel";
-import type { AuthUser } from "./api/client";
+import { api, type AuthUser } from "./api/client";
+import type { SDPConnectionStatus } from "./types";
 
 type Page = "dashboard" | "manager" | "customer" | "threatmap" | "topology" | "users";
 
@@ -58,6 +59,112 @@ function ConnectionStatus() {
     <div className="flex items-center gap-1.5">
       <span className="h-2 w-2 rounded-full bg-red-500" />
       <WifiOff className="w-3.5 h-3.5 text-red-500/70" />
+    </div>
+  );
+}
+
+function SDPStatusIndicator() {
+  const [status, setStatus] = useState<SDPConnectionStatus | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  useEffect(() => {
+    const check = async () => {
+      try {
+        const data = await api.getSDPStatus();
+        setStatus(data);
+      } catch {
+        setStatus(null);
+      }
+      setLoading(false);
+    };
+    check();
+    const id = setInterval(check, 60000);
+    return () => clearInterval(id);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center gap-1.5">
+        <span className="h-2 w-2 rounded-full bg-yellow-500 animate-pulse" />
+        <Server className="w-3.5 h-3.5 text-yellow-500/70" />
+      </div>
+    );
+  }
+
+  const isOk = status?.connected && status?.api_key_valid;
+  const isAuthErr = status && !status.api_key_valid;
+
+  return (
+    <div className="relative" onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>
+      <button className="flex items-center gap-1.5 cursor-default">
+        {isOk ? (
+          <>
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            </span>
+            <KeyRound className="w-3.5 h-3.5 text-emerald-500/70" />
+          </>
+        ) : isAuthErr ? (
+          <>
+            <span className="h-2 w-2 rounded-full bg-red-500" />
+            <KeyRound className="w-3.5 h-3.5 text-red-500/70" />
+          </>
+        ) : (
+          <>
+            <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+            <ServerCrash className="w-3.5 h-3.5 text-amber-500/70" />
+          </>
+        )}
+      </button>
+      {showTooltip && (
+        <div
+          className="absolute top-full right-0 mt-2 w-72 rounded-lg p-3 shadow-xl z-50 text-xs border"
+          style={{
+            backgroundColor: "var(--theme-surface-card)",
+            borderColor: "var(--theme-surface-border)",
+            color: "var(--theme-text-secondary)",
+          }}
+        >
+          <div className="font-semibold mb-2 text-sm" style={{ color: "var(--theme-text-primary)" }}>
+            SDP Connection Status
+          </div>
+          {!status ? (
+            <div className="text-red-400">Unable to check SDP status</div>
+          ) : (
+            <div className="space-y-1.5">
+              <div className="flex justify-between">
+                <span>Status</span>
+                <span className={isOk ? "text-emerald-400 font-medium" : isAuthErr ? "text-red-400 font-medium" : "text-amber-400 font-medium"}>
+                  {isOk ? "Connected" : isAuthErr ? "API Key Invalid" : "Connection Error"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>Base URL</span>
+                <span className="font-mono text-[10px] truncate ml-2 max-w-[160px]" title={status.base_url}>
+                  {status.base_url}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>API Key</span>
+                <span className="font-mono text-[10px]">{status.api_key_masked}</span>
+              </div>
+              {status.ticket_count !== null && (
+                <div className="flex justify-between">
+                  <span>SDP Tickets</span>
+                  <span className="font-medium" style={{ color: "var(--theme-accent)" }}>{status.ticket_count?.toLocaleString()}</span>
+                </div>
+              )}
+              {status.error && (
+                <div className="mt-1 p-1.5 rounded text-[10px] break-all" style={{ backgroundColor: "color-mix(in srgb, var(--theme-surface-card) 80%, red 20%)" }}>
+                  {status.error}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -210,6 +317,7 @@ function AppShell() {
             <span className="hidden sm:inline"><LiveClock /></span>
             <div className="h-4 w-px hidden sm:block" style={{ backgroundColor: "var(--theme-surface-border)" }} />
             <ConnectionStatus />
+            <SDPStatusIndicator />
             <div className="h-4 w-px hidden sm:block" style={{ backgroundColor: "var(--theme-surface-border)" }} />
             <NotificationBell />
             <div className="h-4 w-px" style={{ backgroundColor: "var(--theme-surface-border)" }} />

@@ -69,6 +69,7 @@ import type {
   TopologyNodeCreate,
   TopologyLink,
   TopologyLinkCreate,
+  SDPConnectionStatus,
 } from "../types";
 
 interface Filters {
@@ -110,6 +111,8 @@ export const api = {
 
   // ── Sync ──
   getSyncStatus: () => request<SyncStatus>("/sync/status"),
+
+  getSDPStatus: () => request<SDPConnectionStatus>("/sync/sdp-status"),
 
   triggerSync: (full = false) =>
     request<{ message: string; sync_type: string }>(
