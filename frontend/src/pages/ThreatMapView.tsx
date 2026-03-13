@@ -11,9 +11,13 @@ import {
 // ── Color Palette (cyberpunk) ──────────────────────────────────
 const PRIORITY_COLORS: Record<string, string> = {
   "P1-Critical": "#FF073A",
+  "P1 - Critical": "#FF073A",
   "P2-High": "#FF6B35",
+  "P2 - High": "#FF6B35",
   "P3-Medium": "#FFD700",
+  "P3 - Medium": "#FFD700",
   "P4-Low": "#00FF88",
+  "P4 - Low": "#00FF88",
 };
 
 const ARC_COLORS = ["#FF073A", "#FF6B35", "#00D4FF", "#FF00FF", "#FFD700", "#00FF88"];
@@ -96,7 +100,7 @@ export function ThreatMapView() {
         endLng: a.target_lng ?? 106.8,
         color: PRIORITY_COLORS[a.priority || ""] || ARC_COLORS[i % ARC_COLORS.length],
         label: `${a.source_ip} (${a.source_city || a.source_country || "Unknown"}) → ${a.target_asset || "Target"}`,
-        stroke: a.priority === "P1-Critical" ? 1.5 : a.priority === "P2-High" ? 1.0 : 0.5,
+        stroke: a.priority?.startsWith("P1") ? 1.5 : a.priority?.startsWith("P2") ? 1.0 : 0.5,
         priority: a.priority,
         dashGap: a.validation === "True Positive" ? 0 : 0.5,
       }));
@@ -178,7 +182,7 @@ export function ThreatMapView() {
   // ── Stats ──
   const stats = useMemo(() => {
     const countries = new Set(attacks.filter((a) => a.source_country).map((a) => a.source_country));
-    const p1Count = attacks.filter((a) => a.priority === "P1-Critical").length;
+    const p1Count = attacks.filter((a) => a.priority?.startsWith("P1")).length;
     return {
       totalAttacks: attacks.length,
       countries: countries.size,
