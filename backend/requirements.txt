@@ -14,3 +14,4 @@ pandas==2.2.3
 orjson==3.10.12
 pyjwt==2.8.0
 passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
