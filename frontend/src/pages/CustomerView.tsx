@@ -727,90 +727,88 @@ export function CustomerView() {
     );
   }
 
-  if (!customer) {
-    return (
-      <div className="py-12 sm:py-20">
-        <div className="max-w-md mx-auto text-center space-y-6">
-          <div className="inline-flex p-4 rounded-2xl" style={{ backgroundColor: "color-mix(in srgb, var(--theme-accent) 10%, transparent)" }}>
-            <Building2 className="w-12 h-12" style={{ color: "var(--theme-accent)" }} />
-          </div>
-          <h2 className="text-xl font-bold" style={{ color: "var(--theme-text-primary)" }}>Customer Operations View</h2>
-          <p className="text-sm" style={{ color: "var(--theme-text-muted)" }}>Select a customer to view their security operations dashboard.</p>
-          <div className="relative inline-block">
-            <select
-              value={customer}
-              onChange={(e) => handleCustomerChange(e.target.value)}
-              className="appearance-none pl-4 pr-10 py-2.5 rounded-xl text-sm font-medium cursor-pointer min-w-[250px]"
-              style={{
-                backgroundColor: "var(--theme-card-bg)",
-                color: "var(--theme-text-primary)",
-                border: "1px solid var(--theme-card-border)",
-              }}
-            >
-              <option value="">Select Customer...</option>
-              {filterOptions.data?.customers.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: "var(--theme-text-muted)" }} />
+  return (
+    <div ref={containerRef as React.Ref<HTMLDivElement>}>
+      {!customer ? (
+        <div className="py-12 sm:py-20">
+          <div className="max-w-md mx-auto text-center space-y-6">
+            <div className="inline-flex p-4 rounded-2xl" style={{ backgroundColor: "color-mix(in srgb, var(--theme-accent) 10%, transparent)" }}>
+              <Building2 className="w-12 h-12" style={{ color: "var(--theme-accent)" }} />
+            </div>
+            <h2 className="text-xl font-bold" style={{ color: "var(--theme-text-primary)" }}>Customer Operations View</h2>
+            <p className="text-sm" style={{ color: "var(--theme-text-muted)" }}>Select a customer to view their security operations dashboard.</p>
+            <div className="relative inline-block">
+              <select
+                value={customer}
+                onChange={(e) => handleCustomerChange(e.target.value)}
+                className="appearance-none pl-4 pr-10 py-2.5 rounded-xl text-sm font-medium cursor-pointer min-w-[250px]"
+                style={{
+                  backgroundColor: "var(--theme-card-bg)",
+                  color: "var(--theme-text-primary)",
+                  border: "1px solid var(--theme-card-border)",
+                }}
+              >
+                <option value="">Select Customer...</option>
+                {filterOptions.data?.customers.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: "var(--theme-text-muted)" }} />
+            </div>
           </div>
         </div>
-      </div>
-    );
-  }
+      ) : (
+        <div className="px-4 py-4 sm:py-6">
+          <CustomerToolbar
+            customer={customer}
+            onCustomerChange={handleCustomerChange}
+            periodDays={periodDays}
+            onPeriodChange={setPeriodDays}
+            customers={filterOptions.data?.customers ?? []}
+            editMode={editMode}
+            onToggleEdit={() => setEditMode(!editMode)}
+            onAddWidget={() => setAddOpen(true)}
+            onReset={resetLayout}
+            profiles={profiles}
+            activeProfileId={activeProfileId}
+            onSwitchProfile={switchProfile}
+            onSetAsDefault={setAsDefault}
+            onSaveToNewProfile={saveToNewProfile}
+            onDeleteProfile={deleteProfile}
+          />
 
-  return (
-    <div className="px-4 py-4 sm:py-6">
-      <CustomerToolbar
-        customer={customer}
-        onCustomerChange={handleCustomerChange}
-        periodDays={periodDays}
-        onPeriodChange={setPeriodDays}
-        customers={filterOptions.data?.customers ?? []}
-        editMode={editMode}
-        onToggleEdit={() => setEditMode(!editMode)}
-        onAddWidget={() => setAddOpen(true)}
-        onReset={resetLayout}
-        profiles={profiles}
-        activeProfileId={activeProfileId}
-        onSwitchProfile={switchProfile}
-        onSetAsDefault={setAsDefault}
-        onSaveToNewProfile={saveToNewProfile}
-        onDeleteProfile={deleteProfile}
-      />
+          <ResponsiveGridLayout
+            className="layout"
+            layouts={layouts}
+            breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
+            cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+            rowHeight={40}
+            width={containerWidth}
+            margin={[16, 16]}
+            draggableHandle=".drag-handle"
+            onLayoutChange={handleLayoutChange}
+            isDraggable={editMode}
+            isResizable={editMode}
+            compactor={getCompactor("vertical")}
+          >
+            {widgets.map((widget) => (
+              <div key={widget.id}>
+                <WidgetWrapper
+                  widget={widget}
+                  editMode={editMode}
+                  onEdit={() => setEditWidgetState(widget)}
+                  onRemove={() => removeWidget(widget.id)}
+                >
+                  {renderWidgetContent(widget)}
+                </WidgetWrapper>
+              </div>
+            ))}
+          </ResponsiveGridLayout>
 
-      <div ref={containerRef as React.Ref<HTMLDivElement>}>
-      <ResponsiveGridLayout
-        className="layout"
-        layouts={layouts}
-        breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-        cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-        rowHeight={40}
-        width={containerWidth}
-        margin={[16, 16]}
-        draggableHandle=".drag-handle"
-        onLayoutChange={handleLayoutChange}
-        isDraggable={editMode}
-        isResizable={editMode}
-        compactor={getCompactor("vertical")}
-      >
-        {widgets.map((widget) => (
-          <div key={widget.id}>
-            <WidgetWrapper
-              widget={widget}
-              editMode={editMode}
-              onEdit={() => setEditWidgetState(widget)}
-              onRemove={() => removeWidget(widget.id)}
-            >
-              {renderWidgetContent(widget)}
-            </WidgetWrapper>
-          </div>
-        ))}
-      </ResponsiveGridLayout>
-      </div>
-
-      <AddWidgetModal open={addOpen} onClose={() => setAddOpen(false)} onAdd={addWidget} />
-      <EditWidgetModal widget={editWidgetState} onClose={() => setEditWidgetState(null)} onSave={updateWidget} />
+          <AddWidgetModal open={addOpen} onClose={() => setAddOpen(false)} onAdd={addWidget} />
+          <EditWidgetModal widget={editWidgetState} onClose={() => setEditWidgetState(null)} onSave={updateWidget} />
+        </div>
+      )}
     </div>
   );
 }
