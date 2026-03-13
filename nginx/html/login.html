@@ -175,27 +175,26 @@
     }
 
     .logo-icon {
-      width: 64px;
-      height: 64px;
+      width: 80px;
+      height: 80px;
       margin: 0 auto 16px;
-      background: linear-gradient(135deg, var(--accent), #0891b2);
-      border-radius: 16px;
+      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 0 30px var(--accent-glow);
+      filter: drop-shadow(0 0 20px var(--accent-glow));
       animation: logoPulse 3s ease-in-out infinite;
     }
 
     @keyframes logoPulse {
-      0%, 100% { box-shadow: 0 0 30px var(--accent-glow); }
-      50% { box-shadow: 0 0 50px var(--accent-glow), 0 0 80px rgba(6, 182, 212, 0.1); }
+      0%, 100% { filter: drop-shadow(0 0 20px var(--accent-glow)); }
+      50% { filter: drop-shadow(0 0 35px var(--accent-glow)) drop-shadow(0 0 60px rgba(6, 182, 212, 0.15)); }
     }
 
-    .logo-icon svg {
-      width: 32px;
-      height: 32px;
-      color: white;
+    .logo-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
 
     .logo-section h1 {
@@ -588,9 +587,7 @@
     <div class="login-card">
       <div class="logo-section">
         <div class="logo-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-          </svg>
+          <img src="https://i.ibb.co.com/G46XTxTk/272050657-111083214801796-8969220472870324409-n-removebg-preview.png" alt="MTM Logo">
         </div>
         <h1>SOC Analytics</h1>
         <p>Security Operations Center</p>
