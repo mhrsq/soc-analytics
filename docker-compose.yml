@@ -68,6 +68,20 @@ services:
     restart: unless-stopped
     ports:
       - "3500:3000"
+
+  # Nginx Reverse Proxy (login page + routing)
+  nginx:
+    image: nginx:alpine
+    container_name: soc-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/html:/usr/share/nginx/html:ro
+    depends_on:
+      - backend
+      - frontend
     environment:
       VITE_API_URL: http://backend:8000
     depends_on:

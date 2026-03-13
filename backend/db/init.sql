@@ -191,3 +191,25 @@ CREATE TABLE IF NOT EXISTS siem_locations (
     created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Users & Authentication
+CREATE TABLE IF NOT EXISTS users (
+    id              SERIAL PRIMARY KEY,
+    username        VARCHAR(100) UNIQUE NOT NULL,
+    password_hash   TEXT NOT NULL,
+    display_name    VARCHAR(200),
+    role            VARCHAR(50) NOT NULL DEFAULT 'viewer',
+    customer        VARCHAR(200),
+    is_active       BOOLEAN DEFAULT true,
+    created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+
+-- Seed default users (passwords: admin=mtmn1f4rr0, cmwi=cmwi2026)
+INSERT INTO users (username, password_hash, display_name, role, customer, is_active)
+VALUES
+    ('admin', '$2b$12$3erSpNd9jh2mNlcsaaSpluh3PMi9u.uZf096RdRfCoi4SWHab/cHS', 'Super Admin', 'superadmin', NULL, true),
+    ('cmwi', '$2b$12$DGx9aX/tKpny0GkrUJDjjupqIJSKw1GhzN4UfqBACuq5/uu5mcwkC', 'CMWI User', 'customer', 'CMWI', true)
+ON CONFLICT (username) DO NOTHING;

@@ -3,15 +3,18 @@ import { Dashboard } from "./pages/Dashboard";
 import { ManagerView } from "./pages/ManagerView";
 import { CustomerView } from "./pages/CustomerView";
 import { ThreatMapView } from "./pages/ThreatMapView";
-import { Wifi, WifiOff, Palette, Settings2, LayoutDashboard, Users, Building2, Globe } from "lucide-react";
+import { UserManagement } from "./components/UserManagement";
+import { Wifi, WifiOff, Palette, Settings2, LayoutDashboard, Users, Building2, Globe, Shield, LogOut } from "lucide-react";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import { DashboardProvider } from "./contexts/DashboardContext";
+import { CustomerDashboardProvider } from "./contexts/CustomerDashboardContext";
 import { NotificationBell } from "./components/NotificationBell";
 import { ThemePanel } from "./components/ThemePanel";
 import { LLMSettingsPanel } from "./components/LLMSettingsPanel";
+import type { AuthUser } from "./api/client";
 
-type Page = "dashboard" | "manager" | "customer" | "threatmap";
+type Page = "dashboard" | "manager" | "customer" | "threatmap" | "users";
 
 function LiveClock() {
   const [now, setNow] = useState(new Date());
@@ -63,6 +66,22 @@ function AppShell() {
   const [llmOpen, setLlmOpen] = useState(false);
   const [page, setPage] = useState<Page>("dashboard");
 
+  // Auth: read user from localStorage (set by Nginx login page)
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => {
+    try {
+      const raw = localStorage.getItem("soc_user");
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  });
+
+  const isAdmin = currentUser?.role === "superadmin" || currentUser?.role === "admin";
+
+  const handleLogout = () => {
+    localStorage.removeItem("soc_token");
+    localStorage.removeItem("soc_user");
+    window.location.href = "/login";
+  };
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--theme-surface-base)" }}>
       {/* Top Nav */}
@@ -91,7 +110,7 @@ function AppShell() {
                 }}
               >
                 <LayoutDashboard className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Dashboard</span>
+                <span className="hidden sm:inline">Main Dashboard</span>
               </button>
               <button
                 onClick={() => setPage("manager")}
@@ -113,7 +132,7 @@ function AppShell() {
                 }}
               >
                 <Building2 className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Customer</span>
+                <span className="hidden sm:inline">Customer View</span>
               </button>
               <button
                 onClick={() => setPage("threatmap")}
@@ -126,6 +145,19 @@ function AppShell() {
                 <Globe className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Threat Map</span>
               </button>
+              {isAdmin && (
+                <button
+                  onClick={() => setPage("users")}
+                  className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-medium transition-all"
+                  style={{
+                    backgroundColor: page === "users" ? "color-mix(in srgb, var(--theme-accent) 15%, transparent)" : "transparent",
+                    color: page === "users" ? "var(--theme-accent)" : "var(--theme-text-muted)",
+                  }}
+                >
+                  <Shield className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Users</span>
+                </button>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-4">
@@ -152,6 +184,22 @@ function AppShell() {
             >
               <Palette className="w-4 h-4" />
             </button>
+            {currentUser && (
+              <>
+                <div className="h-4 w-px" style={{ backgroundColor: "var(--theme-surface-border)" }} />
+                <span className="text-[11px] hidden md:inline" style={{ color: "var(--theme-text-muted)" }}>
+                  {currentUser.display_name || currentUser.username}
+                </span>
+                <button
+                  onClick={handleLogout}
+                  className="p-1.5 rounded-lg transition-opacity hover:opacity-80"
+                  style={{ color: "var(--theme-text-muted)" }}
+                  title="Logout"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </>
+            )}
           </div>
         </div>
       </nav>
@@ -162,7 +210,7 @@ function AppShell() {
       ) : (
         <>
           <main className="mx-auto px-3 sm:px-6 pb-6">
-            {page === "dashboard" ? <Dashboard /> : page === "manager" ? <ManagerView /> : <CustomerView />}
+            {page === "dashboard" ? <Dashboard /> : page === "manager" ? <ManagerView /> : page === "users" ? <UserManagement /> : <CustomerView />}
           </main>
           <footer style={{ borderTop: "1px solid var(--theme-surface-border)" }} className="mt-8">
             <div className="mx-auto px-3 sm:px-6 py-4 flex items-center justify-center">
@@ -186,7 +234,9 @@ export default function App() {
     <ThemeProvider>
       <NotificationProvider>
         <DashboardProvider>
-          <AppShell />
+          <CustomerDashboardProvider>
+            <AppShell />
+          </CustomerDashboardProvider>
         </DashboardProvider>
       </NotificationProvider>
     </ThemeProvider>

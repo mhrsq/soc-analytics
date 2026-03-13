@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
-from app.routers import ai, analysts, metrics, sync, tickets, llm, threatmap
+from app.routers import ai, analysts, auth, metrics, sync, tickets, llm, threatmap
 
 settings = get_settings()
 
@@ -181,6 +181,7 @@ app.add_middleware(
 )
 
 # Include routers
+app.include_router(auth.router)
 app.include_router(metrics.router)
 app.include_router(analysts.router)
 app.include_router(tickets.router)

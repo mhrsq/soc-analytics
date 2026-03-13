@@ -12,3 +12,5 @@ python-dateutil==2.9.0
 anthropic==0.42.0
 pandas==2.2.3
 orjson==3.10.12
+pyjwt==2.8.0
+passlib[bcrypt]==1.7.4

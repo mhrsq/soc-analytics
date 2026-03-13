@@ -1,10 +1,25 @@
 const BASE = "/api";
 
+function authHeaders(): Record<string, string> {
+  const token = localStorage.getItem("soc_token");
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  return headers;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
-    headers: { "Content-Type": "application/json" },
+    headers: authHeaders(),
     ...init,
   });
+  if (res.status === 401) {
+    // Token expired or invalid — redirect to login
+    localStorage.removeItem("soc_token");
+    localStorage.removeItem("soc_user");
+    if (window.location.pathname !== "/login") {
+      window.location.href = "/login";
+    }
+  }
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`API ${res.status}: ${text}`);
@@ -206,4 +221,41 @@ export const api = {
 
   getTicketAssets: (customer?: string) =>
     request<TicketAsset[]>(`/threatmap/ticket-assets${qs({ customer })}`),
+
+  // ── Auth ──
+  login: (username: string, password: string) =>
+    request<{ access_token: string; token_type: string; user: AuthUser }>("/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ username, password }),
+    }),
+
+  getMe: () =>
+    request<AuthUser>("/auth/me"),
+
+  getUsers: () =>
+    request<AuthUser[]>("/auth/users"),
+
+  createUser: (data: { username: string; password: string; display_name?: string; role?: string; customer?: string }) =>
+    request<AuthUser>("/auth/users", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  updateUser: (id: number, data: { display_name?: string; role?: string; customer?: string; is_active?: boolean; password?: string }) =>
+    request<AuthUser>(`/auth/users/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+
+  deleteUser: (id: number) =>
+    request<{ ok: boolean }>(`/auth/users/${id}`, { method: "DELETE" }),
 };
+
+export interface AuthUser {
+  id: number;
+  username: string;
+  display_name: string | null;
+  role: string;
+  customer: string | null;
+  is_active: boolean;
+}

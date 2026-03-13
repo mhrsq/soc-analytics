@@ -24,6 +24,10 @@ class Settings(BaseSettings):
     SDP_PAGE_SIZE: int = 100
     MTTD_SLA_SECONDS: int = 900  # 15 minutes
 
+    # Auth / JWT
+    JWT_SECRET: str = "soc-analytics-jwt-s3cr3t-k3y-ch4ng3-m3"
+    JWT_EXPIRE_HOURS: int = 24
+
     # App
     LOG_LEVEL: str = "INFO"
     APP_TITLE: str = "SOC Analytics Dashboard API"

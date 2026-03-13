@@ -142,3 +142,17 @@ class SiemLocation(Base):
     lng = Column(Float, nullable=False)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
     updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    username = Column(String(100), unique=True, nullable=False)
+    password_hash = Column(Text, nullable=False)
+    display_name = Column(String(200))
+    role = Column(String(50), nullable=False, default="viewer")  # superadmin, admin, customer, viewer
+    customer = Column(String(200))  # NULL for admins, customer name for customer users
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
