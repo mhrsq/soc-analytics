@@ -235,8 +235,46 @@ export function AIInsightsPanel({ customer, startDate, endDate }: Props) {
             </div>
           )}
 
-          {/* Recommendations */}
-          {insight.recommendations.length > 0 && (
+          {/* Categorized Recommendations */}
+          {(insight.rec_people?.length > 0 || insight.rec_process?.length > 0 || insight.rec_technology?.length > 0) ? (
+            <div className="space-y-3">
+              <p className="text-[11px] font-semibold uppercase tracking-wider flex items-center gap-1.5" style={{ color: "var(--theme-text-muted)" }}>
+                <Lightbulb className="w-3.5 h-3.5 text-cyber-green" />
+                Rekomendasi
+              </p>
+              {[
+                { key: "people" as const, label: "People", items: insight.rec_people ?? [], color: "var(--theme-accent)", icon: "👤" },
+                { key: "process" as const, label: "Process", items: insight.rec_process ?? [], color: "#f59e0b", icon: "⚙️" },
+                { key: "technology" as const, label: "Technology", items: insight.rec_technology ?? [], color: "#06b6d4", icon: "🛠️" },
+              ].filter(cat => cat.items.length > 0).map(cat => (
+                <div
+                  key={cat.key}
+                  className="flex items-start gap-3 p-3 rounded-lg"
+                  style={{ backgroundColor: "color-mix(in srgb, var(--theme-surface-raised) 80%, transparent)", border: "1px solid var(--theme-surface-border)" }}
+                >
+                  <span className="text-base mt-0.5">{cat.icon}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] font-semibold mb-1" style={{ color: cat.color }}>
+                      {cat.label}
+                    </p>
+                    <ul className="space-y-1">
+                      {cat.items.map((r, i) => (
+                        <li
+                          key={i}
+                          className="text-sm leading-relaxed flex items-start gap-2"
+                          style={{ color: "var(--theme-text-secondary)" }}
+                        >
+                          <span className="w-1 h-1 rounded-full mt-2 flex-shrink-0" style={{ backgroundColor: cat.color }} />
+                          <span className="prose-ai flex-1 min-w-0"><Md>{r}</Md></span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : insight.recommendations.length > 0 ? (
+            /* Legacy flat recommendations fallback */
             <div className="flex items-start gap-3 p-4 rounded-lg bg-cyber-green/5 border border-cyber-green/15">
               <div className="p-1.5 rounded-md bg-cyber-green/10">
                 <Lightbulb className="w-4 h-4 text-cyber-green" />
@@ -259,7 +297,7 @@ export function AIInsightsPanel({ customer, startDate, endDate }: Props) {
                 </ul>
               </div>
             </div>
-          )}
+          ) : null}
 
           <div className="flex items-center justify-between pt-2" style={{ borderTop: "1px solid var(--theme-surface-border)" }}>
             {insight.model_used && (

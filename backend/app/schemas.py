@@ -157,7 +157,10 @@ class AIInsightRequest(BaseModel):
 class AIInsight(BaseModel):
     narrative: str
     anomalies: list[str]
-    recommendations: list[str]
+    recommendations: list[str]  # legacy flat list (empty when categorized)
+    rec_people: list[str] = []
+    rec_process: list[str] = []
+    rec_technology: list[str] = []
     generated_at: datetime
     model_used: Optional[str] = None
 

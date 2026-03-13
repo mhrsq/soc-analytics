@@ -37,9 +37,10 @@ class AnalyticsService:
         start_date: Optional[date] = None,
         end_date: Optional[date] = None,
         customer: Optional[str] = None,
+        asset_names: Optional[list[str]] = None,
     ) -> dict:
         """Get summary KPI metrics."""
-        filters = self._build_filters(start_date, end_date, customer)
+        filters = self._build_filters(start_date, end_date, customer, asset_names)
 
         # Total tickets
         q = select(func.count(Ticket.id)).where(*filters)
@@ -106,9 +107,10 @@ class AnalyticsService:
         start_date: Optional[date] = None,
         end_date: Optional[date] = None,
         customer: Optional[str] = None,
+        asset_names: Optional[list[str]] = None,
     ) -> list[dict]:
         """Get ticket volume over time."""
-        filters = self._build_filters(start_date, end_date, customer)
+        filters = self._build_filters(start_date, end_date, customer, asset_names)
 
         q = (
             select(
@@ -142,9 +144,10 @@ class AnalyticsService:
         start_date: Optional[date] = None,
         end_date: Optional[date] = None,
         customer: Optional[str] = None,
+        asset_names: Optional[list[str]] = None,
     ) -> dict:
         """Get TP/FP/NS breakdown."""
-        filters = self._build_filters(start_date, end_date, customer)
+        filters = self._build_filters(start_date, end_date, customer, asset_names)
 
         q = select(
             func.count(Ticket.id).filter(Ticket.validation == "True Positive").label("tp"),
@@ -168,9 +171,10 @@ class AnalyticsService:
         start_date: Optional[date] = None,
         end_date: Optional[date] = None,
         customer: Optional[str] = None,
+        asset_names: Optional[list[str]] = None,
     ) -> list[dict]:
         """Get ticket count by priority."""
-        filters = self._build_filters(start_date, end_date, customer)
+        filters = self._build_filters(start_date, end_date, customer, asset_names)
 
         q = (
             select(
@@ -189,9 +193,10 @@ class AnalyticsService:
         self,
         start_date: Optional[date] = None,
         end_date: Optional[date] = None,
+        asset_names: Optional[list[str]] = None,
     ) -> list[dict]:
         """Get metrics per customer."""
-        filters = self._build_filters(start_date, end_date)
+        filters = self._build_filters(start_date, end_date, asset_names=asset_names)
 
         q = (
             select(
@@ -227,9 +232,10 @@ class AnalyticsService:
         start_date: Optional[date] = None,
         end_date: Optional[date] = None,
         customer: Optional[str] = None,
+        asset_names: Optional[list[str]] = None,
     ) -> list[dict]:
         """Get top alert categories (prefers wazuh_rule_name, falls back to attack_category)."""
-        filters = self._build_filters(start_date, end_date, customer)
+        filters = self._build_filters(start_date, end_date, customer, asset_names)
 
         # Try wazuh rules first
         q_wazuh = (
@@ -292,9 +298,10 @@ class AnalyticsService:
         start_date: Optional[date] = None,
         end_date: Optional[date] = None,
         customer: Optional[str] = None,
+        asset_names: Optional[list[str]] = None,
     ) -> list[dict]:
         """Get MTTD trend over time."""
-        filters = self._build_filters(start_date, end_date, customer)
+        filters = self._build_filters(start_date, end_date, customer, asset_names)
 
         q = (
             select(
@@ -333,9 +340,10 @@ class AnalyticsService:
         self,
         start_date: Optional[date] = None,
         end_date: Optional[date] = None,
+        asset_names: Optional[list[str]] = None,
     ) -> list[dict]:
         """Get analyst performance metrics."""
-        filters = self._build_filters(start_date, end_date)
+        filters = self._build_filters(start_date, end_date, asset_names=asset_names)
 
         q = (
             select(
@@ -369,11 +377,40 @@ class AnalyticsService:
             for row in result.all()
         ]
 
+    async def get_asset_exposure(
+        self,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None,
+        customer: Optional[str] = None,
+        asset_names: Optional[list[str]] = None,
+        limit: int = 20,
+    ) -> list[dict]:
+        """Get assets ranked by alert count for a customer."""
+        filters = self._build_filters(start_date, end_date, customer, asset_names)
+
+        q = (
+            select(
+                Ticket.asset_name,
+                func.count(Ticket.id).label("count"),
+            )
+            .where(*filters, Ticket.asset_name != None, Ticket.asset_name != "")
+            .group_by(Ticket.asset_name)
+            .order_by(func.count(Ticket.id).desc())
+            .limit(limit)
+        )
+
+        result = await self.session.execute(q)
+        return [
+            {"asset_name": row.asset_name, "count": row.count}
+            for row in result.all()
+        ]
+
     def _build_filters(
         self,
         start_date: Optional[date] = None,
         end_date: Optional[date] = None,
         customer: Optional[str] = None,
+        asset_names: Optional[list[str]] = None,
     ) -> list:
         """Build SQLAlchemy filter clauses from common params.
         Accepts both date and datetime objects — datetime gives precise filtering."""
@@ -390,4 +427,6 @@ class AnalyticsService:
                 filters.append(cast(Ticket.created_time, Date) <= end_date)
         if customer:
             filters.append(Ticket.customer == customer)
+        if asset_names:
+            filters.append(Ticket.asset_name.in_(asset_names))
         return filters

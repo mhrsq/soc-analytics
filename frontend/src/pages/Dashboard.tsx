@@ -36,6 +36,7 @@ export function Dashboard() {
       start: new Date(now.getTime() - 86400_000).toISOString().slice(0, 10),
       end: now.toISOString().slice(0, 10),
       customer: "",
+      asset_name: "",
     };
   })();
 
@@ -54,14 +55,15 @@ export function Dashboard() {
     start: filters.start || undefined,
     end: filters.end || undefined,
     customer: filters.customer || undefined,
+    asset_name: filters.asset_name || undefined,
   };
 
-  const handleApplyFilters = useCallback((next: { start: string; end: string; customer: string }) => {
+  const handleApplyFilters = useCallback((next: { start: string; end: string; customer: string; asset_name: string }) => {
     setFilters(next);
   }, []);
 
   // Data fetching — all re-trigger when filters change or refreshTick bumps
-  const deps = [filters.start, filters.end, filters.customer, refreshTick];
+  const deps = [filters.start, filters.end, filters.customer, filters.asset_name, refreshTick];
   const summary = useFetch(() => api.getSummary(f), deps);
   const volume = useFetch(() => api.getVolume(f), deps);
   const validation = useFetch(() => api.getValidation(f), deps);
@@ -70,7 +72,7 @@ export function Dashboard() {
   const topAlerts = useFetch(() => api.getTopAlerts(f), deps);
   const mttd = useFetch(() => api.getMttd(f), deps);
   const analysts = useFetch(() => api.getAnalysts(f), deps);
-  const filterOptions = useFetch(() => api.getFilterOptions(), []);
+  const filterOptions = useFetch(() => api.getFilterOptions({ customer: filters.customer || undefined }), [filters.customer]);
   const syncStatus = useFetch(() => api.getSyncStatus(), [syncing]);
 
   const handleSync = useCallback(async () => {

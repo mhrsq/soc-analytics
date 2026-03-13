@@ -22,6 +22,14 @@ from app.services.analytics_service import AnalyticsService
 router = APIRouter(prefix="/api/metrics", tags=["metrics"])
 
 
+def _parse_asset_names(raw: Optional[str]) -> Optional[list[str]]:
+    """Parse comma-separated asset names from query param."""
+    if not raw:
+        return None
+    names = [n.strip() for n in raw.split(",") if n.strip()]
+    return names or None
+
+
 def _parse_time(value: Optional[str]) -> Optional[Union[date, datetime]]:
     """Parse ISO datetime or date string.
     Date-only strings (YYYY-MM-DD) return date objects for day-level filtering.
@@ -49,11 +57,12 @@ async def get_summary(
     start: Optional[str] = Query(None, description="Start date/datetime (ISO)"),
     end: Optional[str] = Query(None, description="End date/datetime (ISO)"),
     customer: Optional[str] = Query(None, description="Filter by customer"),
+    asset_name: Optional[str] = Query(None, description="Comma-separated asset hostnames"),
     db: AsyncSession = Depends(get_db),
 ):
     """Get KPI summary metrics."""
     svc = AnalyticsService(db)
-    return await svc.get_summary(_parse_time(start), _parse_time(end), customer)
+    return await svc.get_summary(_parse_time(start), _parse_time(end), customer, _parse_asset_names(asset_name))
 
 
 @router.get("/volume", response_model=list[VolumePoint])
@@ -61,11 +70,12 @@ async def get_volume_trend(
     start: Optional[str] = Query(None),
     end: Optional[str] = Query(None),
     customer: Optional[str] = Query(None),
+    asset_name: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
     """Get ticket volume trend over time (daily)."""
     svc = AnalyticsService(db)
-    return await svc.get_volume_trend("daily", _parse_time(start), _parse_time(end), customer)
+    return await svc.get_volume_trend("daily", _parse_time(start), _parse_time(end), customer, _parse_asset_names(asset_name))
 
 
 @router.get("/validation", response_model=ValidationBreakdown)
@@ -73,11 +83,12 @@ async def get_validation_breakdown(
     start: Optional[str] = Query(None),
     end: Optional[str] = Query(None),
     customer: Optional[str] = Query(None),
+    asset_name: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
     """Get TP/FP/Not Specified breakdown."""
     svc = AnalyticsService(db)
-    return await svc.get_validation_breakdown(_parse_time(start), _parse_time(end), customer)
+    return await svc.get_validation_breakdown(_parse_time(start), _parse_time(end), customer, _parse_asset_names(asset_name))
 
 
 @router.get("/priority", response_model=list[PriorityItem])
@@ -85,22 +96,24 @@ async def get_priority_distribution(
     start: Optional[str] = Query(None),
     end: Optional[str] = Query(None),
     customer: Optional[str] = Query(None),
+    asset_name: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
     """Get ticket count by priority."""
     svc = AnalyticsService(db)
-    return await svc.get_priority_distribution(_parse_time(start), _parse_time(end), customer)
+    return await svc.get_priority_distribution(_parse_time(start), _parse_time(end), customer, _parse_asset_names(asset_name))
 
 
 @router.get("/customers", response_model=list[CustomerItem])
 async def get_customer_distribution(
     start: Optional[str] = Query(None),
     end: Optional[str] = Query(None),
+    asset_name: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
     """Get per-customer metrics."""
     svc = AnalyticsService(db)
-    return await svc.get_customer_distribution(_parse_time(start), _parse_time(end))
+    return await svc.get_customer_distribution(_parse_time(start), _parse_time(end), _parse_asset_names(asset_name))
 
 
 @router.get("/top-alerts", response_model=list[AlertRuleItem])
@@ -109,11 +122,12 @@ async def get_top_alerts(
     start: Optional[str] = Query(None),
     end: Optional[str] = Query(None),
     customer: Optional[str] = Query(None),
+    asset_name: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
     """Get most triggered Wazuh alert rules."""
     svc = AnalyticsService(db)
-    return await svc.get_top_alerts(limit, _parse_time(start), _parse_time(end), customer)
+    return await svc.get_top_alerts(limit, _parse_time(start), _parse_time(end), customer, _parse_asset_names(asset_name))
 
 
 @router.get("/mttd", response_model=list[MttdPoint])
@@ -121,19 +135,37 @@ async def get_mttd_trend(
     start: Optional[str] = Query(None),
     end: Optional[str] = Query(None),
     customer: Optional[str] = Query(None),
+    asset_name: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
     """Get MTTD trend over time."""
     svc = AnalyticsService(db)
-    return await svc.get_mttd_trend(_parse_time(start), _parse_time(end), customer)
+    return await svc.get_mttd_trend(_parse_time(start), _parse_time(end), customer, _parse_asset_names(asset_name))
 
 
 @router.get("/analysts", response_model=list[AnalystPerformance])
 async def get_analyst_performance(
     start: Optional[str] = Query(None),
     end: Optional[str] = Query(None),
+    asset_name: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
     """Get analyst performance metrics."""
     svc = AnalyticsService(db)
-    return await svc.get_analyst_performance(_parse_time(start), _parse_time(end))
+    return await svc.get_analyst_performance(_parse_time(start), _parse_time(end), _parse_asset_names(asset_name))
+
+
+@router.get("/asset-exposure")
+async def get_asset_exposure(
+    start: Optional[str] = Query(None),
+    end: Optional[str] = Query(None),
+    customer: Optional[str] = Query(None),
+    asset_name: Optional[str] = Query(None),
+    limit: int = Query(20, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get assets ranked by alert count — used in Customer View."""
+    svc = AnalyticsService(db)
+    return await svc.get_asset_exposure(
+        _parse_time(start), _parse_time(end), customer, _parse_asset_names(asset_name), limit
+    )

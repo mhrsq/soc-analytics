@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Dashboard } from "./pages/Dashboard";
 import { ManagerView } from "./pages/ManagerView";
-import { Shield, Wifi, WifiOff, Palette, Settings2, LayoutDashboard, Users } from "lucide-react";
+import { CustomerView } from "./pages/CustomerView";
+import { Shield, Wifi, WifiOff, Palette, Settings2, LayoutDashboard, Users, Building2 } from "lucide-react";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import { DashboardProvider } from "./contexts/DashboardContext";
@@ -9,7 +10,7 @@ import { NotificationBell } from "./components/NotificationBell";
 import { ThemePanel } from "./components/ThemePanel";
 import { LLMSettingsPanel } from "./components/LLMSettingsPanel";
 
-type Page = "dashboard" | "manager";
+type Page = "dashboard" | "manager" | "customer";
 
 function LiveClock() {
   const [now, setNow] = useState(new Date());
@@ -104,6 +105,17 @@ function AppShell() {
                 <Users className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Manager</span>
               </button>
+              <button
+                onClick={() => setPage("customer")}
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-medium transition-all"
+                style={{
+                  backgroundColor: page === "customer" ? "color-mix(in srgb, var(--theme-accent) 15%, transparent)" : "transparent",
+                  color: page === "customer" ? "var(--theme-accent)" : "var(--theme-text-muted)",
+                }}
+              >
+                <Building2 className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Customer</span>
+              </button>
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-4">
@@ -136,7 +148,7 @@ function AppShell() {
 
       {/* Main Content */}
       <main className="mx-auto px-3 sm:px-6 pb-6">
-        {page === "dashboard" ? <Dashboard /> : <ManagerView />}
+        {page === "dashboard" ? <Dashboard /> : page === "manager" ? <ManagerView /> : <CustomerView />}
       </main>
 
       {/* Footer */}

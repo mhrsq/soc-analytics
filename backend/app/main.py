@@ -3,6 +3,7 @@
 import asyncio
 import logging
 from contextlib import asynccontextmanager
+from typing import Optional
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -199,7 +200,9 @@ async def health():
 
 
 @app.get("/api/filters/options")
-async def get_filter_options():
+async def get_filter_options(
+    customer: Optional[str] = None,
+):
     """Get available filter options for the frontend dropdowns."""
     from sqlalchemy import distinct, select
     from app.database import async_session
@@ -239,10 +242,22 @@ async def get_filter_options():
             )
         ).scalars().all()
 
+        # Asset names — cascade with customer filter
+        asset_q = (
+            select(distinct(Ticket.asset_name))
+            .where(Ticket.asset_name != None, Ticket.asset_name != "")
+        )
+        if customer:
+            asset_q = asset_q.where(Ticket.customer == customer)
+        asset_names = (
+            await db.execute(asset_q.order_by(Ticket.asset_name))
+        ).scalars().all()
+
     return {
         "customers": customers,
         "priorities": priorities,
         "statuses": statuses,
         "technicians": technicians,
         "validations": ["True Positive", "False Positive", "Not Specified"],
+        "asset_names": asset_names,
     }

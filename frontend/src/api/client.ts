@@ -80,6 +80,9 @@ export const api = {
   getAnalysts: (f: Filters = {}) =>
     request<AnalystPerformance[]>(`/metrics/analysts${qs(f)}`),
 
+  getAssetExposure: (f: Filters = {}) =>
+    request<{ asset_name: string; count: number }[]>(`/metrics/asset-exposure${qs(f)}`),
+
   // ── Sync ──
   getSyncStatus: () => request<SyncStatus>("/sync/status"),
 
@@ -126,7 +129,8 @@ export const api = {
     request<TicketDetail>(`/tickets/${id}`),
 
   // ── Filters ──
-  getFilterOptions: () => request<FilterOptions>("/filters/options"),
+  getFilterOptions: (f: Filters = {}) =>
+    request<FilterOptions>(`/filters/options${qs({ customer: f.customer })}`),
 
   // ── Polling for new tickets ──
   getRecentTickets: (since: string) =>

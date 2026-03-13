@@ -84,6 +84,9 @@ export interface AIInsight {
   narrative: string;
   anomalies: string[];
   recommendations: string[];
+  rec_people: string[];
+  rec_process: string[];
+  rec_technology: string[];
   generated_at: string;
   model_used?: string;
 }
@@ -94,6 +97,7 @@ export interface FilterOptions {
   priorities: string[];
   technicians: string[];
   validations: string[];
+  asset_names: string[];
 }
 
 export interface DateRange {

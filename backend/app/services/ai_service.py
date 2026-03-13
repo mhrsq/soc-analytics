@@ -19,7 +19,16 @@ class AIService:
 
     SYSTEM_PROMPT = """You are a SOC (Security Operations Center) analytics assistant for an MSSP 
 (Managed Security Service Provider) company in Indonesia. You analyze security ticket data and provide 
-actionable insights in Bahasa Indonesia. Be concise and data-driven. Focus on:
+actionable insights in Bahasa Indonesia.
+
+PENTING tentang bahasa:
+- Gunakan Bahasa Indonesia yang NATURAL dan mudah dipahami, seperti percakapan profesional sehari-hari.
+- JANGAN gunakan kata-kata formal/kaku yang jarang dipakai sehari-hari (contoh: hindari "disparitas", "anomali signifikan", "eskalasi komprehensif", "implikasi substansial"). 
+- Gunakan padanan yang lebih umum dan langsung (contoh: "perbedaan besar", "lonjakan yang perlu dicek", "perlu ditindaklanjuti segera").
+- Boleh pakai istilah teknis cybersecurity dalam bahasa Inggris (MTTD, SLA, True Positive, False Positive, rule tuning, dll) — yang penting kalimatnya tetap natural.
+- Tone: profesional tapi santai, seperti SOC manager ngobrol sama timnya.
+
+Focus on:
 1. Trends and anomalies
 2. Actionable recommendations for the SOC manager
 3. Highlighting concerning patterns"""
@@ -200,9 +209,13 @@ actionable insights in Bahasa Indonesia. Be concise and data-driven. Focus on:
 Berikan:
 1. RINGKASAN: Executive summary 2-3 kalimat
 2. ANOMALI: Daftar anomali atau concern (jika ada)
-3. REKOMENDASI: Daftar rekomendasi actionable untuk SOC manager
+3. Rekomendasi yang dibagi ke 3 kategori:
+   - PEOPLE: Rekomendasi terkait SDM, skill, training, workload analyst, shift management
+   - PROCESS: Rekomendasi terkait SOP, workflow, eskalasi, proses notifikasi, triage
+   - TECHNOLOGY: Rekomendasi terkait tuning rule, tools, automation, integrasi sistem
 
-Format: gunakan heading RINGKASAN:, ANOMALI:, REKOMENDASI: untuk setiap bagian."""
+Format: gunakan heading RINGKASAN:, ANOMALI:, PEOPLE:, PROCESS:, TECHNOLOGY: untuk setiap bagian.
+Setiap kategori rekomendasi HARUS ada minimal 1 item (jika memang tidak ada concern, berikan saran improvement)."""
 
     def _format_top_alerts(self, alerts: list) -> str:
         if not alerts:
@@ -239,7 +252,14 @@ Format: gunakan heading RINGKASAN:, ANOMALI:, REKOMENDASI: untuk setiap bagian."
 
     def _parse_ai_response(self, text: str) -> dict:
         """Parse AI response into structured sections."""
-        sections = {"narrative": "", "anomalies": [], "recommendations": []}
+        sections = {
+            "narrative": "",
+            "anomalies": [],
+            "recommendations": [],
+            "rec_people": [],
+            "rec_process": [],
+            "rec_technology": [],
+        }
 
         current = "narrative"
         for line in text.split("\n"):
@@ -254,22 +274,34 @@ Format: gunakan heading RINGKASAN:, ANOMALI:, REKOMENDASI: untuk setiap bagian."
             elif "anomali" in lower:
                 current = "anomalies"
                 continue
+            elif "people" in lower and (":" in line_stripped or "**" in line_stripped):
+                current = "rec_people"
+                continue
+            elif "process" in lower and (":" in line_stripped or "**" in line_stripped):
+                current = "rec_process"
+                continue
+            elif "technology" in lower and (":" in line_stripped or "**" in line_stripped):
+                current = "rec_technology"
+                continue
             elif "rekomendasi" in lower:
                 current = "recommendations"
                 continue
 
             if current == "narrative":
                 sections["narrative"] += line_stripped + " "
-            elif current == "anomalies":
+            else:
                 item = line_stripped.lstrip("- \u2022123456789.)")
                 if item:
-                    sections["anomalies"].append(item.strip())
-            elif current == "recommendations":
-                item = line_stripped.lstrip("- \u2022123456789.)")
-                if item:
-                    sections["recommendations"].append(item.strip())
+                    sections[current].append(item.strip())
 
         sections["narrative"] = sections["narrative"].strip()
+
+        # If categorized recs were found, clear the generic list
+        # If only generic recommendations were found (old-style), keep them
+        has_categorized = sections["rec_people"] or sections["rec_process"] or sections["rec_technology"]
+        if has_categorized:
+            sections["recommendations"] = []
+
         sections["generated_at"] = datetime.now(timezone.utc)
         return sections
 
@@ -290,24 +322,29 @@ Format: gunakan heading RINGKASAN:, ANOMALI:, REKOMENDASI: untuk setiap bagian."
 
         anomalies = []
         if tp_rate > 10:
-            anomalies.append(f"TP rate tinggi ({tp_rate}%) \u2014 perlu investigasi lebih lanjut")
+            anomalies.append(f"TP rate tinggi ({tp_rate}%) — perlu investigasi lebih lanjut")
         if sla and sla < 90:
             anomalies.append(f"SLA compliance di bawah target ({sla}% < 90%)")
 
-        recommendations = []
+        rec_people = []
+        rec_process = []
+        rec_technology = []
         if fp > total * 0.9:
-            recommendations.append(
+            rec_technology.append(
                 "FP rate sangat tinggi (>90%). Pertimbangkan tuning rule Wazuh untuk mengurangi noise."
             )
         if sla and sla < 95:
-            recommendations.append(
+            rec_process.append(
                 "Tingkatkan SLA compliance dengan optimasi proses notifikasi pertama."
             )
 
         return {
             "narrative": narrative,
             "anomalies": anomalies,
-            "recommendations": recommendations,
+            "recommendations": [],
+            "rec_people": rec_people,
+            "rec_process": rec_process,
+            "rec_technology": rec_technology,
             "generated_at": datetime.now(timezone.utc),
             "model_used": "Fallback (no LLM configured)",
         }

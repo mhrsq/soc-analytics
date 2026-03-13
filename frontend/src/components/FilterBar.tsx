@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Calendar, Building2, Check, Clock, Pencil, Plus, RotateCcw, ChevronDown, LayoutDashboard, Star, Copy, Trash2 } from "lucide-react";
+import { Calendar, Building2, Check, Clock, Pencil, Plus, RotateCcw, ChevronDown, LayoutDashboard, Star, Copy, Trash2, Server, X } from "lucide-react";
 import type { FilterOptions } from "../types";
 import type { DashboardProfile } from "../contexts/DashboardContext";
 import { AutoRefreshControl } from "./AutoRefreshControl";
@@ -41,8 +41,8 @@ function presetLabel(preset: TimePreset): string {
 }
 
 interface Props {
-  filters: { start: string; end: string; customer: string };
-  onApply: (filters: { start: string; end: string; customer: string }) => void;
+  filters: { start: string; end: string; customer: string; asset_name: string };
+  onApply: (filters: { start: string; end: string; customer: string; asset_name: string }) => void;
   filterOptions: FilterOptions | null;
   editMode: boolean;
   onToggleEdit: () => void;
@@ -65,18 +65,25 @@ export function FilterBar({ filters, onApply, filterOptions, editMode, onToggleE
   const [draft, setDraft] = useState(filters);
   const [dirty, setDirty] = useState(false);
   const [timeOpen, setTimeOpen] = useState(false);
+  const [assetOpen, setAssetOpen] = useState(false);
+  const [assetSearch, setAssetSearch] = useState("");
   const [profileOpen, setProfileOpen] = useState(false);
   const [newProfileName, setNewProfileName] = useState("");
   const [showSaveNew, setShowSaveNew] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const assetRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
 
   const activeProfile = profiles.find(p => p.id === activeProfileId);
+
+  // Selected asset names (comma-separated string → array)
+  const selectedAssets = draft.asset_name ? draft.asset_name.split(",").filter(Boolean) : [];
 
   // Close dropdowns on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) setTimeOpen(false);
+      if (assetRef.current && !assetRef.current.contains(e.target as Node)) { setAssetOpen(false); setAssetSearch(""); }
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
         setProfileOpen(false);
         setShowSaveNew(false);
@@ -88,7 +95,7 @@ export function FilterBar({ filters, onApply, filterOptions, editMode, onToggleE
   }, []);
 
   // Keep draft in sync when parent filters change
-  useEffect(() => { setDraft(filters); }, [filters.start, filters.end, filters.customer]);
+  useEffect(() => { setDraft(filters); }, [filters.start, filters.end, filters.customer, filters.asset_name]);
 
   const selectPreset = (p: TimePreset) => {
     setPreset(p);
@@ -208,7 +215,7 @@ export function FilterBar({ filters, onApply, filterOptions, editMode, onToggleE
           <select
             value={draft.customer}
             onChange={e => {
-              const next = { ...draft, customer: e.target.value };
+              const next = { ...draft, customer: e.target.value, asset_name: "" };
               setDraft(next);
               onApply(next);
               setDirty(false);
@@ -220,6 +227,110 @@ export function FilterBar({ filters, onApply, filterOptions, editMode, onToggleE
               <option key={c} value={c}>{c}</option>
             ))}
           </select>
+        </div>
+
+        {/* ── Asset Hostname Multi-Select ── */}
+        <div className="relative" ref={assetRef}>
+          <button
+            onClick={() => setAssetOpen(v => !v)}
+            className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg border transition-all max-w-[220px]"
+            style={{
+              borderColor: assetOpen || selectedAssets.length > 0 ? "var(--theme-accent)" : "var(--theme-surface-border)",
+              color: "var(--theme-text-secondary)",
+              backgroundColor: assetOpen ? "color-mix(in srgb, var(--theme-accent) 8%, transparent)" : "transparent",
+            }}
+          >
+            <Server className="w-3.5 h-3.5 flex-shrink-0" style={{ color: selectedAssets.length > 0 ? "var(--theme-accent)" : "var(--theme-text-muted)" }} />
+            <span className="truncate">
+              {selectedAssets.length === 0
+                ? "All Assets"
+                : selectedAssets.length === 1
+                  ? selectedAssets[0]
+                  : `${selectedAssets.length} assets`}
+            </span>
+            {selectedAssets.length > 0 && (
+              <span
+                onClick={e => {
+                  e.stopPropagation();
+                  const next = { ...draft, asset_name: "" };
+                  setDraft(next);
+                  onApply(next);
+                }}
+                className="p-0.5 rounded hover:bg-white/10 transition-colors"
+              >
+                <X className="w-3 h-3" />
+              </span>
+            )}
+            <ChevronDown className={`w-3 h-3 transition-transform flex-shrink-0 ${assetOpen ? "rotate-180" : ""}`} style={{ color: "var(--theme-text-muted)" }} />
+          </button>
+
+          {assetOpen && (
+            <div
+              className="absolute top-full left-0 mt-1.5 rounded-xl shadow-2xl z-50 w-72 overflow-hidden animate-fade-in-up"
+              style={{ backgroundColor: "var(--theme-card-bg)", border: "1px solid var(--theme-card-border)" }}
+            >
+              {/* Search */}
+              <div className="p-2">
+                <input
+                  type="text"
+                  value={assetSearch}
+                  onChange={e => setAssetSearch(e.target.value)}
+                  placeholder="Search assets..."
+                  autoFocus
+                  className="w-full px-3 py-1.5 text-xs rounded-lg outline-none"
+                  style={{
+                    backgroundColor: "var(--theme-surface-base)",
+                    color: "var(--theme-text-primary)",
+                    border: "1px solid var(--theme-surface-border)",
+                  }}
+                />
+              </div>
+
+              {/* Asset list */}
+              <div className="max-h-52 overflow-y-auto px-1 pb-2">
+                {(filterOptions?.asset_names ?? [])
+                  .filter(a => !assetSearch || a.toLowerCase().includes(assetSearch.toLowerCase()))
+                  .slice(0, 100)
+                  .map(asset => {
+                    const checked = selectedAssets.includes(asset);
+                    return (
+                      <button
+                        key={asset}
+                        onClick={() => {
+                          const newSelected = checked
+                            ? selectedAssets.filter(a => a !== asset)
+                            : [...selectedAssets, asset];
+                          const next = { ...draft, asset_name: newSelected.join(",") };
+                          setDraft(next);
+                          onApply(next);
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-1.5 text-xs rounded-lg transition-colors text-left"
+                        style={{
+                          backgroundColor: checked ? "color-mix(in srgb, var(--theme-accent) 12%, transparent)" : "transparent",
+                          color: checked ? "var(--theme-accent)" : "var(--theme-text-secondary)",
+                        }}
+                      >
+                        <div
+                          className="w-3.5 h-3.5 rounded border flex items-center justify-center flex-shrink-0"
+                          style={{
+                            borderColor: checked ? "var(--theme-accent)" : "var(--theme-surface-border)",
+                            backgroundColor: checked ? "var(--theme-accent)" : "transparent",
+                          }}
+                        >
+                          {checked && <Check className="w-2.5 h-2.5 text-white" />}
+                        </div>
+                        <span className="truncate">{asset}</span>
+                      </button>
+                    );
+                  })}
+                {(filterOptions?.asset_names ?? []).length === 0 && (
+                  <p className="text-center text-[11px] py-4" style={{ color: "var(--theme-text-muted)" }}>
+                    No assets found
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* ── Separator ── */}
