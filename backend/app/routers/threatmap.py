@@ -94,9 +94,13 @@ async def get_attacks(
     topo_q = select(TopologyNode).where(TopologyNode.lat.isnot(None), TopologyNode.lng.isnot(None))
     topo_result = await db.execute(topo_q)
     topo_map: dict[str, TopologyNode] = {}
+    # Also build a per-customer fallback (first node with coords for each customer)
+    customer_fallback: dict[str, TopologyNode] = {}
     for n in topo_result.scalars().all():
         if n.hostname:
             topo_map[f"{n.customer}:{n.hostname}"] = n
+        if n.customer and n.customer not in customer_fallback:
+            customer_fallback[n.customer] = n
 
     # Build attack arcs
     arcs = []
@@ -105,9 +109,11 @@ async def get_attacks(
         private = is_private_ip(ip)
         geo = geo_data.get(ip)
 
-        # Find target location from topology nodes
+        # Find target location from topology nodes (exact match, then customer fallback)
         topo_key = f"{r.customer}:{r.asset_name}" if r.customer and r.asset_name else None
         node = topo_map.get(topo_key) if topo_key else None
+        if not node and r.customer:
+            node = customer_fallback.get(r.customer)
 
         arc = AttackArc(
             ticket_id=r.id,

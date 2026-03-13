@@ -150,14 +150,23 @@ export function ThreatMapView() {
   // ── Build arc data ──
   const arcsData = useMemo(() => {
     return attacks
-      .filter((a) => !a.is_private_ip && a.source_lat !== 0 && a.source_lng !== 0 && a.target_lat && a.target_lng)
-      .map((a, i) => ({
-        positions: curvedArc(a.source_lat, a.source_lng, a.target_lat!, a.target_lng!),
-        color: PRIORITY_COLORS[a.priority || ""] || ARC_COLORS[i % ARC_COLORS.length],
-        label: `${a.source_ip} (${a.source_city || a.source_country || "Unknown"}) → ${a.target_asset || "Target"}`,
-        weight: a.priority?.startsWith("P1") ? 2.5 : a.priority?.startsWith("P2") ? 1.8 : 1.2,
-        priority: a.priority,
-      }));
+      .filter((a) => a.target_lat && a.target_lng && (!a.is_private_ip ? (a.source_lat !== 0 || a.source_lng !== 0) : true))
+      .map((a, i) => {
+        // For private IPs: create short arc from small offset around target
+        const srcLat = a.is_private_ip || (a.source_lat === 0 && a.source_lng === 0)
+          ? a.target_lat! + (((a.ticket_id * 7) % 100) - 50) / 200
+          : a.source_lat;
+        const srcLng = a.is_private_ip || (a.source_lat === 0 && a.source_lng === 0)
+          ? a.target_lng! + (((a.ticket_id * 13) % 100) - 50) / 200
+          : a.source_lng;
+        return {
+          positions: curvedArc(srcLat, srcLng, a.target_lat!, a.target_lng!),
+          color: PRIORITY_COLORS[a.priority || ""] || ARC_COLORS[i % ARC_COLORS.length],
+          label: `${a.source_ip} ${a.is_private_ip ? "(Internal)" : `(${a.source_city || a.source_country || "Unknown"})`} → ${a.target_asset || "Target"}`,
+          weight: a.priority?.startsWith("P1") ? 2.5 : a.priority?.startsWith("P2") ? 1.8 : 1.2,
+          priority: a.priority,
+        };
+      });
   }, [attacks]);
 
   // ── Stats ──
@@ -165,18 +174,21 @@ export function ThreatMapView() {
     const countries = new Set(attacks.filter((a) => a.source_country).map((a) => a.source_country));
     const p1Count = attacks.filter((a) => a.priority?.startsWith("P1")).length;
     const p2Count = attacks.filter((a) => a.priority?.startsWith("P2")).length;
+    const privateCount = attacks.filter((a) => a.is_private_ip).length;
     const categories = new Map<string, number>();
     attacks.forEach((a) => {
       if (a.attack_category) categories.set(a.attack_category, (categories.get(a.attack_category) || 0) + 1);
     });
     const topCategory = [...categories.entries()].sort((a, b) => b[1] - a[1])[0];
+    const uniqueAssets = new Set(attacks.map((a) => a.target_asset).filter(Boolean));
     return {
       totalAttacks: attacks.length,
       countries: countries.size,
       p1Count,
       p2Count,
       topCategory: topCategory ? `${topCategory[0]} (${topCategory[1]})` : null,
-      privateCount: attacks.filter((a) => a.is_private_ip).length,
+      privateCount,
+      targetAssets: uniqueAssets.size,
     };
   }, [attacks]);
 
@@ -242,12 +254,20 @@ export function ThreatMapView() {
   const replayArcs = useMemo(() => {
     if (!replayOpen || replayData.length === 0) return [];
     return replayData.slice(0, replayIndex)
-      .filter((a) => !a.is_private_ip && a.source_lat !== 0 && a.source_lng !== 0 && a.target_lat && a.target_lng)
-      .map((a, i) => ({
-        positions: curvedArc(a.source_lat, a.source_lng, a.target_lat!, a.target_lng!),
-        color: PRIORITY_COLORS[a.priority || ""] || ARC_COLORS[i % ARC_COLORS.length],
-        weight: a.priority?.startsWith("P1") ? 2.5 : 1.5,
-      }));
+      .filter((a) => a.target_lat && a.target_lng)
+      .map((a, i) => {
+        const srcLat = a.is_private_ip || (a.source_lat === 0 && a.source_lng === 0)
+          ? a.target_lat! + (((a.ticket_id * 7) % 100) - 50) / 200
+          : a.source_lat;
+        const srcLng = a.is_private_ip || (a.source_lat === 0 && a.source_lng === 0)
+          ? a.target_lng! + (((a.ticket_id * 13) % 100) - 50) / 200
+          : a.source_lng;
+        return {
+          positions: curvedArc(srcLat, srcLng, a.target_lat!, a.target_lng!),
+          color: PRIORITY_COLORS[a.priority || ""] || ARC_COLORS[i % ARC_COLORS.length],
+          weight: a.priority?.startsWith("P1") ? 2.5 : 1.5,
+        };
+      });
   }, [replayOpen, replayData, replayIndex]);
 
   const displayArcs = replayOpen && replayData.length > 0 ? replayArcs : arcsData;
@@ -297,11 +317,16 @@ export function ThreatMapView() {
         {(() => {
           const clusters = new Map<string, { lat: number; lng: number; count: number }>();
           const src = replayOpen && replayData.length > 0 ? replayData.slice(0, replayIndex) : attacks;
-          src.filter((a) => !a.is_private_ip && a.source_lat !== 0).forEach((a) => {
-            const key = `${Math.round(a.source_lat * 2) / 2}:${Math.round(a.source_lng * 2) / 2}`;
+          src.filter((a) => {
+            if (a.is_private_ip) return a.target_lat && a.target_lng;
+            return a.source_lat !== 0 || a.source_lng !== 0;
+          }).forEach((a) => {
+            const lat = (a.is_private_ip || (a.source_lat === 0 && a.source_lng === 0)) ? a.target_lat! : a.source_lat;
+            const lng = (a.is_private_ip || (a.source_lat === 0 && a.source_lng === 0)) ? a.target_lng! : a.source_lng;
+            const key = `${Math.round(lat * 2) / 2}:${Math.round(lng * 2) / 2}`;
             const existing = clusters.get(key);
             if (existing) existing.count++;
-            else clusters.set(key, { lat: a.source_lat, lng: a.source_lng, count: 1 });
+            else clusters.set(key, { lat, lng, count: 1 });
           });
           return Array.from(clusters.values()).map((c, i) => (
             <CircleMarker key={`cluster-${i}`} center={[c.lat, c.lng]}
@@ -332,7 +357,9 @@ export function ThreatMapView() {
           </div>
           <div className="flex items-center gap-3 ml-4 text-xs">
             <span className="px-2 py-0.5 rounded bg-red-500/20 text-red-400 font-mono">{stats.totalAttacks} attacks</span>
-            <span className="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 font-mono">{stats.countries} countries</span>
+            {stats.countries > 0 && <span className="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 font-mono">{stats.countries} countries</span>}
+            {stats.privateCount > 0 && <span className="px-2 py-0.5 rounded bg-violet-500/20 text-violet-400 font-mono">{stats.privateCount} internal</span>}
+            {stats.targetAssets > 0 && <span className="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 font-mono">{stats.targetAssets} assets</span>}
             {stats.p1Count > 0 && (
               <span className="px-2 py-0.5 rounded bg-red-600/30 text-red-300 font-mono animate-pulse">{stats.p1Count} critical</span>
             )}
