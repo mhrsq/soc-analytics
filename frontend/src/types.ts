@@ -441,3 +441,48 @@ export interface TicketAsset {
   asset_name: string;
   count: number;
 }
+// ── Topology ──
+
+export interface TopologyNode {
+  id: number;
+  label: string;
+  hostname: string | null;
+  customer: string | null;
+  node_type: string;
+  lat: number | null;
+  lng: number | null;
+  pos_x: number;
+  pos_y: number;
+  metadata: Record<string, unknown> | null;
+}
+
+export interface TopologyNodeCreate {
+  label: string;
+  hostname?: string;
+  customer?: string;
+  node_type?: string;
+  lat?: number;
+  lng?: number;
+  pos_x?: number;
+  pos_y?: number;
+  metadata?: Record<string, unknown>;
+}
+
+export interface TopologyLink {
+  id: number;
+  source_id: number;
+  target_id: number;
+  link_type: string;
+  label: string | null;
+  bandwidth: string | null;
+  metadata: Record<string, unknown> | null;
+}
+
+export interface TopologyLinkCreate {
+  source_id: number;
+  target_id: number;
+  link_type?: string;
+  label?: string;
+  bandwidth?: string;
+  metadata?: Record<string, unknown>;
+}

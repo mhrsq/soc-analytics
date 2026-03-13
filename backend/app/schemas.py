@@ -393,3 +393,60 @@ class AttackArc(BaseModel):
     validation: Optional[str] = None
     created_time: Optional[datetime] = None
     is_private_ip: bool = False
+
+# --- Topology ---
+
+class TopologyNodeCreate(BaseModel):
+    label: str
+    hostname: Optional[str] = None
+    customer: Optional[str] = None
+    node_type: str = "server"
+    lat: Optional[float] = None
+    lng: Optional[float] = None
+    pos_x: float = 0
+    pos_y: float = 0
+    metadata: Optional[dict] = None
+
+
+class TopologyNodeUpdate(BaseModel):
+    label: Optional[str] = None
+    hostname: Optional[str] = None
+    customer: Optional[str] = None
+    node_type: Optional[str] = None
+    lat: Optional[float] = None
+    lng: Optional[float] = None
+    pos_x: Optional[float] = None
+    pos_y: Optional[float] = None
+    metadata: Optional[dict] = None
+
+
+class TopologyNodeOut(BaseModel):
+    id: int
+    label: str
+    hostname: Optional[str]
+    customer: Optional[str]
+    node_type: str
+    lat: Optional[float]
+    lng: Optional[float]
+    pos_x: float
+    pos_y: float
+    metadata: Optional[dict] = None
+
+
+class TopologyLinkCreate(BaseModel):
+    source_id: int
+    target_id: int
+    link_type: str = "ethernet"
+    label: Optional[str] = None
+    bandwidth: Optional[str] = None
+    metadata: Optional[dict] = None
+
+
+class TopologyLinkOut(BaseModel):
+    id: int
+    source_id: int
+    target_id: int
+    link_type: str
+    label: Optional[str]
+    bandwidth: Optional[str]
+    metadata: Optional[dict] = None

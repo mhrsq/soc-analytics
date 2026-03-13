@@ -65,6 +65,10 @@ import type {
   SiemLocationCreate,
   AttackArc,
   TicketAsset,
+  TopologyNode,
+  TopologyNodeCreate,
+  TopologyLink,
+  TopologyLinkCreate,
 } from "../types";
 
 interface Filters {
@@ -221,6 +225,43 @@ export const api = {
 
   getTicketAssets: (customer?: string) =>
     request<TicketAsset[]>(`/threatmap/ticket-assets${qs({ customer })}`),
+
+  // ── Topology ──
+  getTopologyNodes: () =>
+    request<TopologyNode[]>("/threatmap/topology/nodes"),
+
+  createTopologyNode: (data: TopologyNodeCreate) =>
+    request<TopologyNode>("/threatmap/topology/nodes", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  updateTopologyNode: (id: number, data: Partial<TopologyNodeCreate>) =>
+    request<TopologyNode>(`/threatmap/topology/nodes/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+
+  deleteTopologyNode: (id: number) =>
+    request<{ message: string }>(`/threatmap/topology/nodes/${id}`, { method: "DELETE" }),
+
+  getTopologyLinks: () =>
+    request<TopologyLink[]>("/threatmap/topology/links"),
+
+  createTopologyLink: (data: TopologyLinkCreate) =>
+    request<TopologyLink>("/threatmap/topology/links", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  deleteTopologyLink: (id: number) =>
+    request<{ message: string }>(`/threatmap/topology/links/${id}`, { method: "DELETE" }),
+
+  updateTopologyPositions: (positions: { id: number; pos_x: number; pos_y: number }[]) =>
+    request<{ updated: number }>("/threatmap/topology/positions", {
+      method: "PUT",
+      body: JSON.stringify(positions),
+    }),
 
   // ── Auth ──
   login: (username: string, password: string) =>

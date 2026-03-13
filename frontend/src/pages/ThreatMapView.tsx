@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import Globe from "react-globe.gl";
+import { MapContainer, TileLayer, Polyline, CircleMarker, Tooltip, useMap } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
 import { api } from "../api/client";
 import { Spinner } from "../components/Spinner";
 import type { AttackArc, AssetLocation, SiemLocation } from "../types";
 import {
-  Settings2, Crosshair, Shield, Server, Radio, RefreshCw,
+  Settings2, Crosshair, Shield, Server, RefreshCw,
   ChevronDown, Plus, Trash2, MapPin, X, Wifi, Database, Cloud, Monitor,
+  Play, Pause, Square, Clock, SkipForward, SkipBack,
 } from "lucide-react";
 
 // ── Color Palette (cyberpunk) ──────────────────────────────────
@@ -30,9 +32,75 @@ const ICON_TYPES: Record<string, { icon: typeof Server; color: string }> = {
   cloud: { icon: Cloud, color: "#FF00FF" },
 };
 
+// ── Animated polyline with dashes ──────────────────────────────
+function AnimatedArc({ positions, color, weight, opacity }: {
+  positions: [number, number][];
+  color: string;
+  weight: number;
+  opacity: number;
+}) {
+  return (
+    <>
+      <Polyline positions={positions} pathOptions={{ color, weight: weight + 3, opacity: opacity * 0.2, lineCap: "round" }} />
+      <Polyline positions={positions} pathOptions={{ color, weight, opacity, dashArray: "8 6", lineCap: "round" }} />
+    </>
+  );
+}
+
+// ── Curved arc points between two coordinates ──────────────────
+function curvedArc(
+  startLat: number, startLng: number,
+  endLat: number, endLng: number,
+  segments = 30
+): [number, number][] {
+  const points: [number, number][] = [];
+  const midLat = (startLat + endLat) / 2;
+  const midLng = (startLng + endLng) / 2;
+  const dist = Math.sqrt((endLat - startLat) ** 2 + (endLng - startLng) ** 2);
+  const dx = endLng - startLng;
+  const dy = endLat - startLat;
+  const offsetLat = midLat + (-dx * 0.15 * Math.min(dist / 30, 1));
+  const offsetLng = midLng + (dy * 0.15 * Math.min(dist / 30, 1));
+  for (let i = 0; i <= segments; i++) {
+    const t = i / segments;
+    const lat = (1 - t) * (1 - t) * startLat + 2 * (1 - t) * t * offsetLat + t * t * endLat;
+    const lng = (1 - t) * (1 - t) * startLng + 2 * (1 - t) * t * offsetLng + t * t * endLng;
+    points.push([lat, lng]);
+  }
+  return points;
+}
+
+// ── Map invalidation on resize ─────────────────────────────────
+function MapResizer() {
+  const map = useMap();
+  useEffect(() => {
+    const handleResize = () => map.invalidateSize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [map]);
+  return null;
+}
+
+// ── Replay ticket label (appearing/disappearing) ──────────────
+function ReplayLabel({ attack, visible }: { attack: AttackArc; visible: boolean }) {
+  if (!visible || !attack.target_lat || !attack.target_lng) return null;
+  const color = PRIORITY_COLORS[attack.priority || ""] || "#00D4FF";
+  return (
+    <CircleMarker center={[attack.target_lat, attack.target_lng]} radius={0} pathOptions={{ opacity: 0 }}>
+      <Tooltip permanent direction="top" offset={[0, -10]} className="replay-tooltip">
+        <div className="text-[10px] font-mono px-2 py-1 rounded shadow-lg"
+          style={{ background: "rgba(10,10,26,0.9)", border: `1px solid ${color}40`, color, maxWidth: 220, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          <span className="opacity-50">{attack.source_ip}</span>{" → "}
+          <span className="font-semibold">{attack.target_asset || "Target"}</span>
+          {attack.priority && <span className="ml-1 opacity-60">[{attack.priority}]</span>}
+        </div>
+      </Tooltip>
+    </CircleMarker>
+  );
+}
+
 // ── Main Component ─────────────────────────────────────────────
 export function ThreatMapView() {
-  const globeRef = useRef<any>(null);
   const [attacks, setAttacks] = useState<AttackArc[]>([]);
   const [assets, setAssets] = useState<AssetLocation[]>([]);
   const [siems, setSiems] = useState<SiemLocation[]>([]);
@@ -40,7 +108,17 @@ export function ThreatMapView() {
   const [customer, setCustomer] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [configOpen, setConfigOpen] = useState(false);
-  const [autoRotate, setAutoRotate] = useState(true);
+
+  // ── Replay state ──
+  const [replayOpen, setReplayOpen] = useState(false);
+  const [replayStart, setReplayStart] = useState("");
+  const [replayEnd, setReplayEnd] = useState("");
+  const [replayData, setReplayData] = useState<AttackArc[]>([]);
+  const [replayPlaying, setReplayPlaying] = useState(false);
+  const [replayIndex, setReplayIndex] = useState(0);
+  const [replaySpeed, setReplaySpeed] = useState(1);
+  const [visibleLabels, setVisibleLabels] = useState<Set<number>>(new Set());
+  const replayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load customers list
   useEffect(() => {
@@ -52,7 +130,7 @@ export function ThreatMapView() {
     setLoading(true);
     try {
       const [attackData, assetData, siemData] = await Promise.all([
-        api.getAttacks(customer ? { customer } : {}, 300),
+        api.getAttacks(customer ? { customer } : {}, 500),
         api.getAssetLocations(customer || undefined),
         api.getSiemLocations(customer || undefined),
       ]);
@@ -70,238 +148,316 @@ export function ThreatMapView() {
     loadData();
   }, [loadData]);
 
-  // Auto-rotate control
-  useEffect(() => {
-    if (globeRef.current) {
-      const controls = globeRef.current.controls();
-      if (controls) {
-        controls.autoRotate = autoRotate;
-        controls.autoRotateSpeed = 0.3;
-      }
-    }
-  }, [autoRotate]);
-
-  // Initial camera position
-  useEffect(() => {
-    if (globeRef.current) {
-      // Center on Indonesia (roughly)
-      globeRef.current.pointOfView({ lat: -2, lng: 118, altitude: 2.5 }, 1000);
-    }
-  }, []);
-
-  // ── Build arc data for globe ──
+  // ── Build arc data ──
   const arcsData = useMemo(() => {
     return attacks
-      .filter((a) => !a.is_private_ip && a.source_lat !== 0 && a.source_lng !== 0)
+      .filter((a) => !a.is_private_ip && a.source_lat !== 0 && a.source_lng !== 0 && a.target_lat && a.target_lng)
       .map((a, i) => ({
-        startLat: a.source_lat,
-        startLng: a.source_lng,
-        endLat: a.target_lat ?? -6.2, // Default to Jakarta if no target
-        endLng: a.target_lng ?? 106.8,
+        positions: curvedArc(a.source_lat, a.source_lng, a.target_lat!, a.target_lng!),
         color: PRIORITY_COLORS[a.priority || ""] || ARC_COLORS[i % ARC_COLORS.length],
         label: `${a.source_ip} (${a.source_city || a.source_country || "Unknown"}) → ${a.target_asset || "Target"}`,
-        stroke: a.priority?.startsWith("P1") ? 1.5 : a.priority?.startsWith("P2") ? 1.0 : 0.5,
+        weight: a.priority?.startsWith("P1") ? 2.5 : a.priority?.startsWith("P2") ? 1.8 : 1.2,
         priority: a.priority,
-        dashGap: a.validation === "True Positive" ? 0 : 0.5,
       }));
   }, [attacks]);
-
-  // ── Build points for assets + SIEMs ──
-  const pointsData = useMemo(() => {
-    const pts: { lat: number; lng: number; size: number; color: string; label: string; type: string }[] = [];
-
-    assets.forEach((a) => {
-      pts.push({
-        lat: a.lat,
-        lng: a.lng,
-        size: 0.4,
-        color: ICON_TYPES[a.icon_type]?.color || "#00D4FF",
-        label: `🖥 ${a.label || a.asset_name} (${a.customer})`,
-        type: "asset",
-      });
-    });
-
-    siems.forEach((s) => {
-      pts.push({
-        lat: s.lat,
-        lng: s.lng,
-        size: 0.6,
-        color: "#FF00FF",
-        label: `📡 ${s.label} (${s.location_type})`,
-        type: "siem",
-      });
-    });
-
-    return pts;
-  }, [assets, siems]);
-
-  // ── Build rings for attack source clusters ──
-  const ringsData = useMemo(() => {
-    // Group attacks by approximate location
-    const clusters = new Map<string, { lat: number; lng: number; count: number }>();
-    attacks
-      .filter((a) => !a.is_private_ip && a.source_lat !== 0)
-      .forEach((a) => {
-        const key = `${Math.round(a.source_lat)}:${Math.round(a.source_lng)}`;
-        const existing = clusters.get(key);
-        if (existing) {
-          existing.count++;
-        } else {
-          clusters.set(key, { lat: a.source_lat, lng: a.source_lng, count: 1 });
-        }
-      });
-
-    return Array.from(clusters.values()).map((c) => ({
-      lat: c.lat,
-      lng: c.lng,
-      maxR: Math.min(2 + c.count * 0.3, 6),
-      propagationSpeed: 1 + c.count * 0.2,
-      repeatPeriod: Math.max(800 - c.count * 50, 400),
-      color: c.count > 10 ? "#FF073A" : c.count > 5 ? "#FF6B35" : "#FFD700",
-    }));
-  }, [attacks]);
-
-  // ── Private IP attacks (shown as self-arcs at asset location) ──
-  const privateArcs = useMemo(() => {
-    return attacks
-      .filter((a) => a.is_private_ip && a.target_lat && a.target_lng)
-      .map((a) => ({
-        startLat: a.target_lat!,
-        startLng: a.target_lng! - 0.5,
-        endLat: a.target_lat!,
-        endLng: a.target_lng! + 0.5,
-        color: "#00D4FF",
-        label: `${a.source_ip} (Internal) → ${a.target_asset || "Target"}`,
-        stroke: 0.5,
-        dashGap: 1,
-      }));
-  }, [attacks]);
-
-  const allArcs = useMemo(() => [...arcsData, ...privateArcs], [arcsData, privateArcs]);
 
   // ── Stats ──
   const stats = useMemo(() => {
     const countries = new Set(attacks.filter((a) => a.source_country).map((a) => a.source_country));
     const p1Count = attacks.filter((a) => a.priority?.startsWith("P1")).length;
+    const p2Count = attacks.filter((a) => a.priority?.startsWith("P2")).length;
+    const categories = new Map<string, number>();
+    attacks.forEach((a) => {
+      if (a.attack_category) categories.set(a.attack_category, (categories.get(a.attack_category) || 0) + 1);
+    });
+    const topCategory = [...categories.entries()].sort((a, b) => b[1] - a[1])[0];
     return {
       totalAttacks: attacks.length,
       countries: countries.size,
       p1Count,
+      p2Count,
+      topCategory: topCategory ? `${topCategory[0]} (${topCategory[1]})` : null,
       privateCount: attacks.filter((a) => a.is_private_ip).length,
     };
   }, [attacks]);
 
+  // ── Replay logic ──
+  const loadReplayData = useCallback(async () => {
+    if (!replayStart || !replayEnd) return;
+    try {
+      const data = await api.getAttacks(
+        { customer: customer || undefined, start: replayStart, end: replayEnd },
+        1000
+      );
+      const sorted = [...data].sort((a, b) => {
+        const ta = a.created_time ? new Date(a.created_time).getTime() : 0;
+        const tb = b.created_time ? new Date(b.created_time).getTime() : 0;
+        return ta - tb;
+      });
+      setReplayData(sorted);
+      setReplayIndex(0);
+      setVisibleLabels(new Set());
+    } catch (e) {
+      console.error("Failed to load replay data:", e);
+    }
+  }, [replayStart, replayEnd, customer]);
+
+  // Auto-advance replay
+  useEffect(() => {
+    if (!replayPlaying || replayIndex >= replayData.length) {
+      if (replayIndex >= replayData.length && replayPlaying) setReplayPlaying(false);
+      return;
+    }
+    const current = replayData[replayIndex];
+    const next = replayData[replayIndex + 1];
+    let delay = 800;
+    if (current?.created_time && next?.created_time) {
+      const diff = new Date(next.created_time).getTime() - new Date(current.created_time).getTime();
+      delay = Math.max(200, Math.min(3000, diff / (60 * replaySpeed)));
+    }
+    replayTimerRef.current = setTimeout(() => {
+      setReplayIndex((i) => i + 1);
+      const ticketId = current.ticket_id;
+      setVisibleLabels((prev) => new Set(prev).add(ticketId));
+      setTimeout(() => {
+        setVisibleLabels((prev) => { const n = new Set(prev); n.delete(ticketId); return n; });
+      }, 3000 / replaySpeed);
+    }, delay / replaySpeed);
+    return () => { if (replayTimerRef.current) clearTimeout(replayTimerRef.current); };
+  }, [replayPlaying, replayIndex, replayData, replaySpeed]);
+
+  const replayStop = () => {
+    setReplayPlaying(false);
+    setReplayIndex(0);
+    setVisibleLabels(new Set());
+    if (replayTimerRef.current) clearTimeout(replayTimerRef.current);
+  };
+
+  const replayCurrentTime = useMemo(() => {
+    if (replayData.length === 0 || replayIndex === 0) return null;
+    const idx = Math.min(replayIndex, replayData.length - 1);
+    return replayData[idx]?.created_time || null;
+  }, [replayData, replayIndex]);
+
+  // Arcs visible during replay (up to current index)
+  const replayArcs = useMemo(() => {
+    if (!replayOpen || replayData.length === 0) return [];
+    return replayData.slice(0, replayIndex)
+      .filter((a) => !a.is_private_ip && a.source_lat !== 0 && a.source_lng !== 0 && a.target_lat && a.target_lng)
+      .map((a, i) => ({
+        positions: curvedArc(a.source_lat, a.source_lng, a.target_lat!, a.target_lng!),
+        color: PRIORITY_COLORS[a.priority || ""] || ARC_COLORS[i % ARC_COLORS.length],
+        weight: a.priority?.startsWith("P1") ? 2.5 : 1.5,
+      }));
+  }, [replayOpen, replayData, replayIndex]);
+
+  const displayArcs = replayOpen && replayData.length > 0 ? replayArcs : arcsData;
+
+  // Set default replay date range (last 24h)
+  useEffect(() => {
+    if (!replayStart) {
+      const now = new Date();
+      const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      setReplayEnd(now.toISOString().slice(0, 16));
+      setReplayStart(yesterday.toISOString().slice(0, 16));
+    }
+  }, [replayStart]);
+
   return (
     <div className="relative w-full" style={{ height: "calc(100vh - 56px)", background: "#0a0a1a" }}>
-      {/* Globe */}
-      <Globe
-        ref={globeRef}
-        globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
-        backgroundImageUrl="//unpkg.com/three-globe/example/img/night-sky.png"
-        atmosphereColor="#00D4FF"
-        atmosphereAltitude={0.15}
-        // Arcs
-        arcsData={allArcs}
-        arcColor="color"
-        arcStroke="stroke"
-        arcDashLength={0.6}
-        arcDashGap="dashGap"
-        arcDashAnimateTime={2000}
-        arcLabel="label"
-        // Points (assets + SIEMs)
-        pointsData={pointsData}
-        pointLat="lat"
-        pointLng="lng"
-        pointAltitude={0.01}
-        pointRadius="size"
-        pointColor="color"
-        pointLabel="label"
-        // Rings (attack source pulses)
-        ringsData={ringsData}
-        ringColor="color"
-        ringMaxRadius="maxR"
-        ringPropagationSpeed="propagationSpeed"
-        ringRepeatPeriod="repeatPeriod"
-        // Hex (heatmap of attack density)
-        // Performance
-        animateIn={true}
-        width={typeof window !== "undefined" ? window.innerWidth : 1200}
-        height={typeof window !== "undefined" ? window.innerHeight - 56 : 700}
-      />
+      {/* Leaflet Map */}
+      <MapContainer
+        center={[-2, 118]}
+        zoom={5}
+        minZoom={3}
+        maxZoom={14}
+        zoomControl={false}
+        attributionControl={false}
+        style={{ width: "100%", height: "100%", background: "#0a0a1a" }}
+      >
+        <MapResizer />
+        <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" subdomains="abcd" />
+
+        {/* Attack arcs */}
+        {displayArcs.map((arc, i) => (
+          <AnimatedArc key={i} positions={arc.positions} color={arc.color} weight={arc.weight} opacity={0.7} />
+        ))}
+
+        {/* Asset markers */}
+        {assets.map((a) => (
+          <CircleMarker key={`asset-${a.id}`} center={[a.lat, a.lng]} radius={6}
+            pathOptions={{ color: ICON_TYPES[a.icon_type]?.color || "#00D4FF", fillColor: ICON_TYPES[a.icon_type]?.color || "#00D4FF", fillOpacity: 0.7, weight: 2 }}>
+            <Tooltip><span className="text-xs">🖥 {a.label || a.asset_name} ({a.customer})</span></Tooltip>
+          </CircleMarker>
+        ))}
+
+        {/* SIEM markers */}
+        {siems.map((s) => (
+          <CircleMarker key={`siem-${s.id}`} center={[s.lat, s.lng]} radius={8}
+            pathOptions={{ color: "#FF00FF", fillColor: "#FF00FF", fillOpacity: 0.6, weight: 2 }}>
+            <Tooltip><span className="text-xs">📡 {s.label} ({s.location_type})</span></Tooltip>
+          </CircleMarker>
+        ))}
+
+        {/* Attack source clusters */}
+        {(() => {
+          const clusters = new Map<string, { lat: number; lng: number; count: number }>();
+          const src = replayOpen && replayData.length > 0 ? replayData.slice(0, replayIndex) : attacks;
+          src.filter((a) => !a.is_private_ip && a.source_lat !== 0).forEach((a) => {
+            const key = `${Math.round(a.source_lat * 2) / 2}:${Math.round(a.source_lng * 2) / 2}`;
+            const existing = clusters.get(key);
+            if (existing) existing.count++;
+            else clusters.set(key, { lat: a.source_lat, lng: a.source_lng, count: 1 });
+          });
+          return Array.from(clusters.values()).map((c, i) => (
+            <CircleMarker key={`cluster-${i}`} center={[c.lat, c.lng]}
+              radius={Math.min(4 + c.count * 0.8, 18)}
+              pathOptions={{
+                color: c.count > 10 ? "#FF073A" : c.count > 5 ? "#FF6B35" : "#FFD700",
+                fillColor: c.count > 10 ? "#FF073A" : c.count > 5 ? "#FF6B35" : "#FFD700",
+                fillOpacity: 0.3, weight: 1,
+              }}>
+              <Tooltip><span className="text-xs">{c.count} attacks from this area</span></Tooltip>
+            </CircleMarker>
+          ));
+        })()}
+
+        {/* Replay ticket labels */}
+        {replayOpen && replayData.slice(0, replayIndex).map((a) => (
+          <ReplayLabel key={`label-${a.ticket_id}`} attack={a} visible={visibleLabels.has(a.ticket_id)} />
+        ))}
+      </MapContainer>
 
       {/* Top overlay bar */}
-      <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 py-3"
+      <div className="absolute top-0 left-0 right-0 z-[1000] flex items-center justify-between px-4 py-3"
         style={{ background: "linear-gradient(180deg, rgba(10,10,26,0.95) 0%, rgba(10,10,26,0) 100%)" }}>
-
-        {/* Left: title + stats */}
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <Crosshair className="w-5 h-5 text-cyan-400" />
             <h2 className="text-base font-bold text-white tracking-wide">THREAT MAP</h2>
           </div>
           <div className="flex items-center gap-3 ml-4 text-xs">
-            <span className="px-2 py-0.5 rounded bg-red-500/20 text-red-400 font-mono">
-              {stats.totalAttacks} attacks
-            </span>
-            <span className="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 font-mono">
-              {stats.countries} countries
-            </span>
+            <span className="px-2 py-0.5 rounded bg-red-500/20 text-red-400 font-mono">{stats.totalAttacks} attacks</span>
+            <span className="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 font-mono">{stats.countries} countries</span>
             {stats.p1Count > 0 && (
-              <span className="px-2 py-0.5 rounded bg-red-600/30 text-red-300 font-mono animate-pulse">
-                {stats.p1Count} critical
-              </span>
+              <span className="px-2 py-0.5 rounded bg-red-600/30 text-red-300 font-mono animate-pulse">{stats.p1Count} critical</span>
+            )}
+            {stats.p2Count > 0 && (
+              <span className="px-2 py-0.5 rounded bg-orange-600/30 text-orange-300 font-mono">{stats.p2Count} high</span>
+            )}
+            {stats.topCategory && (
+              <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono">Top: {stats.topCategory}</span>
             )}
           </div>
         </div>
-
-        {/* Right: controls */}
         <div className="flex items-center gap-2">
-          {/* Customer filter */}
           <div className="relative">
-            <select
-              value={customer}
-              onChange={(e) => setCustomer(e.target.value)}
-              className="appearance-none pl-3 pr-7 py-1.5 rounded text-xs font-medium cursor-pointer bg-white/5 border border-white/10 text-white/80 focus:outline-none focus:border-cyan-500/50"
-            >
+            <select value={customer} onChange={(e) => setCustomer(e.target.value)}
+              className="appearance-none pl-3 pr-7 py-1.5 rounded text-xs font-medium cursor-pointer bg-white/5 border border-white/10 text-white/80 focus:outline-none focus:border-cyan-500/50">
               <option value="">All Customers</option>
-              {customers.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
+              {customers.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
             <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-white/40 pointer-events-none" />
           </div>
-
-          <button
-            onClick={loadData}
-            className="p-1.5 rounded bg-white/5 border border-white/10 text-white/60 hover:text-cyan-400 hover:border-cyan-500/30 transition-colors"
-            title="Refresh"
-          >
+          <button onClick={loadData} className="p-1.5 rounded bg-white/5 border border-white/10 text-white/60 hover:text-cyan-400 hover:border-cyan-500/30 transition-colors" title="Refresh">
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           </button>
-
-          <button
-            onClick={() => setAutoRotate(!autoRotate)}
-            className={`p-1.5 rounded border transition-colors ${autoRotate ? "bg-cyan-500/20 border-cyan-500/30 text-cyan-400" : "bg-white/5 border-white/10 text-white/40"}`}
-            title="Auto-rotate"
-          >
-            <Radio className="w-4 h-4" />
+          <button onClick={() => setReplayOpen(!replayOpen)}
+            className={`p-1.5 rounded border transition-colors ${replayOpen ? "bg-cyan-500/20 border-cyan-500/30 text-cyan-400" : "bg-white/5 border-white/10 text-white/60 hover:text-cyan-400"}`}
+            title="Event Replay">
+            <Clock className="w-4 h-4" />
           </button>
-
-          <button
-            onClick={() => setConfigOpen(!configOpen)}
+          <button onClick={() => setConfigOpen(!configOpen)}
             className={`p-1.5 rounded border transition-colors ${configOpen ? "bg-cyan-500/20 border-cyan-500/30 text-cyan-400" : "bg-white/5 border-white/10 text-white/60 hover:text-cyan-400"}`}
-            title="Configure Assets & SIEMs"
-          >
+            title="Configure Assets & SIEMs">
             <Settings2 className="w-4 h-4" />
           </button>
         </div>
       </div>
 
+      {/* Replay Panel (bottom) */}
+      {replayOpen && (
+        <div className="absolute bottom-0 left-0 right-0 z-[1000] px-4 py-3"
+          style={{ background: "linear-gradient(0deg, rgba(10,10,26,0.95) 0%, rgba(10,10,26,0) 100%)" }}>
+          <div className="max-w-4xl mx-auto rounded-lg p-3"
+            style={{ background: "rgba(10,10,26,0.9)", border: "1px solid rgba(0,212,255,0.15)" }}>
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <label className="text-[10px] uppercase tracking-wider text-cyan-500/60">From</label>
+                <input type="datetime-local" value={replayStart} onChange={(e) => setReplayStart(e.target.value)}
+                  className="px-2 py-1 rounded text-xs bg-white/5 border border-white/10 text-white/80 focus:outline-none focus:border-cyan-500/50"
+                  style={{ colorScheme: "dark" }} />
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-[10px] uppercase tracking-wider text-cyan-500/60">To</label>
+                <input type="datetime-local" value={replayEnd} onChange={(e) => setReplayEnd(e.target.value)}
+                  className="px-2 py-1 rounded text-xs bg-white/5 border border-white/10 text-white/80 focus:outline-none focus:border-cyan-500/50"
+                  style={{ colorScheme: "dark" }} />
+              </div>
+              <button onClick={loadReplayData}
+                className="px-3 py-1 rounded text-xs font-medium bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/30 transition-colors">
+                Load
+              </button>
+              <div className="w-px h-6 bg-white/10" />
+              <div className="flex items-center gap-1">
+                <button onClick={() => setReplayIndex(Math.max(0, replayIndex - 10))} disabled={replayData.length === 0}
+                  className="p-1 rounded text-white/40 hover:text-white disabled:opacity-30" title="Back 10">
+                  <SkipBack className="w-4 h-4" />
+                </button>
+                {replayPlaying ? (
+                  <button onClick={() => setReplayPlaying(false)} className="p-1.5 rounded bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-colors" title="Pause">
+                    <Pause className="w-4 h-4" />
+                  </button>
+                ) : (
+                  <button onClick={() => { if (replayIndex >= replayData.length) setReplayIndex(0); setReplayPlaying(true); }}
+                    disabled={replayData.length === 0} className="p-1.5 rounded bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-colors disabled:opacity-30" title="Play">
+                    <Play className="w-4 h-4" />
+                  </button>
+                )}
+                <button onClick={replayStop} disabled={replayData.length === 0}
+                  className="p-1 rounded text-white/40 hover:text-red-400 disabled:opacity-30" title="Stop">
+                  <Square className="w-4 h-4" />
+                </button>
+                <button onClick={() => setReplayIndex(Math.min(replayData.length, replayIndex + 10))} disabled={replayData.length === 0}
+                  className="p-1 rounded text-white/40 hover:text-white disabled:opacity-30" title="Forward 10">
+                  <SkipForward className="w-4 h-4" />
+                </button>
+              </div>
+              <select value={replaySpeed} onChange={(e) => setReplaySpeed(Number(e.target.value))}
+                className="px-2 py-1 rounded text-xs bg-white/5 border border-white/10 text-white/80 focus:outline-none">
+                <option value={0.5}>0.5x</option>
+                <option value={1}>1x</option>
+                <option value={2}>2x</option>
+                <option value={4}>4x</option>
+                <option value={8}>8x</option>
+              </select>
+              <div className="flex-1 flex items-center gap-2 min-w-[120px]">
+                <input type="range" min={0} max={replayData.length} value={replayIndex}
+                  onChange={(e) => { setReplayPlaying(false); setReplayIndex(Number(e.target.value)); }}
+                  className="flex-1 h-1 accent-cyan-400" />
+                <span className="text-[10px] font-mono text-white/50 whitespace-nowrap">{replayIndex}/{replayData.length}</span>
+              </div>
+            </div>
+            {replayCurrentTime && (
+              <div className="mt-2 flex items-center gap-2">
+                <Clock className="w-3 h-3 text-cyan-400/60" />
+                <span className="text-xs font-mono text-cyan-400/80">{new Date(replayCurrentTime).toLocaleString()}</span>
+                {replayIndex > 0 && replayIndex <= replayData.length && (
+                  <span className="text-[10px] text-white/40 ml-2">
+                    {replayData[Math.min(replayIndex - 1, replayData.length - 1)]?.source_ip} → {replayData[Math.min(replayIndex - 1, replayData.length - 1)]?.target_asset || "Target"}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Bottom-left: legend */}
-      <div className="absolute bottom-4 left-4 z-10 rounded-lg p-3 space-y-2"
-        style={{ background: "rgba(10,10,26,0.85)", border: "1px solid rgba(0,212,255,0.15)" }}>
+      <div className="absolute left-4 z-[1000] rounded-lg p-3 space-y-2"
+        style={{ background: "rgba(10,10,26,0.85)", border: "1px solid rgba(0,212,255,0.15)", bottom: replayOpen ? 90 : 16 }}>
         <p className="text-[10px] font-semibold uppercase tracking-widest text-cyan-500/70">Priority</p>
-        {Object.entries(PRIORITY_COLORS).map(([k, c]) => (
+        {Object.entries(PRIORITY_COLORS).filter((_, i) => i % 2 === 0).map(([k, c]) => (
           <div key={k} className="flex items-center gap-2">
             <span className="w-3 h-0.5 rounded-full" style={{ background: c }} />
             <span className="text-[10px] text-white/60">{k}</span>
@@ -316,12 +472,16 @@ export function ThreatMapView() {
             <span className="w-2 h-2 rounded-full bg-fuchsia-400" />
             <span className="text-[10px] text-white/60">SIEM</span>
           </div>
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-yellow-400 opacity-50" />
+            <span className="text-[10px] text-white/60">Attack Source</span>
+          </div>
         </div>
       </div>
 
       {/* Loading overlay */}
       {loading && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50">
+        <div className="absolute inset-0 z-[2000] flex items-center justify-center bg-black/50">
           <Spinner />
         </div>
       )}
@@ -411,7 +571,7 @@ function ConfigPanel({ customer, customers, assets, siems, onClose, onRefresh }:
   const inputCls = "w-full px-2 py-1.5 rounded text-xs bg-white/5 border border-white/10 text-white/90 placeholder-white/30 focus:outline-none focus:border-cyan-500/50";
 
   return (
-    <div className="absolute top-0 right-0 bottom-0 z-30 w-80 overflow-y-auto"
+    <div className="absolute top-0 right-0 bottom-0 z-[1100] w-80 overflow-y-auto"
       style={{ background: "rgba(10,10,26,0.95)", borderLeft: "1px solid rgba(0,212,255,0.15)" }}>
 
       {/* Header */}

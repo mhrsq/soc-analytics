@@ -8,11 +8,13 @@ from sqlalchemy import select, func, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.models import Ticket, AssetLocation, SiemLocation
+from app.models import Ticket, AssetLocation, SiemLocation, TopologyNode, TopologyLink
 from app.schemas import (
     AssetLocationCreate, AssetLocationOut,
     SiemLocationCreate, SiemLocationOut,
     AttackArc,
+    TopologyNodeCreate, TopologyNodeUpdate, TopologyNodeOut,
+    TopologyLinkCreate, TopologyLinkOut,
 )
 from app.services.geo_service import batch_geolocate, is_private_ip
 
@@ -241,3 +243,145 @@ async def get_ticket_assets(
 
     result = await db.execute(q)
     return [{"asset_name": r.asset_name, "count": r.count} for r in result.all()]
+
+# ── Topology Nodes ──────────────────────────────────────────────
+
+@router.get("/topology/nodes", response_model=list[TopologyNodeOut])
+async def get_topology_nodes(db: AsyncSession = Depends(get_db)):
+    q = select(TopologyNode).order_by(TopologyNode.id)
+    result = await db.execute(q)
+    rows = result.scalars().all()
+    return [
+        TopologyNodeOut(
+            id=n.id, label=n.label, hostname=n.hostname, customer=n.customer,
+            node_type=n.node_type, lat=n.lat, lng=n.lng,
+            pos_x=n.pos_x, pos_y=n.pos_y, metadata=n.metadata_,
+        ) for n in rows
+    ]
+
+
+@router.post("/topology/nodes", response_model=TopologyNodeOut)
+async def create_topology_node(body: TopologyNodeCreate, db: AsyncSession = Depends(get_db)):
+    node = TopologyNode(
+        label=body.label, hostname=body.hostname, customer=body.customer,
+        node_type=body.node_type, lat=body.lat, lng=body.lng,
+        pos_x=body.pos_x, pos_y=body.pos_y, metadata_=body.metadata or {},
+    )
+    db.add(node)
+    await db.commit()
+    await db.refresh(node)
+    return TopologyNodeOut(
+        id=node.id, label=node.label, hostname=node.hostname, customer=node.customer,
+        node_type=node.node_type, lat=node.lat, lng=node.lng,
+        pos_x=node.pos_x, pos_y=node.pos_y, metadata=node.metadata_,
+    )
+
+
+@router.put("/topology/nodes/{node_id}", response_model=TopologyNodeOut)
+async def update_topology_node(node_id: int, body: TopologyNodeUpdate, db: AsyncSession = Depends(get_db)):
+    q = select(TopologyNode).where(TopologyNode.id == node_id)
+    result = await db.execute(q)
+    node = result.scalar_one_or_none()
+    if not node:
+        from fastapi import HTTPException
+        raise HTTPException(404, "Node not found")
+    for field, val in body.model_dump(exclude_unset=True).items():
+        if field == "metadata":
+            node.metadata_ = val
+        else:
+            setattr(node, field, val)
+    await db.commit()
+    await db.refresh(node)
+    return TopologyNodeOut(
+        id=node.id, label=node.label, hostname=node.hostname, customer=node.customer,
+        node_type=node.node_type, lat=node.lat, lng=node.lng,
+        pos_x=node.pos_x, pos_y=node.pos_y, metadata=node.metadata_,
+    )
+
+
+@router.delete("/topology/nodes/{node_id}")
+async def delete_topology_node(node_id: int, db: AsyncSession = Depends(get_db)):
+    q = select(TopologyNode).where(TopologyNode.id == node_id)
+    result = await db.execute(q)
+    node = result.scalar_one_or_none()
+    if not node:
+        return {"message": "Not found"}
+    # Also delete links referencing this node
+    link_q = select(TopologyLink).where(
+        (TopologyLink.source_id == node_id) | (TopologyLink.target_id == node_id)
+    )
+    link_result = await db.execute(link_q)
+    for link in link_result.scalars().all():
+        await db.delete(link)
+    await db.delete(node)
+    await db.commit()
+    return {"message": "Deleted"}
+
+
+# ── Topology Links ──────────────────────────────────────────────
+
+@router.get("/topology/links", response_model=list[TopologyLinkOut])
+async def get_topology_links(db: AsyncSession = Depends(get_db)):
+    q = select(TopologyLink).order_by(TopologyLink.id)
+    result = await db.execute(q)
+    rows = result.scalars().all()
+    return [
+        TopologyLinkOut(
+            id=l.id, source_id=l.source_id, target_id=l.target_id,
+            link_type=l.link_type, label=l.label, bandwidth=l.bandwidth,
+            metadata=l.metadata_,
+        ) for l in rows
+    ]
+
+
+@router.post("/topology/links", response_model=TopologyLinkOut)
+async def create_topology_link(body: TopologyLinkCreate, db: AsyncSession = Depends(get_db)):
+    link = TopologyLink(
+        source_id=body.source_id, target_id=body.target_id,
+        link_type=body.link_type, label=body.label,
+        bandwidth=body.bandwidth, metadata_=body.metadata or {},
+    )
+    db.add(link)
+    await db.commit()
+    await db.refresh(link)
+    return TopologyLinkOut(
+        id=link.id, source_id=link.source_id, target_id=link.target_id,
+        link_type=link.link_type, label=link.label, bandwidth=link.bandwidth,
+        metadata=link.metadata_,
+    )
+
+
+@router.delete("/topology/links/{link_id}")
+async def delete_topology_link(link_id: int, db: AsyncSession = Depends(get_db)):
+    q = select(TopologyLink).where(TopologyLink.id == link_id)
+    result = await db.execute(q)
+    link = result.scalar_one_or_none()
+    if not link:
+        return {"message": "Not found"}
+    await db.delete(link)
+    await db.commit()
+    return {"message": "Deleted"}
+
+
+# ── Bulk position update (for topology editor drag) ──
+
+@router.put("/topology/positions")
+async def update_topology_positions(
+    positions: list[dict],
+    db: AsyncSession = Depends(get_db),
+):
+    """Bulk update node positions. Input: [{id, pos_x, pos_y}, ...]"""
+    for p in positions:
+        node_id = p.get("id")
+        if node_id is None:
+            continue
+        q = select(TopologyNode).where(TopologyNode.id == node_id)
+        result = await db.execute(q)
+        node = result.scalar_one_or_none()
+        if node:
+            if "pos_x" in p:
+                node.pos_x = p["pos_x"]
+            if "pos_y" in p:
+                node.pos_y = p["pos_y"]
+    await db.commit()
+    return {"message": "Positions updated"}

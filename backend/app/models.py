@@ -156,3 +156,32 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
     updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class TopologyNode(Base):
+    __tablename__ = "topology_nodes"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    label = Column(String(200), nullable=False)
+    hostname = Column(String(500))
+    customer = Column(String(200))
+    node_type = Column(String(50), default="server")  # server, firewall, switch, router, endpoint, database, cloud, siem
+    lat = Column(Float)
+    lng = Column(Float)
+    pos_x = Column(Float, default=0)  # Canvas X position in topology editor
+    pos_y = Column(Float, default=0)  # Canvas Y position in topology editor
+    metadata_ = Column("metadata", JSONB, default=dict)  # Extra fields: IP, OS, notes, etc.
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class TopologyLink(Base):
+    __tablename__ = "topology_links"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    source_id = Column(Integer, nullable=False)  # FK to topology_nodes
+    target_id = Column(Integer, nullable=False)  # FK to topology_nodes
+    link_type = Column(String(50), default="ethernet")  # ethernet, fiber, vpn, internet, wireless
+    label = Column(String(200))
+    bandwidth = Column(String(50))  # e.g. "1Gbps", "10Gbps"
+    metadata_ = Column("metadata", JSONB, default=dict)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
