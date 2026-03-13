@@ -92,8 +92,12 @@ function SDPStatusIndicator() {
     );
   }
 
-  const isOk = status?.connected && status?.api_key_valid;
-  const isAuthErr = status && !status.api_key_valid;
+  const isOk = status?.connected && status?.api_key_valid === true;
+  const isAuthErr = status && status.api_key_valid === false;
+  const isConnErr = status && !status.connected && status.api_key_valid === null;
+
+  const statusLabel = isOk ? "Connected" : isAuthErr ? "API Key Invalid" : isConnErr ? "Unreachable" : "Error";
+  const statusColor = isOk ? "text-emerald-400" : isAuthErr ? "text-red-400" : "text-amber-400";
 
   return (
     <div className="relative" onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>
@@ -136,8 +140,8 @@ function SDPStatusIndicator() {
             <div className="space-y-1.5">
               <div className="flex justify-between">
                 <span>Status</span>
-                <span className={isOk ? "text-emerald-400 font-medium" : isAuthErr ? "text-red-400 font-medium" : "text-amber-400 font-medium"}>
-                  {isOk ? "Connected" : isAuthErr ? "API Key Invalid" : "Connection Error"}
+                <span className={`${statusColor} font-medium`}>
+                  {statusLabel}
                 </span>
               </div>
               <div className="flex justify-between">

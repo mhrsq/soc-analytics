@@ -141,7 +141,7 @@ class SyncStatus(BaseModel):
 
 class SDPConnectionStatus(BaseModel):
     connected: bool
-    api_key_valid: bool
+    api_key_valid: Optional[bool] = None
     base_url: str
     api_key_masked: str
     ticket_count: Optional[int] = None

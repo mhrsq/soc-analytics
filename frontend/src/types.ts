@@ -82,7 +82,7 @@ export interface SyncStatus {
 
 export interface SDPConnectionStatus {
   connected: boolean;
-  api_key_valid: boolean;
+  api_key_valid: boolean | null;
   base_url: string;
   api_key_masked: string;
   ticket_count: number | null;

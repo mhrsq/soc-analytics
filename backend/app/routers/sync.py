@@ -71,13 +71,15 @@ async def check_sdp_connection():
         )
     except Exception as e:
         err = str(e)
+        etype = type(e).__name__
         is_auth = any(k in err for k in ("401", "403", "Unauthorized", "INVALID"))
+        is_conn = any(k in err for k in ("ConnectError", "TimeoutException", "ConnectionRefused")) or "connect" in etype.lower()
         return SDPConnectionStatus(
-            connected=not is_auth,
-            api_key_valid=not is_auth,
+            connected=False if (is_auth or is_conn) else True,
+            api_key_valid=False if is_auth else None,
             base_url=base_url,
             api_key_masked=masked,
-            error=f"{type(e).__name__}: {e}",
+            error=f"{etype}: {e}",
         )
 
 
