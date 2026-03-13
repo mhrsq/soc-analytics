@@ -3,7 +3,7 @@
 import logging
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, func, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,7 +14,7 @@ from app.schemas import (
     SiemLocationCreate, SiemLocationOut,
     AttackArc,
     TopologyNodeCreate, TopologyNodeUpdate, TopologyNodeOut,
-    TopologyLinkCreate, TopologyLinkOut,
+    TopologyLinkCreate, TopologyLinkUpdate, TopologyLinkOut,
 )
 from app.services.geo_service import batch_geolocate, is_private_ip
 
@@ -342,6 +342,26 @@ async def create_topology_link(body: TopologyLinkCreate, db: AsyncSession = Depe
         bandwidth=body.bandwidth, metadata_=body.metadata or {},
     )
     db.add(link)
+    await db.commit()
+    await db.refresh(link)
+    return TopologyLinkOut(
+        id=link.id, source_id=link.source_id, target_id=link.target_id,
+        link_type=link.link_type, label=link.label, bandwidth=link.bandwidth,
+        metadata=link.metadata_,
+    )
+
+
+@router.put("/topology/links/{link_id}", response_model=TopologyLinkOut)
+async def update_topology_link(link_id: int, body: TopologyLinkUpdate, db: AsyncSession = Depends(get_db)):
+    q = select(TopologyLink).where(TopologyLink.id == link_id)
+    result = await db.execute(q)
+    link = result.scalar_one_or_none()
+    if not link:
+        raise HTTPException(status_code=404, detail="Link not found")
+    for field in ["link_type", "label", "bandwidth", "metadata"]:
+        val = getattr(body, field if field != "metadata" else field, None)
+        if val is not None:
+            setattr(link, "metadata_" if field == "metadata" else field, val)
     await db.commit()
     await db.refresh(link)
     return TopologyLinkOut(

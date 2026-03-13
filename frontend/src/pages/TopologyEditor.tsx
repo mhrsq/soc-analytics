@@ -367,6 +367,39 @@ export function TopologyEditor() {
     }
   };
 
+  // ── Update link ──
+  const handleUpdateLink = async () => {
+    if (!selectedEdge) return;
+    setSaving(true);
+    try {
+      const updated = await api.updateTopologyLink(parseInt(selectedEdge), {
+        link_type: linkForm.link_type,
+        label: linkForm.label || undefined,
+        bandwidth: linkForm.bandwidth || undefined,
+      });
+      setTopoLinks((prev) => prev.map((l) => (l.id === updated.id ? updated : l)));
+      setEdges((prev) =>
+        prev.map((e) =>
+          e.id === selectedEdge
+            ? {
+                ...e,
+                label: updated.label || updated.link_type,
+                animated: updated.link_type === "vpn" || updated.link_type === "internet",
+                style: {
+                  stroke: updated.link_type === "fiber" ? "#00D4FF" : updated.link_type === "vpn" ? "#FF00FF" : updated.link_type === "internet" ? "#FFD700" : "#666",
+                  strokeWidth: updated.bandwidth ? Math.min(1 + (parseInt(updated.bandwidth) || 0) / 500, 4) : 2,
+                },
+              }
+            : e
+        )
+      );
+    } catch (e) {
+      console.error("Failed to update link:", e);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   // ── Delete link ──
   const handleDeleteLink = async () => {
     if (!selectedEdge) return;
@@ -572,10 +605,13 @@ export function TopologyEditor() {
                   <input value={linkForm.bandwidth} onChange={(e) => setLinkForm({ ...linkForm, bandwidth: e.target.value })} placeholder="e.g. 1000" type="number" className={inputCls} />
                 </div>
                 <div className="flex gap-2 pt-2">
+                  <button onClick={handleUpdateLink} disabled={saving}
+                    className="flex-1 py-1.5 rounded text-xs font-medium bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-colors disabled:opacity-40">
+                    {saving ? "Saving..." : "Update"}
+                  </button>
                   <button onClick={handleDeleteLink}
-                    className="flex-1 py-1.5 rounded text-xs font-medium bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors flex items-center justify-center gap-1.5">
+                    className="py-1.5 px-3 rounded text-xs font-medium bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors">
                     <Trash2 className="w-3.5 h-3.5" />
-                    Delete Link
                   </button>
                 </div>
               </>

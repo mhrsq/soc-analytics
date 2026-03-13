@@ -254,6 +254,12 @@ export const api = {
       body: JSON.stringify(data),
     }),
 
+  updateTopologyLink: (id: number, data: Partial<TopologyLinkCreate>) =>
+    request<TopologyLink>(`/threatmap/topology/links/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+
   deleteTopologyLink: (id: number) =>
     request<{ message: string }>(`/threatmap/topology/links/${id}`, { method: "DELETE" }),
 

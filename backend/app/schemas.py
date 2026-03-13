@@ -442,6 +442,13 @@ class TopologyLinkCreate(BaseModel):
     metadata: Optional[dict] = None
 
 
+class TopologyLinkUpdate(BaseModel):
+    link_type: Optional[str] = None
+    label: Optional[str] = None
+    bandwidth: Optional[str] = None
+    metadata: Optional[dict] = None
+
+
 class TopologyLinkOut(BaseModel):
     id: int
     source_id: int
