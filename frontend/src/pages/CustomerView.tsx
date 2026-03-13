@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
-import { ResponsiveGridLayout, useContainerWidth } from "react-grid-layout";
+import { ResponsiveGridLayout, useContainerWidth, getCompactor } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import { api } from "../api/client";
@@ -760,7 +760,7 @@ export function CustomerView() {
   }
 
   return (
-    <div className="px-4 py-4 sm:py-6" ref={containerRef}>
+    <div className="px-4 py-4 sm:py-6">
       <CustomerToolbar
         customer={customer}
         onCustomerChange={handleCustomerChange}
@@ -779,6 +779,7 @@ export function CustomerView() {
         onDeleteProfile={deleteProfile}
       />
 
+      <div ref={containerRef as React.Ref<HTMLDivElement>}>
       <ResponsiveGridLayout
         className="layout"
         layouts={layouts}
@@ -791,6 +792,7 @@ export function CustomerView() {
         onLayoutChange={handleLayoutChange}
         isDraggable={editMode}
         isResizable={editMode}
+        compactor={getCompactor("vertical")}
       >
         {widgets.map((widget) => (
           <div key={widget.id}>
@@ -805,6 +807,7 @@ export function CustomerView() {
           </div>
         ))}
       </ResponsiveGridLayout>
+      </div>
 
       <AddWidgetModal open={addOpen} onClose={() => setAddOpen(false)} onAdd={addWidget} />
       <EditWidgetModal widget={editWidgetState} onClose={() => setEditWidgetState(null)} onSave={updateWidget} />
