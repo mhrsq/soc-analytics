@@ -166,3 +166,28 @@ GROUP BY DATE(created_time), technician
 ORDER BY date;
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_analyst_daily ON mv_analyst_daily(date, technician);
+-- Threat Map: Asset Locations
+CREATE TABLE IF NOT EXISTS asset_locations (
+    id           SERIAL PRIMARY KEY,
+    customer     VARCHAR(200) NOT NULL,
+    asset_name   VARCHAR(500) NOT NULL,
+    label        VARCHAR(200),
+    lat          DOUBLE PRECISION NOT NULL,
+    lng          DOUBLE PRECISION NOT NULL,
+    icon_type    VARCHAR(50) DEFAULT 'server',
+    created_at   TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at   TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE (customer, asset_name)
+);
+
+-- Threat Map: SIEM Locations
+CREATE TABLE IF NOT EXISTS siem_locations (
+    id              SERIAL PRIMARY KEY,
+    customer        VARCHAR(200),
+    label           VARCHAR(200) NOT NULL,
+    location_type   VARCHAR(50) NOT NULL,
+    lat             DOUBLE PRECISION NOT NULL,
+    lng             DOUBLE PRECISION NOT NULL,
+    created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);

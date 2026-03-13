@@ -16,10 +16,12 @@
     "lucide-react": "^0.468.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-globe.gl": "^2.37.0",
     "react-grid-layout": "^2.2.2",
     "react-markdown": "^10.1.0",
     "recharts": "^2.15.0",
     "remark-gfm": "^4.0.1",
+    "three": "^0.183.2",
     "uuid": "^13.0.0"
   },
   "devDependencies": {

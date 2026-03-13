@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from sqlalchemy import (
-    BigInteger, Boolean, Column, DateTime, Integer, String, Text,
+    BigInteger, Boolean, Column, DateTime, Float, Integer, String, Text,
     Index
 )
 from sqlalchemy.dialects.postgresql import JSONB
@@ -111,3 +111,34 @@ class SyncLog(Base):
     sync_type = Column(String(20), default="incremental")
     status = Column(String(20), default="running")
     details = Column(JSONB)
+
+
+class AssetLocation(Base):
+    __tablename__ = "asset_locations"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    customer = Column(String(200), nullable=False)
+    asset_name = Column(String(500), nullable=False)
+    label = Column(String(200))
+    lat = Column(Float, nullable=False)
+    lng = Column(Float, nullable=False)
+    icon_type = Column(String(50), default="server")  # server, firewall, endpoint, database, cloud
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    __table_args__ = (
+        Index("uq_asset_location", "customer", "asset_name", unique=True),
+    )
+
+
+class SiemLocation(Base):
+    __tablename__ = "siem_locations"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    customer = Column(String(200))  # NULL = shared/MTM central SIEM
+    label = Column(String(200), nullable=False)
+    location_type = Column(String(50), nullable=False)  # on-prem, customer-site, cloud
+    lat = Column(Float, nullable=False)
+    lng = Column(Float, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)

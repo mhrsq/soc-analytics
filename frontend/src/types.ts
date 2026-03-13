@@ -381,3 +381,63 @@ export interface TeamTrendPoint {
   period_end: string;
   analysts: { analyst: string; composite_score: number; tier: string }[];
 }
+
+// ── Threat Map ──
+
+export interface AssetLocation {
+  id: number;
+  customer: string;
+  asset_name: string;
+  label: string | null;
+  lat: number;
+  lng: number;
+  icon_type: string;
+}
+
+export interface AssetLocationCreate {
+  customer: string;
+  asset_name: string;
+  label?: string;
+  lat: number;
+  lng: number;
+  icon_type?: string;
+}
+
+export interface SiemLocation {
+  id: number;
+  customer: string | null;
+  label: string;
+  location_type: string;
+  lat: number;
+  lng: number;
+}
+
+export interface SiemLocationCreate {
+  customer?: string;
+  label: string;
+  location_type: string;
+  lat: number;
+  lng: number;
+}
+
+export interface AttackArc {
+  ticket_id: number;
+  source_ip: string;
+  source_lat: number;
+  source_lng: number;
+  source_country: string | null;
+  source_city: string | null;
+  target_asset: string | null;
+  target_lat: number | null;
+  target_lng: number | null;
+  priority: string | null;
+  attack_category: string | null;
+  validation: string | null;
+  created_time: string | null;
+  is_private_ip: boolean;
+}
+
+export interface TicketAsset {
+  asset_name: string;
+  count: number;
+}

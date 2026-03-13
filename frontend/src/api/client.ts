@@ -44,6 +44,12 @@ import type {
   AnalystAIReview,
   AnalystTrend,
   TeamTrendPoint,
+  AssetLocation,
+  AssetLocationCreate,
+  SiemLocation,
+  SiemLocationCreate,
+  AttackArc,
+  TicketAsset,
 } from "../types";
 
 interface Filters {
@@ -169,4 +175,35 @@ export const api = {
     request<{ message: string }>(`/analysts/snapshots/backfill${qs({ weeks: String(weeks), granularity })}`, {
       method: "POST",
     }),
+
+  // ── Threat Map ──
+  getAttacks: (f: Filters = {}, limit = 200) =>
+    request<AttackArc[]>(`/threatmap/attacks${qs({ ...f, limit: String(limit) })}`),
+
+  getAssetLocations: (customer?: string) =>
+    request<AssetLocation[]>(`/threatmap/assets${qs({ customer })}`),
+
+  upsertAssetLocation: (data: AssetLocationCreate) =>
+    request<AssetLocation>("/threatmap/assets", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  deleteAssetLocation: (id: number) =>
+    request<{ message: string }>(`/threatmap/assets/${id}`, { method: "DELETE" }),
+
+  getSiemLocations: (customer?: string) =>
+    request<SiemLocation[]>(`/threatmap/siems${qs({ customer })}`),
+
+  upsertSiemLocation: (data: SiemLocationCreate) =>
+    request<SiemLocation>("/threatmap/siems", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  deleteSiemLocation: (id: number) =>
+    request<{ message: string }>(`/threatmap/siems/${id}`, { method: "DELETE" }),
+
+  getTicketAssets: (customer?: string) =>
+    request<TicketAsset[]>(`/threatmap/ticket-assets${qs({ customer })}`),
 };

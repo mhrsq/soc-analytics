@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
-from app.routers import ai, analysts, metrics, sync, tickets, llm
+from app.routers import ai, analysts, metrics, sync, tickets, llm, threatmap
 
 settings = get_settings()
 
@@ -187,6 +187,7 @@ app.include_router(tickets.router)
 app.include_router(sync.router)
 app.include_router(ai.router)
 app.include_router(llm.router)
+app.include_router(threatmap.router)
 
 
 @app.get("/api/health")

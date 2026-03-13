@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Dashboard } from "./pages/Dashboard";
 import { ManagerView } from "./pages/ManagerView";
 import { CustomerView } from "./pages/CustomerView";
-import { Wifi, WifiOff, Palette, Settings2, LayoutDashboard, Users, Building2 } from "lucide-react";
+import { ThreatMapView } from "./pages/ThreatMapView";
+import { Wifi, WifiOff, Palette, Settings2, LayoutDashboard, Users, Building2, Globe } from "lucide-react";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import { DashboardProvider } from "./contexts/DashboardContext";
@@ -10,7 +11,7 @@ import { NotificationBell } from "./components/NotificationBell";
 import { ThemePanel } from "./components/ThemePanel";
 import { LLMSettingsPanel } from "./components/LLMSettingsPanel";
 
-type Page = "dashboard" | "manager" | "customer";
+type Page = "dashboard" | "manager" | "customer" | "threatmap";
 
 function LiveClock() {
   const [now, setNow] = useState(new Date());
@@ -114,6 +115,17 @@ function AppShell() {
                 <Building2 className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Customer</span>
               </button>
+              <button
+                onClick={() => setPage("threatmap")}
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-medium transition-all"
+                style={{
+                  backgroundColor: page === "threatmap" ? "color-mix(in srgb, var(--theme-accent) 15%, transparent)" : "transparent",
+                  color: page === "threatmap" ? "var(--theme-accent)" : "var(--theme-text-muted)",
+                }}
+              >
+                <Globe className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Threat Map</span>
+              </button>
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-4">
@@ -145,18 +157,22 @@ function AppShell() {
       </nav>
 
       {/* Main Content */}
-      <main className="mx-auto px-3 sm:px-6 pb-6">
-        {page === "dashboard" ? <Dashboard /> : page === "manager" ? <ManagerView /> : <CustomerView />}
-      </main>
-
-      {/* Footer */}
-      <footer style={{ borderTop: "1px solid var(--theme-surface-border)" }} className="mt-8">
-        <div className="mx-auto px-3 sm:px-6 py-4 flex items-center justify-center">
-          <p className="text-xs" style={{ color: "var(--theme-text-muted)" }}>
-            &copy; {new Date().getFullYear()} MTM MSSP &middot; SOC Analytics Dashboard
-          </p>
-        </div>
-      </footer>
+      {page === "threatmap" ? (
+        <ThreatMapView />
+      ) : (
+        <>
+          <main className="mx-auto px-3 sm:px-6 pb-6">
+            {page === "dashboard" ? <Dashboard /> : page === "manager" ? <ManagerView /> : <CustomerView />}
+          </main>
+          <footer style={{ borderTop: "1px solid var(--theme-surface-border)" }} className="mt-8">
+            <div className="mx-auto px-3 sm:px-6 py-4 flex items-center justify-center">
+              <p className="text-xs" style={{ color: "var(--theme-text-muted)" }}>
+                &copy; {new Date().getFullYear()} MTM MSSP &middot; SOC Analytics Dashboard
+              </p>
+            </div>
+          </footer>
+        </>
+      )}
 
       {/* Settings Panels */}
       <ThemePanel open={themeOpen} onClose={() => setThemeOpen(false)} />

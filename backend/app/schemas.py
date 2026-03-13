@@ -330,3 +330,66 @@ class TeamTrendPoint(BaseModel):
     period_start: str
     period_end: str
     analysts: list[dict]               # [{analyst, composite_score, tier}]
+
+
+# --- Threat Map ---
+
+class AssetLocationCreate(BaseModel):
+    customer: str
+    asset_name: str
+    label: Optional[str] = None
+    lat: float
+    lng: float
+    icon_type: str = "server"
+
+
+class AssetLocationOut(BaseModel):
+    id: int
+    customer: str
+    asset_name: str
+    label: Optional[str]
+    lat: float
+    lng: float
+    icon_type: str
+
+
+class SiemLocationCreate(BaseModel):
+    customer: Optional[str] = None
+    label: str
+    location_type: str  # on-prem, customer-site, cloud
+    lat: float
+    lng: float
+
+
+class SiemLocationOut(BaseModel):
+    id: int
+    customer: Optional[str]
+    label: str
+    location_type: str
+    lat: float
+    lng: float
+
+
+class GeoPoint(BaseModel):
+    lat: float
+    lng: float
+    country: Optional[str] = None
+    city: Optional[str] = None
+    isp: Optional[str] = None
+
+
+class AttackArc(BaseModel):
+    ticket_id: int
+    source_ip: str
+    source_lat: float
+    source_lng: float
+    source_country: Optional[str] = None
+    source_city: Optional[str] = None
+    target_asset: Optional[str] = None
+    target_lat: Optional[float] = None
+    target_lng: Optional[float] = None
+    priority: Optional[str] = None
+    attack_category: Optional[str] = None
+    validation: Optional[str] = None
+    created_time: Optional[datetime] = None
+    is_private_ip: bool = False
