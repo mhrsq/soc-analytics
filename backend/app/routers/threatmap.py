@@ -17,7 +17,7 @@ from app.schemas import (
 from app.services.geo_service import batch_geolocate, is_private_ip
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/threatmap", tags=["Threat Map"])
+router = APIRouter(prefix="/api/threatmap", tags=["Threat Map"])
 
 
 # ── Attack Data ─────────────────────────────────────────────────
