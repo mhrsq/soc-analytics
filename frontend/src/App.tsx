@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Dashboard } from "./pages/Dashboard";
 import { ManagerView } from "./pages/ManagerView";
 import { CustomerView } from "./pages/CustomerView";
-import { Shield, Wifi, WifiOff, Palette, Settings2, LayoutDashboard, Users, Building2 } from "lucide-react";
+import { Wifi, WifiOff, Palette, Settings2, LayoutDashboard, Users, Building2 } from "lucide-react";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import { DashboardProvider } from "./contexts/DashboardContext";
@@ -70,9 +70,7 @@ function AppShell() {
         <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: `linear-gradient(90deg, transparent 20%, var(--theme-accent) 50%, transparent 80%)`, opacity: 0.5 }} />
         <div className="relative mx-auto px-3 sm:px-6 h-12 sm:h-14 flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="p-1.5 rounded-lg" style={{ backgroundColor: "color-mix(in srgb, var(--theme-accent) 12%, transparent)" }}>
-              <Shield className="w-5 h-5" style={{ color: "var(--theme-accent)" }} />
-            </div>
+            <img src="/mtm-logo.png" alt="MTM" className="w-7 h-7 sm:w-8 sm:h-8 object-contain" />
             <div className="flex flex-col">
               <span className="font-semibold text-xs sm:text-sm leading-tight" style={{ color: "var(--theme-text-primary)" }}>
                 SOC Analytics
