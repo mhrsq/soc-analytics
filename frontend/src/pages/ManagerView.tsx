@@ -18,22 +18,24 @@ function saveExcluded(s: Set<string>) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify([...s]));
 }
 
-// Period presets
+// Period presets (full calendar months)
 const PERIOD_OPTIONS = [
-  { label: "Last 7 Days", days: 7 },
-  { label: "Last 14 Days", days: 14 },
-  { label: "Last 30 Days", days: 30 },
-  { label: "Last 90 Days", days: 90 },
-  { label: "All Time", days: 0 },
+  { label: "Last 1 Month", months: 1 },
+  { label: "Last 2 Months", months: 2 },
+  { label: "Last 3 Months", months: 3 },
+  { label: "All Time", months: 0 },
 ];
 
-function getDateRange(days: number) {
-  if (days === 0) return { start: undefined, end: undefined };
+function getDateRange(months: number) {
+  if (months === 0) return { start: undefined, end: undefined };
   const now = new Date();
-  const start = new Date(now.getTime() - days * 86400_000);
+  // End = last day of previous month
+  const end = new Date(now.getFullYear(), now.getMonth(), 0);
+  // Start = 1st of (months) months before end's month
+  const start = new Date(end.getFullYear(), end.getMonth() - months + 1, 1);
   return {
     start: start.toISOString().slice(0, 10),
-    end: now.toISOString().slice(0, 10),
+    end: end.toISOString().slice(0, 10),
   };
 }
 
@@ -101,13 +103,13 @@ function Tip({ text, children }: { text: string; children: React.ReactNode }) {
 }
 
 export function ManagerView() {
-  const [periodDays, setPeriodDays] = useState(30);
+  const [periodMonths, setPeriodMonths] = useState(1);
   const [selectedAnalyst, setSelectedAnalyst] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("cards");
   const [excluded, setExcluded] = useState<Set<string>>(loadExcluded);
   const [showExcludePanel, setShowExcludePanel] = useState(false);
 
-  const range = useMemo(() => getDateRange(periodDays), [periodDays]);
+  const range = useMemo(() => getDateRange(periodMonths), [periodMonths]);
 
   const { data: rawData, loading } = useFetch<AnalystScore[]>(
     () => api.getAnalystScores({ start: range.start, end: range.end }),
@@ -224,8 +226,8 @@ export function ManagerView() {
           {/* Period selector */}
           <div className="relative">
             <select
-              value={periodDays}
-              onChange={(e) => setPeriodDays(Number(e.target.value))}
+              value={periodMonths}
+              onChange={(e) => setPeriodMonths(Number(e.target.value))}
               className="appearance-none pl-3 pr-8 py-1.5 rounded-lg text-xs font-medium cursor-pointer"
               style={{
                 backgroundColor: "color-mix(in srgb, var(--theme-surface-raised) 80%, transparent)",
@@ -234,7 +236,7 @@ export function ManagerView() {
               }}
             >
               {PERIOD_OPTIONS.map((p) => (
-                <option key={p.days} value={p.days}>{p.label}</option>
+                <option key={p.months} value={p.months}>{p.label}</option>
               ))}
             </select>
             <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none" style={{ color: "var(--theme-text-muted)" }} />
