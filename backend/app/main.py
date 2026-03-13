@@ -5,11 +5,14 @@ import logging
 from contextlib import asynccontextmanager
 from typing import Optional
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.config import get_settings
 from app.routers import ai, analysts, auth, metrics, sync, tickets, llm, threatmap
+from app.services.auth_service import decode_token
 
 settings = get_settings()
 
@@ -170,7 +173,30 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS
+# ── Auth middleware: protect all /api routes except public ones ──
+PUBLIC_PATHS = {"/api/health", "/api/auth/login"}
+
+
+class AuthMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        path = request.url.path
+        # Skip preflight CORS and enforce auth only on /api/* (except public)
+        if request.method != "OPTIONS" and path.startswith("/api/") and path not in PUBLIC_PATHS:
+            auth_header = request.headers.get("Authorization", "")
+            if not auth_header.startswith("Bearer "):
+                return JSONResponse(status_code=401, content={"detail": "Missing or invalid token"})
+            token = auth_header.removeprefix("Bearer ").strip()
+            try:
+                decode_token(token)
+            except Exception:
+                return JSONResponse(status_code=401, content={"detail": "Invalid or expired token"})
+        return await call_next(request)
+
+
+# Middleware ordering: Starlette applies last-added as outermost.
+# AuthMiddleware added first, then CORS on top → CORS handles OPTIONS before auth runs.
+app.add_middleware(AuthMiddleware)
+
 origins = [o.strip() for o in settings.CORS_ORIGINS.split(",")]
 app.add_middleware(
     CORSMiddleware,

@@ -66,6 +66,7 @@ function AppShell() {
   const [themeOpen, setThemeOpen] = useState(false);
   const [llmOpen, setLlmOpen] = useState(false);
   const [page, setPage] = useState<Page>("dashboard");
+  const [authChecked, setAuthChecked] = useState(false);
 
   // Auth: read user from localStorage (set by Nginx login page)
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => {
@@ -75,7 +76,40 @@ function AppShell() {
     } catch { return null; }
   });
 
+  // Verify token on mount — redirect to /login if not authenticated
+  useEffect(() => {
+    const token = localStorage.getItem("soc_token");
+    if (!token) {
+      window.location.href = "/login";
+      return;
+    }
+    fetch("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => {
+        if (!res.ok) throw new Error("Unauthorized");
+        return res.json();
+      })
+      .then((user) => {
+        localStorage.setItem("soc_user", JSON.stringify(user));
+        setCurrentUser(user);
+        setAuthChecked(true);
+      })
+      .catch(() => {
+        localStorage.removeItem("soc_token");
+        localStorage.removeItem("soc_user");
+        window.location.href = "/login";
+      });
+  }, []);
+
   const isAdmin = currentUser?.role === "superadmin" || currentUser?.role === "admin";
+
+  // Show nothing while verifying auth
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--theme-surface-base)" }}>
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-t-transparent" style={{ borderColor: "var(--theme-accent)", borderTopColor: "transparent" }} />
+      </div>
+    );
+  }
 
   const handleLogout = () => {
     localStorage.removeItem("soc_token");
