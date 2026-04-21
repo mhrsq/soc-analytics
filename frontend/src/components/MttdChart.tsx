@@ -35,7 +35,7 @@ function drawGauge(canvas: HTMLCanvasElement, value: number) {
   const targetAngle = startAngle + totalArc * (TARGET / 100);
 
   const aboveTarget = value >= TARGET;
-  const color = aboveTarget ? "#22c55e" : value >= 70 ? "#f59e0b" : "#ef4444";
+  const color = aboveTarget ? "#10b981" : value >= 70 ? "#f59e0b" : "#ef4444";
 
   ctx.clearRect(0, 0, w, h);
 
@@ -132,7 +132,7 @@ function drawGauge(canvas: HTMLCanvasElement, value: number) {
 
   // ── Center value ──
   const valFont = Math.max(18, radius * 0.50);
-  ctx.font = `600 ${valFont}px Inter, sans-serif`;
+  ctx.font = `600 ${valFont}px 'IBM Plex Mono', monospace`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillStyle = color;
@@ -140,8 +140,8 @@ function drawGauge(canvas: HTMLCanvasElement, value: number) {
 
   // ── Status label ──
   const statusFont = Math.max(9, radius * 0.15);
-  ctx.font = `500 ${statusFont}px Inter, sans-serif`;
-  ctx.fillStyle = aboveTarget ? "rgba(34,197,94,0.8)" : "rgba(245,158,11,0.8)";
+  ctx.font = `500 ${statusFont}px 'IBM Plex Sans', sans-serif`;
+  ctx.fillStyle = aboveTarget ? "rgba(16,185,129,0.8)" : "rgba(245,158,11,0.8)";
   ctx.fillText(
     aboveTarget ? "▲ Above Target" : "▼ Below Target",
     cx,

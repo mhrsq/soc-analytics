@@ -32,7 +32,7 @@ export function CustomerChart({ data, loading, bare }: Props) {
         <YAxis tick={{ fill: cc.tick, fontSize: 11 }} tickLine={false} axisLine={false} width={50} />
         <Tooltip contentStyle={tooltipStyle}
           formatter={(value: number) => [`${value} tickets`, "Total"]} />
-        <Bar dataKey="total" fill="#a1a1aa" radius={[4, 4, 0, 0]} barSize={32} />
+        <Bar dataKey="total" fill="#9b9ba8" radius={[3, 3, 0, 0]} barSize={28} />
       </BarChart>
     </ResponsiveContainer>
   );

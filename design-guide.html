@@ -1,0 +1,1780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MTM SOC · Chart Design Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:           #0a0a0c;
+  --bg-elev:      #111114;
+  --surface:      #141418;
+  --surface-2:    #1b1b21;
+  --surface-3:    #23232b;
+  --border:       #26262e;
+  --border-soft:  #1d1d23;
+
+  --text:         #e8e8ec;
+  --text-2:       #9b9ba8;
+  --text-3:       #646471;
+  --text-4:       #3e3e48;
+
+  --red:          #ef4444;
+  --red-strong:   #f87171;
+  --red-dim:      rgba(239, 68, 68, 0.12);
+  --red-line:     rgba(239, 68, 68, 0.35);
+
+  --amber:        #f59e0b;
+  --amber-dim:    rgba(245, 158, 11, 0.14);
+
+  --green:        #10b981;
+  --green-dim:    rgba(16, 185, 129, 0.14);
+
+  --blue:         #3b82f6;
+  --blue-dim:     rgba(59, 130, 246, 0.12);
+
+  --accent:       #a5a5b8;
+
+  --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.003em;
+}
+
+/* Layout */
+.layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Sidebar */
+.side {
+  border-right: 1px solid var(--border);
+  padding: 28px 20px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  background: var(--bg);
+}
+.side-brand {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--text-3);
+  margin-bottom: 4px;
+  letter-spacing: 0.02em;
+}
+.side-title {
+  font-size: 15px;
+  color: var(--text);
+  font-weight: 600;
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+}
+.side-sub {
+  font-size: 11.5px;
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  margin-bottom: 28px;
+}
+
+.side-group {
+  margin-bottom: 20px;
+}
+.side-group-label {
+  font-size: 10.5px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  margin-bottom: 6px;
+  padding: 0 2px;
+}
+.side a {
+  display: block;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: var(--text-2);
+  text-decoration: none;
+  border-radius: 4px;
+  margin-bottom: 1px;
+  transition: color 0.12s, background 0.12s;
+}
+.side a:hover { color: var(--text); background: var(--surface); }
+.side a .num {
+  color: var(--text-4);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  margin-right: 8px;
+}
+
+/* Main */
+.main { padding: 36px 44px 80px; max-width: 960px; }
+
+.hero {
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 40px;
+}
+.hero h1 {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+}
+.hero p {
+  color: var(--text-2);
+  font-size: 14px;
+  max-width: 640px;
+}
+.hero .meta {
+  margin-top: 14px;
+  font-size: 11.5px;
+  font-family: var(--font-mono);
+  color: var(--text-3);
+  display: flex;
+  gap: 14px;
+}
+
+/* Section */
+.section { margin-bottom: 56px; scroll-margin-top: 20px; }
+.section h2 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-3);
+  font-weight: 600;
+  padding-bottom: 10px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid var(--border-soft);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.section h2 .num {
+  font-family: var(--font-mono);
+  color: var(--text-4);
+  font-weight: 400;
+}
+
+.item { margin-bottom: 32px; }
+.item-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 4px;
+}
+.item-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+.item-tag {
+  font-size: 10.5px;
+  font-family: var(--font-mono);
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.item-desc {
+  font-size: 13px;
+  color: var(--text-2);
+  margin-bottom: 14px;
+  max-width: 680px;
+}
+
+/* Example frame */
+.demo {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  padding: 20px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.demo.thin { padding: 14px; }
+.demo-row {
+  display: grid;
+  gap: 14px;
+}
+.demo-row.two   { grid-template-columns: 1fr 1fr; }
+.demo-row.three { grid-template-columns: 1fr 1fr 1fr; }
+.demo-row.four  { grid-template-columns: repeat(4, 1fr); }
+
+.demo-caption {
+  font-size: 11px;
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  margin-top: 8px;
+  letter-spacing: 0;
+}
+
+/* Specs + Code side by side */
+.detail {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 12px;
+  margin-top: 4px;
+}
+@media (max-width: 900px) {
+  .detail { grid-template-columns: 1fr; }
+}
+.specs {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  padding: 12px 14px;
+  font-size: 12px;
+}
+.specs dl {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 6px 14px;
+}
+.specs dt {
+  color: var(--text-3);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}
+.specs dd {
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: -0.01em;
+}
+
+/* Code */
+.code {
+  background: var(--bg-elev);
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  padding: 12px 14px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  line-height: 1.65;
+  color: var(--text-2);
+  overflow-x: auto;
+  white-space: pre;
+  letter-spacing: 0;
+  max-height: 280px;
+  overflow-y: auto;
+}
+.code .tag    { color: #c084fc; }
+.code .attr   { color: #7dd3fc; }
+.code .str    { color: #86efac; }
+.code .com    { color: var(--text-4); font-style: italic; }
+.code .num-v  { color: #fca5a5; }
+
+/* Color swatches */
+.swatches {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+@media (max-width: 700px) { .swatches { grid-template-columns: repeat(2, 1fr); } }
+.sw {
+  border: 1px solid var(--border-soft);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.sw-top {
+  height: 56px;
+  position: relative;
+}
+.sw-bottom {
+  padding: 8px 10px;
+  background: var(--surface);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+}
+.sw-name { color: var(--text); margin-bottom: 2px; }
+.sw-hex { color: var(--text-3); }
+.sw-role {
+  font-size: 10px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 3px;
+  font-family: var(--font-sans);
+}
+
+/* Type spec */
+.type-row {
+  display: grid;
+  grid-template-columns: 180px 1fr 120px;
+  gap: 16px;
+  align-items: baseline;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.type-row:last-child { border-bottom: none; }
+.type-label {
+  font-size: 11px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.type-sample { color: var(--text); }
+.type-spec {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-3);
+  text-align: right;
+}
+
+/* Sparkline demo */
+.kpi-demo {
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  border-radius: 5px;
+  padding: 12px 14px;
+}
+.kpi-demo-top {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 10.5px;
+}
+.kpi-demo-top .lbl { color: var(--text-3); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500; }
+.kpi-demo-top .dlt { color: var(--green); font-family: var(--font-mono); }
+.kpi-demo-num {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  color: var(--text);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+
+/* Priority demo rows */
+.prio-demo {
+  display: grid;
+  grid-template-columns: 80px 1fr 32px;
+  gap: 10px;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 12px;
+}
+.prio-demo + .prio-demo { border-top: 1px solid var(--border-soft); }
+.prio-demo .lbl { color: var(--text-2); font-size: 11.5px; }
+.prio-demo .lbl .dot {
+  width: 6px; height: 6px; border-radius: 1px; display: inline-block;
+  margin-right: 6px; vertical-align: middle;
+}
+.prio-demo .track {
+  height: 6px;
+  background: var(--surface-3);
+  border-radius: 1px;
+  overflow: hidden;
+}
+.prio-demo .fill { height: 100%; border-radius: 1px; }
+.prio-demo .ct {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text);
+  text-align: right;
+}
+
+/* Workload bar demo */
+.wl-demo {
+  display: grid;
+  grid-template-columns: 120px 1fr 60px 80px;
+  gap: 14px;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 12px;
+}
+.wl-demo + .wl-demo { border-top: 1px solid var(--border-soft); }
+.wl-demo .nm { color: var(--text); font-weight: 500; font-size: 12px; }
+.wl-demo .bar-wrap { position: relative; height: 20px; display: flex; align-items: center; }
+.wl-demo .bar { width: 100%; height: 8px; background: var(--surface-3); border-radius: 1px; overflow: hidden; }
+.wl-demo .fill { height: 100%; border-radius: 1px; }
+.wl-demo .thresh {
+  position: absolute; top: -3px; bottom: -3px; width: 1px;
+  background: var(--text-3); opacity: 0.5;
+}
+.wl-demo .num {
+  text-align: right; font-family: var(--font-mono); font-size: 11.5px; color: var(--text);
+}
+
+/* badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  font-size: 10.5px;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  border-radius: 3px;
+  letter-spacing: 0;
+}
+.badge.red    { color: var(--red-strong); background: var(--red-dim); }
+.badge.amber  { color: var(--amber); background: var(--amber-dim); }
+.badge.green  { color: var(--green); background: var(--green-dim); }
+.badge.neutral{ color: var(--text-2); background: var(--surface-3); }
+
+/* Heatmap demo */
+.heat-demo {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+.heat-cell {
+  height: 24px;
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+}
+.heat-cell .fill-v {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  border-radius: 2px;
+}
+
+/* Table demo */
+table.demo-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+table.demo-table th {
+  text-align: left;
+  padding: 9px 12px;
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--border-soft);
+  background: var(--surface-2);
+}
+table.demo-table th.n { text-align: right; }
+table.demo-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-soft);
+  color: var(--text-2);
+}
+table.demo-table td.n {
+  text-align: right;
+  font-family: var(--font-mono);
+  color: var(--text);
+}
+table.demo-table tr:last-child td { border-bottom: none; }
+table.demo-table td.strong { color: var(--text); font-weight: 500; }
+
+/* Dos & Donts */
+.compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.compare-card {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  padding: 16px;
+  border-top-width: 2px;
+}
+.compare-card.bad { border-top-color: var(--red-strong); }
+.compare-card.good { border-top-color: var(--green); }
+.compare-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.compare-head.bad { color: var(--red-strong); }
+.compare-head.good { color: var(--green); }
+.compare-body { font-size: 12px; color: var(--text-2); }
+.compare-body ul { list-style: none; padding: 0; margin: 10px 0 0; }
+.compare-body li {
+  padding: 4px 0;
+  border-top: 1px solid var(--border-soft);
+  font-size: 11.5px;
+  color: var(--text-2);
+}
+.compare-body li::before {
+  content: '→ ';
+  color: var(--text-4);
+  font-family: var(--font-mono);
+}
+
+/* Delta indicator examples */
+.delta-examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.delta-ex {
+  background: var(--surface-2);
+  padding: 5px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border-soft);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+}
+.delta-ex .k { color: var(--text-3); margin-right: 8px; font-size: 10.5px; }
+.delta-ex .v.up   { color: var(--green); }
+.delta-ex .v.down { color: var(--red-strong); }
+.delta-ex .v.warn { color: var(--amber); }
+.delta-ex .v.flat { color: var(--text-3); }
+
+/* scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border); }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  .side { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+  .main { padding: 24px 20px 60px; }
+  .compare, .demo-row.two, .demo-row.three, .demo-row.four { grid-template-columns: 1fr !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- SIDEBAR TOC -->
+  <aside class="side">
+    <div class="side-brand">MTM SOC</div>
+    <div class="side-title">Chart Guide</div>
+    <div class="side-sub">v1 · 2026-04-21</div>
+
+    <div class="side-group">
+      <div class="side-group-label">Foundations</div>
+      <a href="#colors"><span class="num">01</span>Color system</a>
+      <a href="#typography"><span class="num">02</span>Typography</a>
+      <a href="#scales"><span class="num">03</span>Scales &amp; sizing</a>
+    </div>
+
+    <div class="side-group">
+      <div class="side-group-label">Chart types</div>
+      <a href="#sparkline"><span class="num">04</span>Sparkline</a>
+      <a href="#area"><span class="num">05</span>Area / Line</a>
+      <a href="#hbar"><span class="num">06</span>Horizontal bar</a>
+      <a href="#progress"><span class="num">07</span>Progress &amp; ratio</a>
+      <a href="#threshold"><span class="num">08</span>Threshold bar</a>
+      <a href="#range"><span class="num">09</span>Range / distribution</a>
+      <a href="#heatmap"><span class="num">10</span>Heatmap</a>
+      <a href="#table"><span class="num">11</span>Data table</a>
+    </div>
+
+    <div class="side-group">
+      <div class="side-group-label">Patterns</div>
+      <a href="#metadata"><span class="num">12</span>Chart metadata</a>
+      <a href="#deltas"><span class="num">13</span>Delta indicators</a>
+      <a href="#badges"><span class="num">14</span>Badges &amp; dots</a>
+      <a href="#empty"><span class="num">15</span>Empty states</a>
+    </div>
+
+    <div class="side-group">
+      <div class="side-group-label">Rules</div>
+      <a href="#dodont"><span class="num">16</span>Do &amp; Don't</a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <div class="hero">
+      <h1>Chart &amp; Visualization Style Guide</h1>
+      <p>Reference untuk bikin chart yang consistent across SOC Analytics dashboard. Focus: operational clarity, info density, color as signal (bukan decoration).</p>
+      <div class="meta">
+        <span>Dark theme only</span>
+        <span>·</span>
+        <span>IBM Plex Sans + Mono</span>
+        <span>·</span>
+        <span>Monochrome dominan + 3 signal colors</span>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 01 COLORS -->
+    <!-- ============================================================ -->
+    <section class="section" id="colors">
+      <h2>Color system <span class="num">01</span></h2>
+
+      <div class="item">
+        <div class="item-head">
+          <div class="item-title">Neutral scale</div>
+          <div class="item-tag">dominant · 90% usage</div>
+        </div>
+        <p class="item-desc">Grayscale is the primary palette. Gunakan ini untuk background, surface, border, text, dan semua chart element yang <em>bukan</em> carrying a signal.</p>
+
+        <div class="demo">
+          <div class="swatches">
+            <div class="sw"><div class="sw-top" style="background: #0a0a0c;"></div><div class="sw-bottom"><div class="sw-name">bg</div><div class="sw-hex">#0a0a0c</div><div class="sw-role">page bg</div></div></div>
+            <div class="sw"><div class="sw-top" style="background: #141418;"></div><div class="sw-bottom"><div class="sw-name">surface</div><div class="sw-hex">#141418</div><div class="sw-role">panel</div></div></div>
+            <div class="sw"><div class="sw-top" style="background: #1b1b21;"></div><div class="sw-bottom"><div class="sw-name">surface-2</div><div class="sw-hex">#1b1b21</div><div class="sw-role">hover / nested</div></div></div>
+            <div class="sw"><div class="sw-top" style="background: #23232b;"></div><div class="sw-bottom"><div class="sw-name">surface-3</div><div class="sw-hex">#23232b</div><div class="sw-role">track / badge bg</div></div></div>
+            <div class="sw"><div class="sw-top" style="background: #26262e;"></div><div class="sw-bottom"><div class="sw-name">border</div><div class="sw-hex">#26262e</div><div class="sw-role">divider</div></div></div>
+          </div>
+        </div>
+
+        <div class="demo" style="margin-top: 12px;">
+          <div class="swatches">
+            <div class="sw"><div class="sw-top" style="background: #e8e8ec;"></div><div class="sw-bottom"><div class="sw-name">text</div><div class="sw-hex">#e8e8ec</div><div class="sw-role">primary</div></div></div>
+            <div class="sw"><div class="sw-top" style="background: #9b9ba8;"></div><div class="sw-bottom"><div class="sw-name">text-2</div><div class="sw-hex">#9b9ba8</div><div class="sw-role">secondary</div></div></div>
+            <div class="sw"><div class="sw-top" style="background: #646471;"></div><div class="sw-bottom"><div class="sw-name">text-3</div><div class="sw-hex">#646471</div><div class="sw-role">tertiary / caption</div></div></div>
+            <div class="sw"><div class="sw-top" style="background: #3e3e48;"></div><div class="sw-bottom"><div class="sw-name">text-4</div><div class="sw-hex">#3e3e48</div><div class="sw-role">disabled / n/a</div></div></div>
+            <div class="sw"><div class="sw-top" style="background: #a5a5b8;"></div><div class="sw-bottom"><div class="sw-name">accent</div><div class="sw-hex">#a5a5b8</div><div class="sw-role">chart neutral</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="item">
+        <div class="item-head">
+          <div class="item-title">Signal colors</div>
+          <div class="item-tag">use sparingly · 10% usage</div>
+        </div>
+        <p class="item-desc">3 colors, 3 meanings. Red = breach / critical / failing. Amber = warning / at-risk / attention needed. Green = healthy / recovered / on-target. <strong style="color: var(--text);">Never use these decoratively.</strong> Kalau ada chart tanpa problem, it's all gray.</p>
+
+        <div class="demo">
+          <div class="swatches" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="sw">
+              <div class="sw-top" style="background: #ef4444;">
+                <div style="position: absolute; bottom: 6px; left: 8px; color: rgba(255,255,255,0.85); font-family: var(--font-mono); font-size: 10px; font-weight: 500;">P1 · breach · down</div>
+              </div>
+              <div class="sw-bottom"><div class="sw-name">red</div><div class="sw-hex">#ef4444 · strong #f87171</div><div class="sw-role">critical / SLA breach</div></div>
+            </div>
+            <div class="sw">
+              <div class="sw-top" style="background: #f59e0b;">
+                <div style="position: absolute; bottom: 6px; left: 8px; color: rgba(0,0,0,0.7); font-family: var(--font-mono); font-size: 10px; font-weight: 500;">P2 · at-risk · trending up</div>
+              </div>
+              <div class="sw-bottom"><div class="sw-name">amber</div><div class="sw-hex">#f59e0b</div><div class="sw-role">warning / P2</div></div>
+            </div>
+            <div class="sw">
+              <div class="sw-top" style="background: #10b981;">
+                <div style="position: absolute; bottom: 6px; left: 8px; color: rgba(0,0,0,0.75); font-family: var(--font-mono); font-size: 10px; font-weight: 500;">on-target · resolved · up</div>
+              </div>
+              <div class="sw-bottom"><div class="sw-name">green</div><div class="sw-hex">#10b981</div><div class="sw-role">healthy / true positive</div></div>
+            </div>
+          </div>
+          <div class="demo-caption" style="margin-top: 12px;">
+            ⚠ Kalau 40% dari chart lo berwarna → lo over-using colors. Target: ≤ 10% pixel coverage.
+          </div>
+        </div>
+      </div>
+
+      <div class="item">
+        <div class="item-head">
+          <div class="item-title">Severity mapping</div>
+          <div class="item-tag">priority → color</div>
+        </div>
+        <p class="item-desc">Consistent mapping across all charts:</p>
+        <div class="demo">
+          <table class="demo-table">
+            <thead><tr><th>Priority</th><th>Color</th><th>Hex</th><th>When</th></tr></thead>
+            <tbody>
+              <tr><td class="strong"><span style="display:inline-block;width:8px;height:8px;background:#ef4444;border-radius:1px;margin-right:8px;vertical-align:middle;"></span>P1 Critical</td><td>red</td><td style="font-family:var(--font-mono);color:var(--text);">#ef4444</td><td>production down, active compromise</td></tr>
+              <tr><td class="strong"><span style="display:inline-block;width:8px;height:8px;background:#f59e0b;border-radius:1px;margin-right:8px;vertical-align:middle;"></span>P2 High</td><td>amber</td><td style="font-family:var(--font-mono);color:var(--text);">#f59e0b</td><td>high-impact, needs SLA response</td></tr>
+              <tr><td class="strong"><span style="display:inline-block;width:8px;height:8px;background:#9b9ba8;border-radius:1px;margin-right:8px;vertical-align:middle;"></span>P3 Medium</td><td>text-2 (gray)</td><td style="font-family:var(--font-mono);color:var(--text);">#9b9ba8</td><td>standard severity</td></tr>
+              <tr><td class="strong"><span style="display:inline-block;width:8px;height:8px;background:#3e3e48;border-radius:1px;margin-right:8px;vertical-align:middle;"></span>P4 Low</td><td>text-4 (dim)</td><td style="font-family:var(--font-mono);color:var(--text);">#3e3e48</td><td>informational, low priority</td></tr>
+            </tbody>
+          </table>
+          <div class="demo-caption" style="margin-top: 10px;">P3 and P4 use neutral grays — they're not "problem" colors, just standard work. Only P1 (red) and P2 (amber) need to visually pull attention.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 02 TYPOGRAPHY -->
+    <!-- ============================================================ -->
+    <section class="section" id="typography">
+      <h2>Typography <span class="num">02</span></h2>
+
+      <div class="item">
+        <p class="item-desc">Two fonts, each with a specific job. <strong style="color: var(--text);">Never mix roles.</strong></p>
+
+        <div class="demo thin">
+          <div class="type-row">
+            <div class="type-label">Body / Labels</div>
+            <div class="type-sample" style="font-family: var(--font-sans);">Ticket Volume · Priority Distribution · SLA Compliance</div>
+            <div class="type-spec">IBM Plex Sans<br>400–500</div>
+          </div>
+          <div class="type-row">
+            <div class="type-label">Numbers / IDs</div>
+            <div class="type-sample" style="font-family: var(--font-mono);">50 · 97.8% · 48m · rule-100021</div>
+            <div class="type-spec">IBM Plex Mono<br>500</div>
+          </div>
+          <div class="type-row">
+            <div class="type-label">Timestamps</div>
+            <div class="type-sample" style="font-family: var(--font-mono); color: var(--text-3);">21 Apr 2026 · 10:51 WIB · 23s ago</div>
+            <div class="type-spec">IBM Plex Mono<br>400 · text-3</div>
+          </div>
+          <div class="type-row">
+            <div class="type-label">Axis labels</div>
+            <div class="type-sample" style="font-family: var(--font-mono); color: var(--text-3); font-size: 10px;">Apr 08 · Apr 13 · Apr 18 · Apr 21</div>
+            <div class="type-spec">IBM Plex Mono<br>400 · 9–10px</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="item">
+        <div class="item-head">
+          <div class="item-title">Size scale (inside charts)</div>
+        </div>
+        <div class="demo thin">
+          <table class="demo-table">
+            <thead><tr><th>Role</th><th>Size</th><th>Font</th><th>Color</th></tr></thead>
+            <tbody>
+              <tr><td class="strong">Primary metric (KPI number)</td><td class="n">22px / 500</td><td class="n">mono</td><td class="n">text</td></tr>
+              <tr><td class="strong">Chart total</td><td class="n">20px / 500</td><td class="n">mono</td><td class="n">text</td></tr>
+              <tr><td class="strong">Section label</td><td class="n">12.5px / 500</td><td class="n">sans</td><td class="n">text</td></tr>
+              <tr><td class="strong">Data cell</td><td class="n">12px / 450</td><td class="n">mono</td><td class="n">text</td></tr>
+              <tr><td class="strong">Caption / sub</td><td class="n">11px / 400</td><td class="n">mono</td><td class="n">text-3</td></tr>
+              <tr><td class="strong">Axis label</td><td class="n">9–10px / 400</td><td class="n">mono</td><td class="n">text-3</td></tr>
+              <tr><td class="strong">Uppercase tag</td><td class="n">10.5px / 500, 0.06em</td><td class="n">sans</td><td class="n">text-3</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 03 SCALES -->
+    <!-- ============================================================ -->
+    <section class="section" id="scales">
+      <h2>Scales &amp; sizing <span class="num">03</span></h2>
+
+      <div class="item">
+        <div class="item-head">
+          <div class="item-title">Spacing</div>
+          <div class="item-tag">4px base</div>
+        </div>
+        <p class="item-desc">Everything snaps to 4px grid. Tight by default — SOC dashboards mendingan dense daripada airy.</p>
+        <div class="demo thin">
+          <table class="demo-table">
+            <thead><tr><th>Token</th><th class="n">px</th><th>Usage</th></tr></thead>
+            <tbody>
+              <tr><td class="strong">xs</td><td class="n">4</td><td>icon-to-text, inline gap</td></tr>
+              <tr><td class="strong">sm</td><td class="n">8</td><td>label-to-value, cell padding-x</td></tr>
+              <tr><td class="strong">md</td><td class="n">14</td><td>panel body padding, grid gap</td></tr>
+              <tr><td class="strong">lg</td><td class="n">20</td><td>panel body generous, section spacing</td></tr>
+              <tr><td class="strong">xl</td><td class="n">32</td><td>section separation</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="item">
+        <div class="item-head">
+          <div class="item-title">Border radius</div>
+          <div class="item-tag">restrained</div>
+        </div>
+        <div class="demo thin">
+          <table class="demo-table">
+            <thead><tr><th>Element</th><th class="n">Radius</th></tr></thead>
+            <tbody>
+              <tr><td class="strong">Panels, cards</td><td class="n">6px</td></tr>
+              <tr><td class="strong">Inline tracks (bar bg)</td><td class="n">1px</td></tr>
+              <tr><td class="strong">Bar fills</td><td class="n">1px</td></tr>
+              <tr><td class="strong">Badges, pills</td><td class="n">3px</td></tr>
+              <tr><td class="strong">Buttons / filters</td><td class="n">4px</td></tr>
+              <tr><td class="strong">Avatars</td><td class="n">50% (circle)</td></tr>
+            </tbody>
+          </table>
+          <div class="demo-caption" style="margin-top:10px;">No pill-shaped progress bars, no 12px+ radius everywhere. Sharp corners = grown-up UI.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 04 SPARKLINE -->
+    <!-- ============================================================ -->
+    <section class="section" id="sparkline">
+      <h2>Sparkline <span class="num">04</span></h2>
+
+      <div class="item">
+        <div class="item-head">
+          <div class="item-title">Sparkline — KPI trend context</div>
+          <div class="item-tag">SVG</div>
+        </div>
+        <p class="item-desc">Tiny line chart untuk nunjukin 7–14d trend di bawah KPI number. Gak ada axis, gak ada labels. Shape = context. Color = trend direction (gray by default, amber/green/red kalau perlu highlight).</p>
+
+        <div class="demo">
+          <div class="demo-row three">
+            <div class="kpi-demo">
+              <div class="kpi-demo-top"><span class="lbl">Total Tickets</span><span class="dlt" style="color: var(--text-3);">+0 · 7d</span></div>
+              <div class="kpi-demo-num">50</div>
+              <svg viewBox="0 0 100 24" preserveAspectRatio="none" style="width:100%;height:22px;">
+                <polyline fill="none" stroke="#9b9ba8" stroke-width="1" points="0,16 10,14 20,18 30,15 40,12 50,14 60,11 70,13 80,10 90,12 100,11"/>
+              </svg>
+            </div>
+            <div class="kpi-demo">
+              <div class="kpi-demo-top"><span class="lbl">False Positive</span><span class="dlt" style="color: var(--amber);">+3pp · 7d</span></div>
+              <div class="kpi-demo-num">98.0%</div>
+              <svg viewBox="0 0 100 24" preserveAspectRatio="none" style="width:100%;height:22px;">
+                <polyline fill="none" stroke="#f59e0b" stroke-width="1" points="0,14 10,13 20,12 30,11 40,10 50,9 60,8 70,7 80,6 90,5 100,4"/>
+              </svg>
+            </div>
+            <div class="kpi-demo">
+              <div class="kpi-demo-top"><span class="lbl">SLA Compliance</span><span class="dlt">+0.2pp · 7d</span></div>
+              <div class="kpi-demo-num">97.8%</div>
+              <svg viewBox="0 0 100 24" preserveAspectRatio="none" style="width:100%;height:22px;">
+                <line x1="0" y1="6" x2="100" y2="6" stroke="#26262e" stroke-width="1" stroke-dasharray="2,2"/>
+                <polyline fill="none" stroke="#10b981" stroke-width="1" points="0,9 10,8 20,10 30,9 40,7 50,8 60,6 70,7 80,5 90,6 100,4"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail">
+          <div class="specs">
+            <dl>
+              <dt>Height</dt><dd>22px</dd>
+              <dt>Width</dt><dd>100% cell</dd>
+              <dt>Stroke</dt><dd>1px, no fill</dd>
+              <dt>Color</dt><dd>text-2 default</dd>
+              <dt>Signal color</dt><dd>only if trend matters</dd>
+              <dt>Target line</dt><dd>1px dashed border color</dd>
+              <dt>Points</dt><dd>7–14 data points</dd>
+              <dt>ViewBox</dt><dd>100 × 24</dd>
+            </dl>
+          </div>
+          <pre class="code"><span class="com">&lt;!-- neutral sparkline --&gt;</span>
+<span class="tag">&lt;svg</span> <span class="attr">viewBox</span>=<span class="str">"0 0 100 24"</span>
+     <span class="attr">preserveAspectRatio</span>=<span class="str">"none"</span>
+     <span class="attr">width</span>=<span class="str">"100%"</span> <span class="attr">height</span>=<span class="str">"22"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;polyline</span>
+     <span class="attr">fill</span>=<span class="str">"none"</span>
+     <span class="attr">stroke</span>=<span class="str">"#9b9ba8"</span>
+     <span class="attr">stroke-width</span>=<span class="str">"1"</span>
+     <span class="attr">points</span>=<span class="str">"0,16 20,18 40,12 60,11 80,10 100,11"</span><span class="tag">/&gt;</span>
+<span class="tag">&lt;/svg&gt;</span>
+
+<span class="com">&lt;!-- with target / baseline --&gt;</span>
+<span class="tag">&lt;line</span> <span class="attr">x1</span>=<span class="str">"0"</span> <span class="attr">y1</span>=<span class="str">"6"</span> <span class="attr">x2</span>=<span class="str">"100"</span> <span class="attr">y2</span>=<span class="str">"6"</span>
+     <span class="attr">stroke</span>=<span class="str">"#26262e"</span>
+     <span class="attr">stroke-dasharray</span>=<span class="str">"2,2"</span><span class="tag">/&gt;</span></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 05 AREA/LINE -->
+    <!-- ============================================================ -->
+    <section class="section" id="area">
+      <h2>Area / Line chart <span class="num">05</span></h2>
+
+      <div class="item">
+        <div class="item-head">
+          <div class="item-title">Time-series area chart</div>
+          <div class="item-tag">≥ 7d window</div>
+        </div>
+        <p class="item-desc">For volume/rate over time. Stroke is the main carrier (1.4px), fill just for depth (0.1 opacity). Horizontal grid lines only, at 3 evenly-spaced breaks. No Y-axis labels — use chart metadata instead.</p>
+
+        <div class="demo">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+            <span style="font-family: var(--font-mono); font-size: 20px; font-weight: 500; color: var(--text); letter-spacing: -0.02em;">627 <span style="color: var(--text-3); font-size: 12px;">total</span></span>
+            <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-3);">avg 44.8/day · peak 68 on Apr 15</span>
+          </div>
+          <svg viewBox="0 0 700 160" width="100%" height="160" preserveAspectRatio="none">
+            <g stroke="#1d1d23" stroke-width="1">
+              <line x1="0" y1="40" x2="700" y2="40"/>
+              <line x1="0" y1="80" x2="700" y2="80"/>
+              <line x1="0" y1="120" x2="700" y2="120"/>
+            </g>
+            <g>
+              <path d="M0,140 L50,138 L100,135 L150,136 L200,132 L250,134 L300,130 L350,135 L400,138 L450,136 L500,139 L550,137 L600,140 L650,138 L700,140 L700,160 L0,160 Z" fill="#10b981" fill-opacity="0.12"/>
+              <polyline points="0,140 50,138 100,135 150,136 200,132 250,134 300,130 350,135 400,138 450,136 500,139 550,137 600,140 650,138 700,140" fill="none" stroke="#10b981" stroke-width="1.2"/>
+            </g>
+            <g>
+              <path d="M0,60 L50,55 L100,70 L150,50 L200,65 L250,45 L300,30 L350,55 L400,75 L450,50 L500,60 L550,40 L600,70 L650,85 L700,105 L700,160 L0,160 Z" fill="#9b9ba8" fill-opacity="0.1"/>
+              <polyline points="0,60 50,55 100,70 150,50 200,65 250,45 300,30 350,55 400,75 450,50 500,60 550,40 600,70 650,85 700,105" fill="none" stroke="#e8e8ec" stroke-width="1.4"/>
+            </g>
+            <g font-family="IBM Plex Mono" font-size="9" fill="#5a5a66">
+              <text x="0" y="155">Apr 08</text>
+              <text x="235" y="155">Apr 13</text>
+              <text x="470" y="155">Apr 18</text>
+              <text x="680" y="155" text-anchor="end">Apr 21</text>
+            </g>
+          </svg>
+          <div style="display: flex; gap: 14px; font-size: 11px; color: var(--text-2); margin-top: 8px;">
+            <span><span style="width: 8px; height: 8px; display: inline-block; border-radius: 2px; margin-right: 6px; vertical-align: middle; background: #e8e8ec;"></span>False Positive <span style="font-family: var(--font-mono); color: var(--text); margin-left: 6px;">614</span></span>
+            <span><span style="width: 8px; height: 8px; display: inline-block; border-radius: 2px; margin-right: 6px; vertical-align: middle; background: #10b981;"></span>True Positive <span style="font-family: var(--font-mono); color: var(--text); margin-left: 6px;">13</span></span>
+          </div>
+        </div>
+
+        <div class="detail">
+          <div class="specs">
+            <dl>
+              <dt>Height</dt><dd>160–200px</dd>
+              <dt>Stroke</dt><dd>1.4px primary, 1.2px secondary</dd>
+              <dt>Fill opacity</dt><dd>0.1 (primary), 0.12 (signal)</dd>
+              <dt>Grid lines</dt><dd>3 horizontal, 1px #1d1d23</dd>
+              <dt>Y-axis labels</dt><dd>none — use metadata row</dd>
+              <dt>X-axis labels</dt><dd>4 dates max, 9px mono</dd>
+              <dt>Primary color</dt><dd>text (#e8e8ec) for main series</dd>
+              <dt>Secondary</dt><dd>green for TP, accent for comp</dd>
+            </dl>
+          </div>
+          <pre class="code"><span class="com">&lt;!-- grid --&gt;</span>
+<span class="tag">&lt;g</span> <span class="attr">stroke</span>=<span class="str">"#1d1d23"</span> <span class="attr">stroke-width</span>=<span class="str">"1"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;line</span> <span class="attr">x1</span>=<span class="str">"0"</span> <span class="attr">y1</span>=<span class="str">"40"</span> <span class="attr">x2</span>=<span class="str">"700"</span> <span class="attr">y2</span>=<span class="str">"40"</span><span class="tag">/&gt;</span>
+<span class="tag">&lt;/g&gt;</span>
+
+<span class="com">&lt;!-- main series: path for area, polyline for stroke --&gt;</span>
+<span class="tag">&lt;path</span> <span class="attr">d</span>=<span class="str">"M0,60 L100,70 L200,65 ... L700,105 L700,160 L0,160 Z"</span>
+      <span class="attr">fill</span>=<span class="str">"#9b9ba8"</span> <span class="attr">fill-opacity</span>=<span class="str">"0.1"</span><span class="tag">/&gt;</span>
+<span class="tag">&lt;polyline</span> <span class="attr">points</span>=<span class="str">"0,60 100,70 200,65 ... 700,105"</span>
+      <span class="attr">fill</span>=<span class="str">"none"</span>
+      <span class="attr">stroke</span>=<span class="str">"#e8e8ec"</span>
+      <span class="attr">stroke-width</span>=<span class="str">"1.4"</span><span class="tag">/&gt;</span>
+
+<span class="com">&lt;!-- axis labels --&gt;</span>
+<span class="tag">&lt;text</span> <span class="attr">x</span>=<span class="str">"0"</span> <span class="attr">y</span>=<span class="str">"155"</span>
+      <span class="attr">font-family</span>=<span class="str">"IBM Plex Mono"</span>
+      <span class="attr">font-size</span>=<span class="str">"9"</span>
+      <span class="attr">fill</span>=<span class="str">"#5a5a66"</span><span class="tag">&gt;</span>Apr 08<span class="tag">&lt;/text&gt;</span></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 06 HORIZONTAL BAR -->
+    <!-- ============================================================ -->
+    <section class="section" id="hbar">
+      <h2>Horizontal bar <span class="num">06</span></h2>
+
+      <div class="item">
+        <div class="item-head">
+          <div class="item-title">Categorical breakdown</div>
+          <div class="item-tag">CSS · 2–6 categories</div>
+        </div>
+        <p class="item-desc">For comparing categories when vertical labels would be cramped. Always left-align labels, right-align numbers. Track is solid, fill uses category color.</p>
+
+        <div class="demo">
+          <div class="prio-demo">
+            <span class="lbl"><span class="dot" style="background: #ef4444;"></span>P1 Critical</span>
+            <div class="track"><div class="fill" style="width: 4%; background: #ef4444;"></div></div>
+            <span class="ct">2</span>
+          </div>
+          <div class="prio-demo">
+            <span class="lbl"><span class="dot" style="background: #f59e0b;"></span>P2 High</span>
+            <div class="track"><div class="fill" style="width: 54%; background: #f59e0b;"></div></div>
+            <span class="ct">27</span>
+          </div>
+          <div class="prio-demo">
+            <span class="lbl"><span class="dot" style="background: #9b9ba8;"></span>P3 Medium</span>
+            <div class="track"><div class="fill" style="width: 42%; background: #9b9ba8;"></div></div>
+            <span class="ct">21</span>
+          </div>
+          <div class="prio-demo">
+            <span class="lbl"><span class="dot" style="background: #3e3e48;"></span>P4 Low</span>
+            <div class="track"><div class="fill" style="width: 0%; background: #3e3e48;"></div></div>
+            <span class="ct">0</span>
+          </div>
+        </div>
+
+        <div class="detail">
+          <div class="specs">
+            <dl>
+              <dt>Bar height</dt><dd>6px</dd>
+              <dt>Track</dt><dd>surface-3 bg, 1px radius</dd>
+              <dt>Fill radius</dt><dd>1px</dd>
+              <dt>Row height</dt><dd>30–36px w/ padding</dd>
+              <dt>Divider</dt><dd>1px border-soft between rows</dd>
+              <dt>Label col</dt><dd>70–80px fixed</dd>
+              <dt>Count col</dt><dd>32–44px, right-aligned mono</dd>
+              <dt>Dot indicator</dt><dd>6×6px, 1px radius</dd>
+            </dl>
+          </div>
+          <pre class="code"><span class="com">/* HTML */</span>
+<span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="str">"prio-row"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="str">"label"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="str">"dot"</span><span class="tag">&gt;&lt;/span&gt;</span>P2 High
+  <span class="tag">&lt;/span&gt;</span>
+  <span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="str">"track"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="str">"fill"</span>
+         <span class="attr">style</span>=<span class="str">"width:54%"</span><span class="tag">&gt;&lt;/div&gt;</span>
+  <span class="tag">&lt;/div&gt;</span>
+  <span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="str">"count"</span><span class="tag">&gt;</span>27<span class="tag">&lt;/span&gt;</span>
+<span class="tag">&lt;/div&gt;</span>
+
+<span class="com">/* CSS */</span>
+<span class="tag">.prio-row</span> {
+  <span class="attr">display</span>: grid;
+  <span class="attr">grid-template-columns</span>: 70px 1fr 44px;
+  <span class="attr">gap</span>: 10px;
+  <span class="attr">padding</span>: 7px 0;
+}
+<span class="tag">.track</span> {
+  <span class="attr">height</span>: <span class="num-v">6px</span>;
+  <span class="attr">background</span>: <span class="str">#23232b</span>;
+  <span class="attr">border-radius</span>: <span class="num-v">1px</span>;
+}
+<span class="tag">.fill</span> { <span class="attr">height</span>: 100%; <span class="attr">border-radius</span>: <span class="num-v">1px</span>; }</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 07 PROGRESS -->
+    <!-- ============================================================ -->
+    <section class="section" id="progress">
+      <h2>Progress &amp; ratio <span class="num">07</span></h2>
+
+      <div class="item">
+        <div class="item-head">
+          <div class="item-title">Paired ratio indicator</div>
+          <div class="item-tag">replaces donut chart</div>
+        </div>
+        <p class="item-desc">For 2-part ratios (TP/FP, resolved/open, success/fail). Two stacked progress bars with label + number on top. Always add a fraction caption below ("1 / 50 tickets") and an actionable footer.</p>
+
+        <div class="demo">
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
+                <span style="font-size: 11px; color: var(--text-2);"><span style="width: 6px; height: 6px; background: var(--green); display: inline-block; border-radius: 1.5px; margin-right: 6px; vertical-align: middle;"></span>True Positive</span>
+                <span style="font-family: var(--font-mono); font-size: 16px; color: var(--text); font-weight: 500;">2.0%</span>
+              </div>
+              <div style="height: 4px; background: var(--surface-3); border-radius: 1px; overflow: hidden;">
+                <div style="width: 2%; height: 100%; background: var(--green);"></div>
+              </div>
+              <div style="font-size: 10.5px; color: var(--text-3); font-family: var(--font-mono); margin-top: 3px;">1 / 50 tickets</div>
+            </div>
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
+                <span style="font-size: 11px; color: var(--text-2);"><span style="width: 6px; height: 6px; background: var(--text-2); display: inline-block; border-radius: 1.5px; margin-right: 6px; vertical-align: middle;"></span>False Positive</span>
+                <span style="font-family: var(--font-mono); font-size: 16px; color: var(--text); font-weight: 500;">98.0%</span>
+              </div>
+              <div style="height: 4px; background: var(--surface-3); border-radius: 1px; overflow: hidden;">
+                <div style="width: 98%; height: 100%; background: var(--text-2);"></div>
+              </div>
+              <div style="font-size: 10.5px; color: var(--text-3); font-family: var(--font-mono); margin-top: 3px;">49 / 50 tickets</div>
+            </div>
+            <div style="padding-top: 10px; border-top: 1px solid var(--border-soft); font-size: 11px; color: var(--text-2);">
+              FP trending <span style="color: var(--amber);">+3pp ↑</span> vs 7d avg. Review tuning on <span style="font-family: var(--font-mono); color: var(--text);">rule-id 100021</span>.
+            </div>
+          </div>
+        </div>
+
+        <div class="detail">
+          <div class="specs">
+            <dl>
+              <dt>Bar height</dt><dd>4px (thin)</dd>
+              <dt>Label size</dt><dd>11px sans</dd>
+              <dt>Number size</dt><dd>16px mono</dd>
+              <dt>Fraction</dt><dd>10.5px mono text-3</dd>
+              <dt>Gap</dt><dd>14px between bars</dd>
+              <dt>Footer</dt><dd>always actionable, not descriptive</dd>
+            </dl>
+          </div>
+          <pre class="code"><span class="com">/* the footer is mandatory — 
+   if you can't write an action, 
+   the chart doesn't earn its place */</span>
+
+<span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="str">"ratio-footer"</span><span class="tag">&gt;</span>
+  FP trending <span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="str">"warn"</span><span class="tag">&gt;</span>+3pp ↑<span class="tag">&lt;/span&gt;</span> 
+  vs 7d avg. Review tuning on 
+  <span class="tag">&lt;code&gt;</span>rule-id 100021<span class="tag">&lt;/code&gt;</span>.
+<span class="tag">&lt;/div&gt;</span>
+
+<span class="com">/* BAD footer examples (don't do this) */</span>
+<span class="com">// "True Positive: 2%, False Positive: 98%"  — redundant</span>
+<span class="com">// "Based on 50 tickets analyzed"           — filler</span>
+<span class="com">// "Data as of 21 Apr 2026"                 — belongs in metadata</span></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 08 THRESHOLD BAR -->
+    <!-- ============================================================ -->
+    <section class="section" id="threshold">
+      <h2>Threshold bar <span class="num">08</span></h2>
+
+      <div class="item">
+        <div class="item-head">
+          <div class="item-title">Load / capacity with threshold</div>
+          <div class="item-tag">workload balance</div>
+        </div>
+        <p class="item-desc">For showing current value against a target/limit. Fill uses gradient when exceeding threshold (neutral → amber). Threshold line is a subtle 1px vertical marker with small label below.</p>
+
+        <div class="demo">
+          <div class="wl-demo">
+            <span class="nm">Jeffri W.</span>
+            <div class="bar-wrap">
+              <div class="bar"><div class="fill" style="width: 88%; background: linear-gradient(to right, #9b9ba8, #f59e0b);"></div></div>
+              <div class="thresh" style="left: 55%;"></div>
+            </div>
+            <span class="num">63</span>
+            <span style="text-align:right;"><span class="badge amber">overloaded</span></span>
+          </div>
+          <div class="wl-demo">
+            <span class="nm">Ramadhanty</span>
+            <div class="bar-wrap">
+              <div class="bar"><div class="fill" style="width: 35%; background: #a5a5b8;"></div></div>
+              <div class="thresh" style="left: 55%;"></div>
+            </div>
+            <span class="num">22</span>
+            <span style="text-align:right;"><span class="badge neutral">balanced</span></span>
+          </div>
+          <div class="wl-demo">
+            <span class="nm">Muhammad A.</span>
+            <div class="bar-wrap">
+              <div class="bar"><div class="fill" style="width: 22%; background: #a5a5b8; opacity: 0.5;"></div></div>
+              <div class="thresh" style="left: 55%;"></div>
+            </div>
+            <span class="num">14</span>
+            <span style="text-align:right;"><span class="badge neutral">under-assigned</span></span>
+          </div>
+        </div>
+
+        <div class="detail">
+          <div class="specs">
+            <dl>
+              <dt>Bar height</dt><dd>8px</dd>
+              <dt>Fill (normal)</dt><dd>accent #a5a5b8</dd>
+              <dt>Fill (exceed)</dt><dd>gradient accent → amber</dd>
+              <dt>Fill (low)</dt><dd>accent @ 0.5 opacity</dd>
+              <dt>Threshold line</dt><dd>1px text-3 @ 0.5 opacity</dd>
+              <dt>Line overshoot</dt><dd>3px above/below bar</dd>
+              <dt>Status badge</dt><dd>neutral / amber / red</dd>
+            </dl>
+          </div>
+          <pre class="code"><span class="com">/* fill variants */</span>
+<span class="com">// normal load --></span>
+<span class="attr">background</span>: <span class="str">#a5a5b8</span>;
+
+<span class="com">// overloaded (past threshold) --></span>
+<span class="attr">background</span>: <span class="str">linear-gradient(to right,
+  #9b9ba8, #f59e0b)</span>;
+
+<span class="com">// under-assigned --></span>
+<span class="attr">background</span>: <span class="str">#a5a5b8</span>; 
+<span class="attr">opacity</span>: <span class="num-v">0.5</span>;
+
+<span class="com">/* threshold marker */</span>
+<span class="tag">.threshold</span> {
+  <span class="attr">position</span>: absolute;
+  <span class="attr">top</span>: -3px; <span class="attr">bottom</span>: -3px;
+  <span class="attr">width</span>: 1px;
+  <span class="attr">background</span>: <span class="str">#646471</span>;
+  <span class="attr">opacity</span>: 0.5;
+  <span class="attr">left</span>: <span class="num-v">55%</span>; <span class="com">// = threshold / max</span>
+}</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 09 RANGE / DISTRIBUTION -->
+    <!-- ============================================================ -->
+    <section class="section" id="range">
+      <h2>Range / distribution <span class="num">09</span></h2>
+
+      <div class="item">
+        <div class="item-head">
+          <div class="item-title">MTTR distribution with SLA line</div>
+          <div class="item-tag">duration scale</div>
+        </div>
+        <p class="item-desc">For time-based metrics against a hard SLA limit. Background is a dotted grid showing time scale. Segment shows actual value range. SLA line is red at the limit position.</p>
+
+        <div class="demo" style="padding-top: 30px;">
+          <div style="display: grid; grid-template-columns: 140px 1fr 60px; gap: 14px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border-soft); font-size: 12px;">
+            <span style="color: var(--text); font-weight: 500;">Jeffri W.</span>
+            <div style="position: relative; height: 18px; background: repeating-linear-gradient(to right, var(--surface-2) 0, var(--surface-2) 1px, transparent 1px, transparent 25%); border-left: 1px solid var(--border-soft); border-right: 1px solid var(--border-soft); display: flex; align-items: center;">
+              <span style="height: 6px; background: var(--accent); opacity: 0.6; border-radius: 1px; margin-left: 3%; width: 20%; display: block;"></span>
+              <span style="position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(239, 68, 68, 0.35); left: 60%;"></span>
+              <span style="position: absolute; top: -16px; left: 60%; transform: translateX(-50%); font-size: 9px; color: var(--red-strong); font-family: var(--font-mono); white-space: nowrap;">SLA 4h</span>
+            </div>
+            <span style="text-align: right; font-family: var(--font-mono); font-size: 12px; color: var(--text);">25m</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 140px 1fr 60px; gap: 14px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border-soft); font-size: 12px;">
+            <span style="color: var(--text); font-weight: 500;">Ramadhanty</span>
+            <div style="position: relative; height: 18px; background: repeating-linear-gradient(to right, var(--surface-2) 0, var(--surface-2) 1px, transparent 1px, transparent 25%); border-left: 1px solid var(--border-soft); border-right: 1px solid var(--border-soft); display: flex; align-items: center;">
+              <span style="height: 6px; background: var(--green); opacity: 0.7; border-radius: 1px; margin-left: 0.5%; width: 3%; display: block;"></span>
+              <span style="position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(239, 68, 68, 0.35); left: 60%;"></span>
+            </div>
+            <span style="text-align: right; font-family: var(--font-mono); font-size: 12px; color: var(--text);">1m</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 140px 1fr 60px; gap: 14px; align-items: center; padding: 10px 0; font-size: 12px;">
+            <span style="color: var(--text); font-weight: 500;">Muhammad A.</span>
+            <div style="position: relative; height: 18px; background: repeating-linear-gradient(to right, var(--surface-2) 0, var(--surface-2) 1px, transparent 1px, transparent 25%); border-left: 1px solid var(--border-soft); border-right: 1px solid var(--border-soft); display: flex; align-items: center;">
+              <span style="color: var(--text-3); font-family: var(--font-mono); font-size: 10.5px; padding-left: 8px;">no resolved tickets</span>
+              <span style="position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(239, 68, 68, 0.35); left: 60%;"></span>
+            </div>
+            <span style="text-align: right; font-family: var(--font-mono); font-size: 12px; color: var(--text-3);">—</span>
+          </div>
+        </div>
+
+        <div class="detail">
+          <div class="specs">
+            <dl>
+              <dt>Track height</dt><dd>18px</dd>
+              <dt>Segment height</dt><dd>6px centered</dd>
+              <dt>Grid</dt><dd>repeating-linear-gradient 25%</dd>
+              <dt>SLA line</dt><dd>1px, red @ 0.35 opacity</dd>
+              <dt>SLA label</dt><dd>9px mono red-strong, above</dd>
+              <dt>Empty state</dt><dd>text only, no empty bar</dd>
+              <dt>Numeric col</dt><dd>60px, right-aligned</dd>
+            </dl>
+          </div>
+          <pre class="code"><span class="com">/* dotted time grid */</span>
+<span class="tag">.track</span> {
+  <span class="attr">height</span>: 18px;
+  <span class="attr">background</span>: <span class="str">repeating-linear-gradient(
+    to right,
+    #1b1b21 0,
+    #1b1b21 1px,
+    transparent 1px,
+    transparent 25%
+  )</span>;
+  <span class="attr">border-left</span>: 1px solid <span class="str">#1d1d23</span>;
+  <span class="attr">border-right</span>: 1px solid <span class="str">#1d1d23</span>;
+}
+
+<span class="com">/* SLA line at threshold / max */</span>
+<span class="tag">.sla-line</span> {
+  <span class="attr">position</span>: absolute;
+  <span class="attr">top</span>: 0; <span class="attr">bottom</span>: 0;
+  <span class="attr">width</span>: 1px;
+  <span class="attr">background</span>: <span class="str">rgba(239,68,68,0.35)</span>;
+  <span class="attr">left</span>: <span class="num-v">60%</span>; <span class="com">// = SLA / scale_max</span>
+}
+<span class="tag">.sla-line::after</span> {
+  <span class="attr">content</span>: <span class="str">'SLA 4h'</span>;
+  <span class="attr">position</span>: absolute;
+  <span class="attr">top</span>: -16px;
+  <span class="attr">font</span>: <span class="num-v">500 9px</span> <span class="str">'IBM Plex Mono'</span>;
+  <span class="attr">color</span>: <span class="str">#f87171</span>;
+}</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 10 HEATMAP -->
+    <!-- ============================================================ -->
+    <section class="section" id="heatmap">
+      <h2>Heatmap <span class="num">10</span></h2>
+
+      <div class="item">
+        <div class="item-head">
+          <div class="item-title">Calendar / shift density</div>
+          <div class="item-tag">7–90 cells</div>
+        </div>
+        <p class="item-desc">For showing activity density over time (shift hours, login events, alert frequency). Each cell = one time bucket (day/hour/week). Density via opacity, not hue — keeps monochrome discipline. Only introduce color (amber/red) when crossing a threshold.</p>
+
+        <div class="demo">
+          <div style="display: grid; grid-template-columns: 80px 1fr; gap: 14px; align-items: center; margin-bottom: 8px;">
+            <span style="font-size: 10.5px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em;">Day</span>
+            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; font-size: 10.5px; color: var(--text-3); font-family: var(--font-mono);">
+              <span style="text-align: center;">Apr 15</span>
+              <span style="text-align: center;">16</span>
+              <span style="text-align: center;">17</span>
+              <span style="text-align: center;">18</span>
+              <span style="text-align: center;">19</span>
+              <span style="text-align: center;">20</span>
+              <span style="text-align: center; color: var(--text);">21</span>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 80px 1fr; gap: 14px; align-items: center; margin-bottom: 8px;">
+            <span style="font-size: 12px; color: var(--text);">Jeffri W.</span>
+            <div class="heat-demo">
+              <div class="heat-cell" style="background: var(--surface-3);"><div class="fill-v" style="width: 70%; background: var(--accent); opacity: 0.7;"></div></div>
+              <div class="heat-cell" style="background: var(--surface-3);"><div class="fill-v" style="width: 66%; background: var(--accent); opacity: 0.7;"></div></div>
+              <div class="heat-cell" style="background: var(--surface-3);"><div class="fill-v" style="width: 33%; background: var(--accent); opacity: 0.3;"></div></div>
+              <div class="heat-cell" style="background: var(--surface-3);"><div class="fill-v" style="width: 33%; background: var(--accent); opacity: 0.3;"></div></div>
+              <div class="heat-cell" style="background: var(--surface-3);"><div class="fill-v" style="width: 75%; background: var(--accent); opacity: 0.7;"></div></div>
+              <div class="heat-cell" style="background: var(--surface-3);"><div class="fill-v" style="width: 83%; background: var(--amber); opacity: 0.8;"></div></div>
+              <div class="heat-cell" style="background: var(--surface-3);"><div class="fill-v" style="width: 25%; background: var(--amber); opacity: 0.8;"></div></div>
+            </div>
+          </div>
+          <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-soft); display: flex; gap: 16px; font-size: 10.5px; color: var(--text-3); font-family: var(--font-mono);">
+            <span><span style="width: 6px; height: 6px; background: var(--accent); opacity: 0.6; display: inline-block; border-radius: 1.5px; margin-right: 6px; vertical-align: middle;"></span>hours logged</span>
+            <span><span style="width: 6px; height: 6px; background: var(--amber); opacity: 0.8; display: inline-block; border-radius: 1.5px; margin-right: 6px; vertical-align: middle;"></span>&gt;8h (fatigue flag)</span>
+          </div>
+        </div>
+
+        <div class="detail">
+          <div class="specs">
+            <dl>
+              <dt>Cell height</dt><dd>20–24px</dd>
+              <dt>Cell gap</dt><dd>6px</dd>
+              <dt>Cell radius</dt><dd>2px</dd>
+              <dt>Empty cell</dt><dd>surface-3 bg (visible track)</dd>
+              <dt>Fill colors</dt><dd>accent @ 0.3/0.5/0.7 steps</dd>
+              <dt>Alert fill</dt><dd>amber @ 0.8 when over threshold</dd>
+              <dt>Legend</dt><dd>always include — opacity needs decoding</dd>
+            </dl>
+          </div>
+          <pre class="code"><span class="com">/* 
+  Use horizontal FILL within cell, not full cell. 
+  Makes density more quantitative (% width = hours).
+*/</span>
+<span class="tag">.cell</span> {
+  <span class="attr">height</span>: 20px;
+  <span class="attr">background</span>: <span class="str">#23232b</span>;  <span class="com">/* empty track */</span>
+  <span class="attr">border-radius</span>: 2px;
+  <span class="attr">position</span>: relative;
+}
+<span class="tag">.cell .fill</span> {
+  <span class="attr">position</span>: absolute;
+  <span class="attr">left</span>: 0; <span class="attr">top</span>: 0; <span class="attr">bottom</span>: 0;
+  <span class="attr">background</span>: <span class="str">#a5a5b8</span>;
+  <span class="attr">opacity</span>: <span class="num-v">0.7</span>;    <span class="com">/* = hours / max_hours */</span>
+  <span class="attr">width</span>: <span class="num-v">70%</span>;
+  <span class="attr">border-radius</span>: 2px;
+}
+
+<span class="com">/* fatigue flag: swap to amber when &gt; 8h */</span>
+<span class="tag">.cell.flag .fill</span> {
+  <span class="attr">background</span>: <span class="str">#f59e0b</span>;
+  <span class="attr">opacity</span>: 0.8;
+}</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 11 TABLE -->
+    <!-- ============================================================ -->
+    <section class="section" id="table">
+      <h2>Data table <span class="num">11</span></h2>
+
+      <div class="item">
+        <div class="item-head">
+          <div class="item-title">Tabular data</div>
+          <div class="item-tag">&gt; 4 rows / &gt; 3 columns</div>
+        </div>
+        <p class="item-desc">When you have multiple dimensions or need exact values, table beats chart every time. Keep rows tight (8–10px vertical pad), numerics right-aligned in mono, labels left-aligned in sans.</p>
+
+        <div class="demo thin">
+          <table class="demo-table">
+            <thead>
+              <tr>
+                <th>Rule ID</th>
+                <th>Category</th>
+                <th class="n">Count</th>
+                <th class="n">TP rate</th>
+                <th class="n">MTTD</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-family: var(--font-mono); color: var(--text);">100021</td>
+                <td>Other <span style="color: var(--text-3); font-size: 10.5px; margin-left: 4px; font-family: var(--font-mono);">· generic</span></td>
+                <td class="n strong">49</td>
+                <td class="n"><span class="badge red">0%</span></td>
+                <td class="n">48m</td>
+              </tr>
+              <tr>
+                <td style="font-family: var(--font-mono); color: var(--text);">200134</td>
+                <td>SIEM Issue</td>
+                <td class="n strong">1</td>
+                <td class="n"><span class="badge green">100%</span></td>
+                <td class="n">12m</td>
+              </tr>
+              <tr>
+                <td style="color: var(--text-3); text-align: center; font-family: var(--font-mono); font-size: 11px;" colspan="5">+ 18 rules with &lt;1 hit</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="detail">
+          <div class="specs">
+            <dl>
+              <dt>Header</dt><dd>10.5px uppercase 0.06em, text-3</dd>
+              <dt>Header bg</dt><dd>surface-2 (slight lift)</dd>
+              <dt>Cell padding</dt><dd>9×14px</dd>
+              <dt>Row divider</dt><dd>1px border-soft</dd>
+              <dt>Row hover</dt><dd>surface-2 bg</dd>
+              <dt>Text cell</dt><dd>12px sans, text-2</dd>
+              <dt>Number cell</dt><dd>12px mono, text, right-align</dd>
+              <dt>Strong cell</dt><dd>text (full), weight 500</dd>
+              <dt>ID / hash</dt><dd>mono, text</dd>
+              <dt>Status badge</dt><dd>inline, mono 10.5px</dd>
+            </dl>
+          </div>
+          <pre class="code"><span class="com">/* keep headers uppercase + small */</span>
+<span class="tag">th</span> {
+  <span class="attr">font-size</span>: 10.5px;
+  <span class="attr">text-transform</span>: uppercase;
+  <span class="attr">letter-spacing</span>: 0.06em;
+  <span class="attr">color</span>: <span class="str">#646471</span>;
+  <span class="attr">font-weight</span>: 500;
+  <span class="attr">background</span>: <span class="str">#1b1b21</span>;
+  <span class="attr">padding</span>: 9px 14px;
+}
+<span class="tag">th.num, td.num</span> { <span class="attr">text-align</span>: right; }
+
+<span class="com">/* numbers always in mono */</span>
+<span class="tag">td.num</span> {
+  <span class="attr">font-family</span>: <span class="str">'IBM Plex Mono'</span>;
+  <span class="attr">color</span>: <span class="str">#e8e8ec</span>;
+}
+
+<span class="com">/* "and more" row pattern */</span>
+<span class="tag">&lt;tr&gt;&lt;td</span> <span class="attr">colspan</span>=<span class="str">"5"</span>
+    <span class="attr">class</span>=<span class="str">"more-row"</span><span class="tag">&gt;</span>
+  + 18 rules with &lt;1 hit
+<span class="tag">&lt;/td&gt;&lt;/tr&gt;</span></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 12 METADATA -->
+    <!-- ============================================================ -->
+    <section class="section" id="metadata">
+      <h2>Chart metadata <span class="num">12</span></h2>
+
+      <div class="item">
+        <p class="item-desc">Every chart needs a <strong style="color: var(--text);">metadata row</strong> above it answering: what am I looking at, and what's the summary?. This replaces Y-axis labels, chart titles-as-questions, and "hover to see more".</p>
+
+        <div class="demo">
+          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px;">
+            <span style="font-family: var(--font-mono); font-size: 20px; font-weight: 500; color: var(--text); letter-spacing: -0.02em;">627 <span style="color: var(--text-3); font-size: 12px;">total</span></span>
+            <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-3);">avg 44.8/day · peak 68 on Apr 15</span>
+          </div>
+          <div style="height: 60px; background: repeating-linear-gradient(to right, var(--surface-2) 0, var(--surface-2) 1px, transparent 1px, transparent 14.28%); border: 1px solid var(--border-soft); border-radius: 4px; position: relative;">
+            <svg viewBox="0 0 700 60" width="100%" height="60" preserveAspectRatio="none" style="display:block;">
+              <polyline points="0,40 50,38 100,35 150,36 200,32 250,34 300,30 350,35 400,38 450,30 500,25 550,20 600,35 650,40 700,45" fill="none" stroke="#e8e8ec" stroke-width="1.4"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="detail">
+          <div class="specs">
+            <dl>
+              <dt>Left side</dt><dd>total or primary stat, large mono</dd>
+              <dt>Right side</dt><dd>secondary context (avg, peak, trend)</dd>
+              <dt>Left size</dt><dd>20px mono weight 500</dd>
+              <dt>Right size</dt><dd>11px mono text-3</dd>
+              <dt>Divider</dt><dd>· (middle dot) between facts</dd>
+              <dt>Margin-bottom</dt><dd>10px before chart</dd>
+            </dl>
+          </div>
+          <pre class="code"><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="str">"chart-meta"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="str">"total"</span><span class="tag">&gt;</span>
+    627 <span class="tag">&lt;small&gt;</span>total<span class="tag">&lt;/small&gt;</span>
+  <span class="tag">&lt;/span&gt;</span>
+  <span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="str">"context"</span><span class="tag">&gt;</span>
+    avg 44.8/day · peak 68 on Apr 15
+  <span class="tag">&lt;/span&gt;</span>
+<span class="tag">&lt;/div&gt;</span>
+
+<span class="com">/* context facts — good candidates */</span>
+<span class="com">// "avg X/day · peak Y on DATE"</span>
+<span class="com">// "Z% above 7d avg · trending up"</span>
+<span class="com">// "last updated 23s ago · from SDP"</span>
+<span class="com">// "3 at-risk · SLA breach in 12m"</span></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 13 DELTAS -->
+    <!-- ============================================================ -->
+    <section class="section" id="deltas">
+      <h2>Delta indicators <span class="num">13</span></h2>
+
+      <div class="item">
+        <p class="item-desc">Numbers without context are decorative. <strong style="color: var(--text);">Every primary metric should have a delta.</strong> Format: <code style="background: var(--surface-3); padding: 1px 5px; border-radius: 3px; font-family: var(--font-mono); font-size: 11.5px;">[±value] · [window]</code>.</p>
+
+        <div class="demo">
+          <div class="delta-examples">
+            <div class="delta-ex"><span class="k">MTTD</span><span class="v up">−4m · 7d</span></div>
+            <div class="delta-ex"><span class="k">SLA</span><span class="v up">+0.2pp · 7d</span></div>
+            <div class="delta-ex"><span class="k">Open tickets</span><span class="v down">−2 · 24h</span></div>
+            <div class="delta-ex"><span class="k">False Positive</span><span class="v warn">+3pp · 7d</span></div>
+            <div class="delta-ex"><span class="k">Total Tickets</span><span class="v flat">+0 · 7d</span></div>
+          </div>
+        </div>
+
+        <div class="detail">
+          <div class="specs">
+            <dl>
+              <dt>Direction color</dt><dd>context-dependent, not literal</dd>
+              <dt>Good + trending up</dt><dd>green (e.g. SLA up)</dd>
+              <dt>Good + trending down</dt><dd>green (e.g. MTTD down)</dd>
+              <dt>Bad trend</dt><dd>red or amber</dd>
+              <dt>No change</dt><dd>text-3 (flat)</dd>
+              <dt>Unit</dt><dd>pp (percentage points), %, m, s, count</dd>
+              <dt>Window</dt><dd>always include: 24h, 7d, 30d</dd>
+              <dt>Size</dt><dd>10.5–11px mono</dd>
+            </dl>
+          </div>
+          <pre class="code"><span class="com">/* semantic color, not directional */</span>
+<span class="com">// MTTD going DOWN is GOOD → green
+//   &lt;span class="delta good"&gt;−4m · 7d&lt;/span&gt;
+// SLA going UP is GOOD → green
+//   &lt;span class="delta good"&gt;+0.2pp · 7d&lt;/span&gt;
+// FP going UP is BAD → amber/red
+//   &lt;span class="delta warn"&gt;+3pp · 7d&lt;/span&gt;</span>
+
+<span class="com">/* the sign (+/−) still matches reality,
+   but the COLOR is keyed to desirability */</span>
+
+<span class="tag">.delta.good</span> { <span class="attr">color</span>: <span class="str">#10b981</span>; }
+<span class="tag">.delta.warn</span> { <span class="attr">color</span>: <span class="str">#f59e0b</span>; }
+<span class="tag">.delta.bad</span>  { <span class="attr">color</span>: <span class="str">#f87171</span>; }
+<span class="tag">.delta.flat</span> { <span class="attr">color</span>: <span class="str">#646471</span>; }</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 14 BADGES -->
+    <!-- ============================================================ -->
+    <section class="section" id="badges">
+      <h2>Badges &amp; dots <span class="num">14</span></h2>
+
+      <div class="item">
+        <div class="item-head">
+          <div class="item-title">Status badges</div>
+        </div>
+        <p class="item-desc">For inline status within table cells or lists. Compact, mono font, monochrome dim backgrounds.</p>
+
+        <div class="demo thin">
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <span class="badge red">breach</span>
+            <span class="badge red">overdue</span>
+            <span class="badge red">0%</span>
+            <span class="badge amber">overloaded</span>
+            <span class="badge amber">at-risk</span>
+            <span class="badge amber">warning</span>
+            <span class="badge green">resolved</span>
+            <span class="badge green">100%</span>
+            <span class="badge green">on-target</span>
+            <span class="badge neutral">balanced</span>
+            <span class="badge neutral">pending</span>
+            <span class="badge neutral">under-assigned</span>
+          </div>
+        </div>
+
+        <div class="detail">
+          <div class="specs">
+            <dl>
+              <dt>Padding</dt><dd>1×6px</dd>
+              <dt>Font</dt><dd>10.5px mono 500</dd>
+              <dt>Radius</dt><dd>3px</dd>
+              <dt>Case</dt><dd>lowercase always</dd>
+              <dt>Red bg</dt><dd>rgba(239,68,68,0.12)</dd>
+              <dt>Amber bg</dt><dd>rgba(245,158,11,0.14)</dd>
+              <dt>Green bg</dt><dd>rgba(16,185,129,0.14)</dd>
+              <dt>Neutral bg</dt><dd>surface-3</dd>
+            </dl>
+          </div>
+          <pre class="code"><span class="tag">.badge</span> {
+  <span class="attr">display</span>: inline-flex;
+  <span class="attr">padding</span>: 1px 6px;
+  <span class="attr">font</span>: <span class="num-v">500 10.5px</span> 
+        <span class="str">'IBM Plex Mono'</span>;
+  <span class="attr">border-radius</span>: 3px;
+  <span class="attr">text-transform</span>: lowercase;
+}
+<span class="tag">.badge.red</span> { 
+  <span class="attr">color</span>: <span class="str">#f87171</span>;
+  <span class="attr">background</span>: <span class="str">rgba(239,68,68,0.12)</span>;
+}
+<span class="tag">.badge.amber</span> { 
+  <span class="attr">color</span>: <span class="str">#f59e0b</span>;
+  <span class="attr">background</span>: <span class="str">rgba(245,158,11,0.14)</span>;
+}
+<span class="tag">.badge.green</span> { 
+  <span class="attr">color</span>: <span class="str">#10b981</span>;
+  <span class="attr">background</span>: <span class="str">rgba(16,185,129,0.14)</span>;
+}
+<span class="tag">.badge.neutral</span> { 
+  <span class="attr">color</span>: <span class="str">#9b9ba8</span>;
+  <span class="attr">background</span>: <span class="str">#23232b</span>;
+}</pre>
+        </div>
+      </div>
+
+      <div class="item">
+        <div class="item-head">
+          <div class="item-title">Inline dots</div>
+        </div>
+        <p class="item-desc">Square-ish dots (1px radius) sebelum label untuk kategori atau severity. Gak circular — circular dots terlalu "UI kit".</p>
+        <div class="demo thin">
+          <div style="display: flex; gap: 24px;">
+            <span style="font-size: 12px; color: var(--text-2);"><span style="width: 6px; height: 6px; background: #ef4444; display: inline-block; border-radius: 1px; margin-right: 6px; vertical-align: middle;"></span>P1 Critical</span>
+            <span style="font-size: 12px; color: var(--text-2);"><span style="width: 6px; height: 6px; background: #f59e0b; display: inline-block; border-radius: 1px; margin-right: 6px; vertical-align: middle;"></span>P2 High</span>
+            <span style="font-size: 12px; color: var(--text-2);"><span style="width: 6px; height: 6px; background: #9b9ba8; display: inline-block; border-radius: 1px; margin-right: 6px; vertical-align: middle;"></span>P3 Medium</span>
+          </div>
+        </div>
+        <div class="detail">
+          <div class="specs">
+            <dl>
+              <dt>Size</dt><dd>6×6px</dd>
+              <dt>Radius</dt><dd>1px (square-ish)</dd>
+              <dt>Margin-right</dt><dd>6px</dd>
+              <dt>Alignment</dt><dd>vertical: middle</dd>
+            </dl>
+          </div>
+          <pre class="code"><span class="tag">.dot</span> {
+  <span class="attr">width</span>: 6px;
+  <span class="attr">height</span>: 6px;
+  <span class="attr">border-radius</span>: 1px;  <span class="com">/* not 50% */</span>
+  <span class="attr">display</span>: inline-block;
+  <span class="attr">margin-right</span>: 6px;
+  <span class="attr">vertical-align</span>: middle;
+}</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 15 EMPTY STATES -->
+    <!-- ============================================================ -->
+    <section class="section" id="empty">
+      <h2>Empty states <span class="num">15</span></h2>
+
+      <div class="item">
+        <p class="item-desc">No illustrations. No "nothing here yet" ghost figures. Just plain-text telling the user what's going on — and why. If there's a time-until, show it.</p>
+
+        <div class="demo">
+          <div style="padding: 18px; border: 1px dashed var(--border); border-radius: 4px; text-align: center; color: var(--text-3); font-size: 12px;">
+            <div style="font-family: var(--font-mono); color: var(--text-2); margin-bottom: 4px;">No resolved tickets yet this week</div>
+            <div style="font-size: 11px;">Weekly snapshots update every Monday 00:00 WIB.</div>
+          </div>
+        </div>
+
+        <div class="demo" style="margin-top: 10px;">
+          <div style="padding: 18px; text-align: center; font-size: 11.5px; color: var(--text-3); font-family: var(--font-mono);">
+            <span style="color: var(--text-2);">P4 Low</span> · <span>0 tickets</span> <span style="color: var(--text-4);">in last 24h</span>
+          </div>
+        </div>
+
+        <div class="detail">
+          <div class="specs">
+            <dl>
+              <dt>Illustration</dt><dd>never</dd>
+              <dt>Message</dt><dd>factual, not apologetic</dd>
+              <dt>Meta line</dt><dd>when will data appear?</dd>
+              <dt>Border</dt><dd>1px dashed subtle OR no border</dd>
+              <dt>Padding</dt><dd>18–24px</dd>
+              <dt>Color</dt><dd>text-3 (not main)</dd>
+            </dl>
+          </div>
+          <pre class="code"><span class="com">/* good empty message pattern */</span>
+<span class="com">// Factual statement of absence + when it'll change
+
+// ✓ "No resolved tickets yet this week.
+//    Weekly snapshots update every Monday 00:00 WIB."
+//
+// ✓ "No P1 alerts in last 24h."
+//
+// ✗ "Nothing here yet! 📭"
+// ✗ "Not enough trend data yet."
+// ✗ [generic ghost illustration]
+
+*/</span></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 16 DO / DON'T -->
+    <!-- ============================================================ -->
+    <section class="section" id="dodont">
+      <h2>Do &amp; Don't <span class="num">16</span></h2>
+
+      <div class="item">
+        <div class="compare">
+          <div class="compare-card bad">
+            <div class="compare-head bad">✕ Don't</div>
+            <div class="compare-body">
+              <ul>
+                <li>Use 6+ colors for 6 KPI cards</li>
+                <li>Put colored icon in rounded pastel bg in every tile</li>
+                <li>Draw donut charts for 2-value ratios</li>
+                <li>Use circular gauge for a single % number</li>
+                <li>Render a 2-bar chart when you have 2 data points</li>
+                <li>Use medal / trophy / tier gamification</li>
+                <li>Write "Not enough data" + ghost illustration</li>
+                <li>Use emojis as chart indicators</li>
+                <li>Show percentages without the fraction</li>
+                <li>Leave deltas off primary metrics</li>
+                <li>Use monospace font for section titles</li>
+                <li>Use border radius ≥ 10px on panels</li>
+                <li>Use generic Inter font everywhere</li>
+                <li>Use pill-shaped progress bars</li>
+                <li>Show drop-shadows on dark-theme cards</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="compare-card good">
+            <div class="compare-head good">✓ Do</div>
+            <div class="compare-body">
+              <ul>
+                <li>Dominant gray, 3 signal colors used sparingly</li>
+                <li>Plain text labels, numbers in mono, no decorative icons</li>
+                <li>Two paired progress bars for ratios</li>
+                <li>Single number + sparkline + delta instead</li>
+                <li>Print the actual numbers as a sentence when n ≤ 3</li>
+                <li>Flag workload imbalance; skip competitive rankings</li>
+                <li>Factual empty text + when data will update</li>
+                <li>Colored dots (1px radius) or badges only</li>
+                <li>Always pair % with "X / Y"</li>
+                <li>Every primary metric has "[±value] · [window]"</li>
+                <li>IBM Plex Sans for titles, Mono only for data</li>
+                <li>4–6px radius on panels, 1–3px on inline elements</li>
+                <li>IBM Plex Sans + Mono, or equally distinctive pair</li>
+                <li>Sharp 1px bar radius</li>
+                <li>Flat surfaces, 1px borders, no elevation shadows</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-3); font-family: var(--font-mono); display: flex; justify-content: space-between;">
+      <span>MTM SOC Analytics · Chart Guide v1</span>
+      <span>drop this guide into any SOC chart discussion, it'll hold up</span>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  // smooth scroll for sidebar links
+  document.querySelectorAll('.side a').forEach(a => {
+    a.addEventListener('click', e => {
+      const id = a.getAttribute('href');
+      if (id.startsWith('#')) {
+        e.preventDefault();
+        const el = document.querySelector(id);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+</script>
+</body>
+</html>

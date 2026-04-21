@@ -1,7 +1,5 @@
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { Card } from "./Card";
 import { ChartSkeleton } from "./Spinner";
-import { useTooltipStyle } from "../hooks/useChartColors";
 import type { ValidationBreakdown } from "../types";
 
 interface Props {
@@ -10,57 +8,54 @@ interface Props {
   bare?: boolean;
 }
 
-const COLORS: Record<string, string> = {
-  "True Positive": "#22c55e",
-  "False Positive": "#f59e0b",
-  "Not Specified": "#3f3f46",
-};
-
-function toChartData(data: ValidationBreakdown) {
-  const total = data.total || 1;
-  return [
-    { label: "True Positive", value: data.true_positive, pct: +(data.true_positive / total * 100).toFixed(1) },
-    { label: "False Positive", value: data.false_positive, pct: +(data.false_positive / total * 100).toFixed(1) },
-    { label: "Not Specified", value: data.not_specified, pct: +(data.not_specified / total * 100).toFixed(1) },
-  ].filter((d) => d.value > 0);
-}
-
 export function ValidationDonut({ data, loading, bare }: Props) {
-  const tooltipStyle = useTooltipStyle();
-  const chartData = data ? toChartData(data) : [];
-
   const inner = loading || !data ? (
     <ChartSkeleton />
-  ) : chartData.length === 0 ? (
-    <p className="text-sm py-8 text-center" style={{ color: "var(--theme-text-muted)" }}>No data available</p>
   ) : (
-    <div className="flex items-center gap-4 h-full">
-      <ResponsiveContainer width="55%" height="100%">
-        <PieChart>
-          <Pie data={chartData} dataKey="value" nameKey="label" cx="50%" cy="50%"
-            innerRadius={55} outerRadius={85} paddingAngle={2} strokeWidth={0}>
-            {chartData.map((entry) => (
-              <Cell key={entry.label} fill={COLORS[entry.label] ?? "#00b0ff"} />
-            ))}
-          </Pie>
-          <Tooltip
-            contentStyle={tooltipStyle}
-            formatter={(value: number, name: string) => [`${value.toLocaleString()} tickets`, name]}
-          />
-        </PieChart>
-      </ResponsiveContainer>
-      <div className="flex-1 space-y-2">
-        {chartData.map((item) => (
-          <div key={item.label} className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS[item.label] ?? "#00b0ff" }} />
-            <span className="text-xs flex-1 truncate" style={{ color: "var(--theme-text-muted)" }}>{item.label}</span>
-            <span className="text-xs font-mono" style={{ color: "var(--theme-text-secondary)" }}>{item.pct}%</span>
-          </div>
-        ))}
+    <div className="h-full flex flex-col justify-center space-y-5 py-2">
+      {/* True Positive */}
+      <div>
+        <div className="flex items-center gap-2 mb-1">
+          <span className="w-[6px] h-[6px] rounded-sm shrink-0" style={{ backgroundColor: "#10b981" }} />
+          <span className="text-xs" style={{ color: "var(--theme-text-secondary)" }}>True Positive</span>
+          <span className="ml-auto text-lg font-semibold font-mono tabular-nums" style={{ color: "#10b981" }}>
+            {data.total > 0 ? ((data.true_positive / data.total) * 100).toFixed(1) : "0.0"}%
+          </span>
+        </div>
+        <p className="text-[11px] font-mono pl-3.5" style={{ color: "var(--theme-text-muted)" }}>
+          {data.true_positive} / {data.total} tickets
+        </p>
       </div>
+
+      {/* False Positive */}
+      <div>
+        <div className="flex items-center gap-2 mb-1">
+          <span className="w-[6px] h-[6px] rounded-sm shrink-0" style={{ backgroundColor: "#9b9ba8" }} />
+          <span className="text-xs" style={{ color: "var(--theme-text-secondary)" }}>False Positive</span>
+          <span className="ml-auto text-lg font-semibold font-mono tabular-nums" style={{ color: "var(--theme-text-primary)" }}>
+            {data.total > 0 ? ((data.false_positive / data.total) * 100).toFixed(1) : "0.0"}%
+          </span>
+        </div>
+        <p className="text-[11px] font-mono pl-3.5" style={{ color: "var(--theme-text-muted)" }}>
+          {data.false_positive} / {data.total} tickets
+        </p>
+      </div>
+
+      {/* Not Specified */}
+      {data.not_specified > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="w-[6px] h-[6px] rounded-sm shrink-0" style={{ backgroundColor: "#3e3e48" }} />
+            <span className="text-xs" style={{ color: "var(--theme-text-muted)" }}>Not Specified</span>
+            <span className="ml-auto text-sm font-mono tabular-nums" style={{ color: "var(--theme-text-muted)" }}>
+              {data.total > 0 ? ((data.not_specified / data.total) * 100).toFixed(1) : "0.0"}%
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 
   if (bare) return <div className="h-full">{inner}</div>;
-  return <Card title="TP vs FP Ratio"><div style={{ height: 220 }}>{inner}</div></Card>;
+  return <Card title="Alert Quality"><div style={{ minHeight: 180 }}>{inner}</div></Card>;
 }
