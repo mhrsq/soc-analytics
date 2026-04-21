@@ -12,27 +12,27 @@ import {
 
 // ── Color Palette (cyberpunk) ──────────────────────────────────
 const PRIORITY_COLORS: Record<string, string> = {
-  "P1-Critical": "#FF073A",
-  "P1 - Critical": "#FF073A",
-  "P2-High": "#FF6B35",
-  "P2 - High": "#FF6B35",
-  "P3-Medium": "#FFD700",
-  "P3 - Medium": "#FFD700",
-  "P4-Low": "#00FF88",
-  "P4 - Low": "#00FF88",
+  "P1-Critical": "#ef4444",
+  "P1 - Critical": "#ef4444",
+  "P2-High": "#f59e0b",
+  "P2 - High": "#f59e0b",
+  "P3-Medium": "#9b9ba8",
+  "P3 - Medium": "#9b9ba8",
+  "P4-Low": "#646471",
+  "P4 - Low": "#646471",
 };
 
-const ARC_COLORS = ["#FF073A", "#FF6B35", "#00D4FF", "#FF00FF", "#FFD700", "#00FF88"];
+const ARC_COLORS = ["#ef4444", "#f59e0b", "#60a5fa", "#a78bfa", "#9b9ba8", "#646471"];
 
 const ICON_TYPES: Record<string, { icon: typeof Server; color: string }> = {
-  server: { icon: Server, color: "#00D4FF" },
-  firewall: { icon: Shield, color: "#FF6B35" },
-  endpoint: { icon: Monitor, color: "#00FF88" },
-  database: { icon: Database, color: "#FFD700" },
-  cloud: { icon: Cloud, color: "#FF00FF" },
-  siem: { icon: Wifi, color: "#FF073A" },
+  server: { icon: Server, color: "#60a5fa" },
+  firewall: { icon: Shield, color: "#f59e0b" },
+  endpoint: { icon: Monitor, color: "#10b981" },
+  database: { icon: Database, color: "#9b9ba8" },
+  cloud: { icon: Cloud, color: "#a78bfa" },
+  siem: { icon: Wifi, color: "#ef4444" },
   router: { icon: Server, color: "#8B5CF6" },
-  switch: { icon: Server, color: "#06B6D4" },
+  switch: { icon: Server, color: "#60a5fa" },
 };
 
 // ── Animated polyline with dashes ──────────────────────────────
@@ -87,12 +87,12 @@ function MapResizer() {
 // ── Replay ticket label (appearing/disappearing) ──────────────
 function ReplayLabel({ attack, visible }: { attack: AttackArc; visible: boolean }) {
   if (!visible || !attack.target_lat || !attack.target_lng) return null;
-  const color = PRIORITY_COLORS[attack.priority || ""] || "#00D4FF";
+  const color = PRIORITY_COLORS[attack.priority || ""] || "#9b9ba8";
   return (
     <CircleMarker center={[attack.target_lat, attack.target_lng]} radius={0} pathOptions={{ opacity: 0 }}>
       <Tooltip permanent direction="top" offset={[0, -10]} className="replay-tooltip">
         <div className="text-[10px] font-mono px-2 py-1 rounded shadow-lg"
-          style={{ background: "rgba(10,10,26,0.9)", border: `1px solid ${color}40`, color, maxWidth: 220, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          style={{ background: "rgba(10,10,12,0.92)", border: `1px solid ${color}40`, color, maxWidth: 220, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
           <span className="opacity-50">{attack.source_ip}</span>{" → "}
           <span className="font-semibold">{attack.target_asset || "Target"}</span>
           {attack.priority && <span className="ml-1 opacity-60">[{attack.priority}]</span>}
@@ -283,7 +283,7 @@ export function ThreatMapView() {
   }, [replayStart]);
 
   return (
-    <div className="relative w-full" style={{ height: "calc(100vh - 56px)", background: "#0a0a1a" }}>
+    <div className="relative w-full" style={{ height: "calc(100vh - 56px)", background: "#0a0a0c" }}>
       {/* Leaflet Map */}
       <MapContainer
         center={[-2, 118]}
@@ -292,7 +292,7 @@ export function ThreatMapView() {
         maxZoom={14}
         zoomControl={false}
         attributionControl={false}
-        style={{ width: "100%", height: "100%", background: "#0a0a1a" }}
+        style={{ width: "100%", height: "100%", background: "#0a0a0c" }}
       >
         <MapResizer />
         <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" subdomains="abcd" />
@@ -332,8 +332,8 @@ export function ThreatMapView() {
             <CircleMarker key={`cluster-${i}`} center={[c.lat, c.lng]}
               radius={Math.min(4 + c.count * 0.8, 18)}
               pathOptions={{
-                color: c.count > 10 ? "#FF073A" : c.count > 5 ? "#FF6B35" : "#FFD700",
-                fillColor: c.count > 10 ? "#FF073A" : c.count > 5 ? "#FF6B35" : "#FFD700",
+                color: c.count > 10 ? "#ef4444" : c.count > 5 ? "#f59e0b" : "#9b9ba8",
+                fillColor: c.count > 10 ? "#ef4444" : c.count > 5 ? "#f59e0b" : "#9b9ba8",
                 fillOpacity: 0.3, weight: 1,
               }}>
               <Tooltip><span className="text-xs">{c.count} attacks from this area</span></Tooltip>
@@ -352,14 +352,14 @@ export function ThreatMapView() {
         style={{ background: "linear-gradient(180deg, rgba(10,10,26,0.95) 0%, rgba(10,10,26,0) 100%)" }}>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <Crosshair className="w-5 h-5 text-cyan-400" />
+            <Crosshair className="w-5 h-5 text-blue-400" />
             <h2 className="text-base font-semibold tracking-tight" style={{ color: "var(--theme-text-primary)" }}>Threat Map</h2>
           </div>
           <div className="flex items-center gap-3 ml-4 text-xs">
             <span className="px-2 py-0.5 rounded bg-red-500/20 text-red-400 font-mono">{stats.totalAttacks} attacks</span>
-            {stats.countries > 0 && <span className="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 font-mono">{stats.countries} countries</span>}
+            {stats.countries > 0 && <span className="px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 font-mono">{stats.countries} countries</span>}
             {stats.privateCount > 0 && <span className="px-2 py-0.5 rounded bg-violet-500/20 text-violet-400 font-mono">{stats.privateCount} internal</span>}
-            {stats.targetAssets > 0 && <span className="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 font-mono">{stats.targetAssets} assets</span>}
+            {stats.targetAssets > 0 && <span className="px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 font-mono">{stats.targetAssets} assets</span>}
             {stats.p1Count > 0 && (
               <span className="px-2 py-0.5 rounded bg-red-600/30 text-red-300 font-mono animate-pulse">{stats.p1Count} critical</span>
             )}
@@ -381,11 +381,11 @@ export function ThreatMapView() {
             </select>
             <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none" style={{ color: "var(--theme-text-muted)" }} />
           </div>
-          <button onClick={loadData} className="p-1.5 rounded bg-white/5 border border-white/10 text-white/60 hover:text-cyan-400 hover:border-cyan-500/30 transition-colors" title="Refresh">
+          <button onClick={loadData} className="p-1.5 rounded bg-white/5 border border-white/10 text-white/60 hover:text-blue-400 hover:border-blue-500/30 transition-colors" title="Refresh">
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           </button>
           <button onClick={() => setReplayOpen(!replayOpen)}
-            className={`p-1.5 rounded border transition-colors ${replayOpen ? "bg-cyan-500/20 border-cyan-500/30 text-cyan-400" : "bg-white/5 border-white/10 text-white/60 hover:text-cyan-400"}`}
+            className={`p-1.5 rounded border transition-colors ${replayOpen ? "bg-blue-500/20 border-blue-500/30 text-blue-400" : "bg-white/5 border-white/10 text-white/60 hover:text-blue-400"}`}
             title="Event Replay">
             <Clock className="w-4 h-4" />
           </button>
@@ -397,22 +397,22 @@ export function ThreatMapView() {
         <div className="absolute bottom-0 left-0 right-0 z-[1000] px-4 py-3"
           style={{ background: "linear-gradient(0deg, rgba(10,10,26,0.95) 0%, rgba(10,10,26,0) 100%)" }}>
           <div className="max-w-4xl mx-auto rounded-lg p-3"
-            style={{ background: "rgba(10,10,26,0.9)", border: "1px solid rgba(0,212,255,0.15)" }}>
+            style={{ background: "rgba(10,10,12,0.92)", border: "1px solid rgba(0,212,255,0.15)" }}>
             <div className="flex items-center gap-3 flex-wrap">
               <div className="flex items-center gap-2">
-                <label className="text-[10px] uppercase tracking-wider text-cyan-500/60">From</label>
+                <label className="text-[10px] uppercase tracking-wider text-blue-400/60">From</label>
                 <input type="datetime-local" value={replayStart} onChange={(e) => setReplayStart(e.target.value)}
-                  className="px-2 py-1 rounded text-xs bg-white/5 border border-white/10 text-white/80 focus:outline-none focus:border-cyan-500/50"
+                  className="px-2 py-1 rounded text-xs bg-white/5 border border-white/10 text-white/80 focus:outline-none focus:border-blue-500/50"
                   style={{ colorScheme: "dark" }} />
               </div>
               <div className="flex items-center gap-2">
-                <label className="text-[10px] uppercase tracking-wider text-cyan-500/60">To</label>
+                <label className="text-[10px] uppercase tracking-wider text-blue-400/60">To</label>
                 <input type="datetime-local" value={replayEnd} onChange={(e) => setReplayEnd(e.target.value)}
-                  className="px-2 py-1 rounded text-xs bg-white/5 border border-white/10 text-white/80 focus:outline-none focus:border-cyan-500/50"
+                  className="px-2 py-1 rounded text-xs bg-white/5 border border-white/10 text-white/80 focus:outline-none focus:border-blue-500/50"
                   style={{ colorScheme: "dark" }} />
               </div>
               <button onClick={loadReplayData}
-                className="px-3 py-1 rounded text-xs font-medium bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/30 transition-colors">
+                className="px-3 py-1 rounded text-xs font-medium bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30 transition-colors">
                 Load
               </button>
               <div className="w-px h-6 bg-white/10" />
@@ -422,12 +422,12 @@ export function ThreatMapView() {
                   <SkipBack className="w-4 h-4" />
                 </button>
                 {replayPlaying ? (
-                  <button onClick={() => setReplayPlaying(false)} className="p-1.5 rounded bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-colors" title="Pause">
+                  <button onClick={() => setReplayPlaying(false)} className="p-1.5 rounded bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors" title="Pause">
                     <Pause className="w-4 h-4" />
                   </button>
                 ) : (
                   <button onClick={() => { if (replayIndex >= replayData.length) setReplayIndex(0); setReplayPlaying(true); }}
-                    disabled={replayData.length === 0} className="p-1.5 rounded bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-colors disabled:opacity-30" title="Play">
+                    disabled={replayData.length === 0} className="p-1.5 rounded bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors disabled:opacity-30" title="Play">
                     <Play className="w-4 h-4" />
                   </button>
                 )}
@@ -455,14 +455,14 @@ export function ThreatMapView() {
               <div className="flex-1 flex items-center gap-2 min-w-[120px]">
                 <input type="range" min={0} max={replayData.length} value={replayIndex}
                   onChange={(e) => { setReplayPlaying(false); setReplayIndex(Number(e.target.value)); }}
-                  className="flex-1 h-1 accent-cyan-400" />
+                  className="flex-1 h-1 accent-blue-400" />
                 <span className="text-[10px] font-mono text-white/50 whitespace-nowrap">{replayIndex}/{replayData.length}</span>
               </div>
             </div>
             {replayCurrentTime && (
               <div className="mt-2 flex items-center gap-2">
-                <Clock className="w-3 h-3 text-cyan-400/60" />
-                <span className="text-xs font-mono text-cyan-400/80">{new Date(replayCurrentTime).toLocaleString()}</span>
+                <Clock className="w-3 h-3 text-blue-400/60" />
+                <span className="text-xs font-mono text-blue-400/80">{new Date(replayCurrentTime).toLocaleString()}</span>
                 {replayIndex > 0 && replayIndex <= replayData.length && (
                   <span className="text-[10px] text-white/40 ml-2">
                     {replayData[Math.min(replayIndex - 1, replayData.length - 1)]?.source_ip} → {replayData[Math.min(replayIndex - 1, replayData.length - 1)]?.target_asset || "Target"}
@@ -477,7 +477,7 @@ export function ThreatMapView() {
       {/* Bottom-left: legend */}
       <div className="absolute left-4 z-[1000] rounded-lg p-3 space-y-2"
         style={{ background: "rgba(10,10,26,0.85)", border: "1px solid rgba(0,212,255,0.15)", bottom: replayOpen ? 90 : 16 }}>
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-cyan-500/70">Priority</p>
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-blue-400/70">Priority</p>
         {Object.entries(PRIORITY_COLORS).filter((_, i) => i % 2 === 0).map(([k, c]) => (
           <div key={k} className="flex items-center gap-2">
             <span className="w-3 h-0.5 rounded-full" style={{ background: c }} />
@@ -486,11 +486,11 @@ export function ThreatMapView() {
         ))}
         <div className="border-t border-white/5 pt-1.5 mt-1.5">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-cyan-400" />
+            <span className="w-2 h-2 rounded-full bg-blue-400" />
             <span className="text-[10px] text-white/60">Asset</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-fuchsia-400" />
+            <span className="w-2 h-2 rounded-full bg-violet-400" />
             <span className="text-[10px] text-white/60">SIEM</span>
           </div>
           <div className="flex items-center gap-2">

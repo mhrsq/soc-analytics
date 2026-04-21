@@ -25,14 +25,14 @@ import {
 
 // ── Node type config ───────────────────────────────────────────
 const NODE_TYPE_CONFIG: Record<string, { label: string; color: string; icon: typeof Server }> = {
-  server: { label: "Server", color: "#00D4FF", icon: Server },
-  firewall: { label: "Firewall", color: "#FF6B35", icon: Shield },
-  endpoint: { label: "Endpoint", color: "#00FF88", icon: Monitor },
-  database: { label: "Database", color: "#FFD700", icon: Database },
-  cloud: { label: "Cloud", color: "#FF00FF", icon: Cloud },
-  siem: { label: "SIEM", color: "#FF073A", icon: Radio },
+  server: { label: "Server", color: "#60a5fa", icon: Server },
+  firewall: { label: "Firewall", color: "#f59e0b", icon: Shield },
+  endpoint: { label: "Endpoint", color: "#10b981", icon: Monitor },
+  database: { label: "Database", color: "#9b9ba8", icon: Database },
+  cloud: { label: "Cloud", color: "#a78bfa", icon: Cloud },
+  siem: { label: "SIEM", color: "#ef4444", icon: Radio },
   router: { label: "Router", color: "#8B5CF6", icon: Router },
-  switch: { label: "Switch", color: "#06B6D4", icon: Cpu },
+  switch: { label: "Switch", color: "#60a5fa", icon: Cpu },
 };
 
 const LINK_TYPES = ["fiber", "vpn", "internet", "lan", "wan", "mpls"];
@@ -44,10 +44,10 @@ function TopologyNodeComponent({ data }: { data: { label: string; nodeType: stri
   return (
     <div
       className={`relative px-3 py-2 rounded-lg border-2 min-w-[100px] text-center transition-all ${
-        data.selected ? "ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#0a0a1a]" : ""
+        data.selected ? "ring-2 ring-blue-400 ring-offset-2 ring-offset-[#0a0a0c]" : ""
       }`}
       style={{
-        background: "rgba(10,10,26,0.9)",
+        background: "rgba(10,10,12,0.92)",
         borderColor: config.color + "80",
         boxShadow: `0 0 12px ${config.color}30`,
       }}
@@ -150,11 +150,11 @@ export function TopologyEditor() {
           type: "default",
           animated: l.link_type === "vpn" || l.link_type === "internet",
           style: {
-            stroke: l.link_type === "fiber" ? "#00D4FF" : l.link_type === "vpn" ? "#FF00FF" : l.link_type === "internet" ? "#FFD700" : "#666",
+            stroke: l.link_type === "fiber" ? "#60a5fa" : l.link_type === "vpn" ? "#a78bfa" : l.link_type === "internet" ? "#9b9ba8" : "#666",
             strokeWidth: l.bandwidth ? Math.min(1 + (parseInt(l.bandwidth) || 0) / 500, 4) : 2,
           },
           labelStyle: { fill: "#aaa", fontSize: 10 },
-          labelBgStyle: { fill: "#0a0a1a", fillOpacity: 0.8 },
+          labelBgStyle: { fill: "#0a0a0c", fillOpacity: 0.8 },
         }))
       );
     } catch (e) {
@@ -209,7 +209,7 @@ export function TopologyEditor() {
               style: { stroke: "#666", strokeWidth: 2 },
               label: "lan",
               labelStyle: { fill: "#aaa", fontSize: 10 },
-              labelBgStyle: { fill: "#0a0a1a", fillOpacity: 0.8 },
+              labelBgStyle: { fill: "#0a0a0c", fillOpacity: 0.8 },
             },
             eds
           )
@@ -389,7 +389,7 @@ export function TopologyEditor() {
                 label: updated.label || updated.link_type,
                 animated: updated.link_type === "vpn" || updated.link_type === "internet",
                 style: {
-                  stroke: updated.link_type === "fiber" ? "#00D4FF" : updated.link_type === "vpn" ? "#FF00FF" : updated.link_type === "internet" ? "#FFD700" : "#666",
+                  stroke: updated.link_type === "fiber" ? "#60a5fa" : updated.link_type === "vpn" ? "#a78bfa" : updated.link_type === "internet" ? "#9b9ba8" : "#666",
                   strokeWidth: updated.bandwidth ? Math.min(1 + (parseInt(updated.bandwidth) || 0) / 500, 4) : 2,
                 },
               }
@@ -422,7 +422,7 @@ export function TopologyEditor() {
   const chevronCls = "absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 pointer-events-none" as const;
 
   return (
-    <div className="relative w-full" style={{ height: "calc(100vh - 56px)", background: "#0a0a1a" }}>
+    <div className="relative w-full" style={{ height: "calc(100vh - 56px)", background: "#0a0a0c" }}>
       {/* ReactFlow Canvas */}
       <ReactFlow
         nodes={nodes}
@@ -435,24 +435,24 @@ export function TopologyEditor() {
         nodeTypes={nodeTypes}
         fitView
         proOptions={{ hideAttribution: true }}
-        style={{ background: "#0a0a1a" }}
+        style={{ background: "#0a0a0c" }}
         defaultEdgeOptions={{
           type: "default",
           style: { stroke: "#666", strokeWidth: 2 },
           labelStyle: { fill: "#aaa", fontSize: 10 },
-          labelBgStyle: { fill: "#0a0a1a", fillOpacity: 0.8 },
+          labelBgStyle: { fill: "#0a0a0c", fillOpacity: 0.8 },
         }}
       >
         <Background color="#1a1a2e" gap={20} size={1} />
         <Controls
           position="bottom-right"
-          style={{ background: "#0a0a1a", border: "1px solid rgba(0,212,255,0.15)", borderRadius: 8 }}
+          style={{ background: "#0a0a0c", border: "1px solid rgba(38,38,46,0.8)", borderRadius: 8 }}
         />
         <MiniMap
-          style={{ background: "#0a0a1a", border: "1px solid rgba(0,212,255,0.15)", borderRadius: 8 }}
+          style={{ background: "#0a0a0c", border: "1px solid rgba(38,38,46,0.8)", borderRadius: 8 }}
           nodeColor={(n) => {
             const nodeType = n.data?.nodeType || "server";
-            return NODE_TYPE_CONFIG[nodeType]?.color || "#00D4FF";
+            return NODE_TYPE_CONFIG[nodeType]?.color || "#60a5fa";
           }}
           maskColor="rgba(10,10,26,0.8)"
         />
@@ -463,7 +463,7 @@ export function TopologyEditor() {
         style={{ background: "linear-gradient(180deg, rgba(10,10,26,0.95) 0%, rgba(10,10,26,0) 100%)" }}>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <Globe className="w-5 h-5 text-cyan-400" />
+            <Globe className="w-5 h-5 text-blue-400" />
             <h2 className="text-base font-semibold tracking-tight" style={{ color: "var(--theme-text-primary)" }}>Topology Editor</h2>
           </div>
           <span className="text-xs text-white/40 font-mono">{topoNodes.length} nodes · {topoLinks.length} links</span>
@@ -472,13 +472,13 @@ export function TopologyEditor() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => { setAddMode(true); setPanelOpen(true); setSelectedNode(null); setSelectedEdge(null); setNodeForm({ label: "", hostname: "", customer: "", node_type: "server", lat: "", lng: "" }); }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/30 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30 transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />
             Add Node
           </button>
           <button onClick={savePositions}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium bg-white/5 border border-white/10 text-white/60 hover:text-cyan-400 hover:border-cyan-500/30 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium bg-white/5 border border-white/10 text-white/60 hover:text-blue-400 hover:border-blue-500/30 transition-colors"
             title="Save positions">
             <Save className="w-3.5 h-3.5" />
           </button>
@@ -487,8 +487,8 @@ export function TopologyEditor() {
 
       {/* Node type palette (left side) */}
       <div className="absolute top-16 left-4 z-[1000] rounded-lg p-2 space-y-1"
-        style={{ background: "rgba(10,10,26,0.85)", border: "1px solid rgba(0,212,255,0.15)" }}>
-        <p className="text-[9px] font-semibold uppercase tracking-widest text-cyan-500/60 px-1 pb-1">Node Types</p>
+        style={{ background: "rgba(10,10,26,0.85)", border: "1px solid rgba(38,38,46,0.8)" }}>
+        <p className="text-[9px] font-semibold uppercase tracking-widest text-blue-400/60 px-1 pb-1">Node Types</p>
         {Object.entries(NODE_TYPE_CONFIG).map(([type, config]) => {
           const IconComp = config.icon;
           return (
@@ -514,7 +514,7 @@ export function TopologyEditor() {
       {/* Right panel (node/link detail) */}
       {panelOpen && (
         <div className="absolute top-0 right-0 bottom-0 z-[1100] w-72 overflow-y-auto"
-          style={{ background: "rgba(10,10,26,0.95)", borderLeft: "1px solid rgba(0,212,255,0.15)" }}>
+          style={{ background: "rgba(10,10,26,0.95)", borderLeft: "1px solid rgba(38,38,46,0.8)" }}>
 
           <div className="flex items-center justify-between p-3 border-b border-white/5">
             <h3 className="text-sm font-semibold text-white">
@@ -530,11 +530,11 @@ export function TopologyEditor() {
             {(addMode || selectedNode) && (
               <>
                 <div>
-                  <label className="text-[10px] uppercase tracking-wider text-cyan-500/60 block mb-1">Label *</label>
+                  <label className="text-[10px] uppercase tracking-wider text-blue-400/60 block mb-1">Label *</label>
                   <input value={nodeForm.label} onChange={(e) => setNodeForm({ ...nodeForm, label: e.target.value })} placeholder="e.g. Web Server 1" className={inputCls} />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase tracking-wider text-cyan-500/60 block mb-1">Type</label>
+                  <label className="text-[10px] uppercase tracking-wider text-blue-400/60 block mb-1">Type</label>
                   <div className="relative">
                     <select value={nodeForm.node_type} onChange={(e) => setNodeForm({ ...nodeForm, node_type: e.target.value })} className={selectCls}>
                       {Object.entries(NODE_TYPE_CONFIG).map(([k, v]) => (
@@ -545,7 +545,7 @@ export function TopologyEditor() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase tracking-wider text-cyan-500/60 block mb-1">Hostname / Asset</label>
+                  <label className="text-[10px] uppercase tracking-wider text-blue-400/60 block mb-1">Hostname / Asset</label>
                   <div className="relative">
                     <select
                       value={nodeForm.hostname}
@@ -563,7 +563,7 @@ export function TopologyEditor() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase tracking-wider text-cyan-500/60 block mb-1">Customer</label>
+                  <label className="text-[10px] uppercase tracking-wider text-blue-400/60 block mb-1">Customer</label>
                   <div className="relative">
                     <select value={nodeForm.customer} onChange={(e) => setNodeForm({ ...nodeForm, customer: e.target.value })} className={selectCls}>
                       <option value="">None</option>
@@ -574,11 +574,11 @@ export function TopologyEditor() {
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-[10px] uppercase tracking-wider text-cyan-500/60 block mb-1">Latitude</label>
+                    <label className="text-[10px] uppercase tracking-wider text-blue-400/60 block mb-1">Latitude</label>
                     <input value={nodeForm.lat} onChange={(e) => setNodeForm({ ...nodeForm, lat: e.target.value })} placeholder="Lat" type="number" step="any" className={inputCls} />
                   </div>
                   <div>
-                    <label className="text-[10px] uppercase tracking-wider text-cyan-500/60 block mb-1">Longitude</label>
+                    <label className="text-[10px] uppercase tracking-wider text-blue-400/60 block mb-1">Longitude</label>
                     <input value={nodeForm.lng} onChange={(e) => setNodeForm({ ...nodeForm, lng: e.target.value })} placeholder="Lng" type="number" step="any" className={inputCls} />
                   </div>
                 </div>
@@ -587,13 +587,13 @@ export function TopologyEditor() {
                 <div className="flex gap-2 pt-2">
                   {addMode ? (
                     <button onClick={handleAddNode} disabled={saving || !nodeForm.label}
-                      className="flex-1 py-1.5 rounded text-xs font-medium bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-colors disabled:opacity-40">
+                      className="flex-1 py-1.5 rounded text-xs font-medium bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors disabled:opacity-40">
                       {saving ? "Saving..." : "Create Node"}
                     </button>
                   ) : (
                     <>
                       <button onClick={handleUpdateNode} disabled={saving}
-                        className="flex-1 py-1.5 rounded text-xs font-medium bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-colors disabled:opacity-40">
+                        className="flex-1 py-1.5 rounded text-xs font-medium bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors disabled:opacity-40">
                         {saving ? "Saving..." : "Update"}
                       </button>
                       <button onClick={handleDeleteNode}
@@ -610,7 +610,7 @@ export function TopologyEditor() {
             {selectedEdge && !selectedNode && !addMode && (
               <>
                 <div>
-                  <label className="text-[10px] uppercase tracking-wider text-cyan-500/60 block mb-1">Link Type</label>
+                  <label className="text-[10px] uppercase tracking-wider text-blue-400/60 block mb-1">Link Type</label>
                   <div className="relative">
                     <select value={linkForm.link_type} onChange={(e) => setLinkForm({ ...linkForm, link_type: e.target.value })} className={selectCls}>
                       {LINK_TYPES.map((t) => <option key={t} value={t}>{t.toUpperCase()}</option>)}
@@ -619,16 +619,16 @@ export function TopologyEditor() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase tracking-wider text-cyan-500/60 block mb-1">Label</label>
+                  <label className="text-[10px] uppercase tracking-wider text-blue-400/60 block mb-1">Label</label>
                   <input value={linkForm.label} onChange={(e) => setLinkForm({ ...linkForm, label: e.target.value })} placeholder="Optional label" className={inputCls} />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase tracking-wider text-cyan-500/60 block mb-1">Bandwidth (Mbps)</label>
+                  <label className="text-[10px] uppercase tracking-wider text-blue-400/60 block mb-1">Bandwidth (Mbps)</label>
                   <input value={linkForm.bandwidth} onChange={(e) => setLinkForm({ ...linkForm, bandwidth: e.target.value })} placeholder="e.g. 1000" type="number" className={inputCls} />
                 </div>
                 <div className="flex gap-2 pt-2">
                   <button onClick={handleUpdateLink} disabled={saving}
-                    className="flex-1 py-1.5 rounded text-xs font-medium bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-colors disabled:opacity-40">
+                    className="flex-1 py-1.5 rounded text-xs font-medium bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors disabled:opacity-40">
                     {saving ? "Saving..." : "Update"}
                   </button>
                   <button onClick={handleDeleteLink}
@@ -646,10 +646,10 @@ export function TopologyEditor() {
       {topoNodes.length === 0 && (
         <div className="absolute inset-0 z-[500] flex items-center justify-center pointer-events-none">
           <div className="text-center p-6 rounded-xl" style={{ background: "rgba(10,10,26,0.8)", border: "1px solid rgba(0,212,255,0.1)" }}>
-            <Globe className="w-10 h-10 text-cyan-500/30 mx-auto mb-3" />
+            <Globe className="w-10 h-10 text-blue-400/30 mx-auto mb-3" />
             <p className="text-sm text-white/60 mb-1">No topology nodes yet</p>
             <p className="text-xs text-white/30 max-w-xs">
-              Click <strong className="text-cyan-400">"Add Node"</strong> or pick a node type from the left palette to start building your network topology.
+              Click <strong className="text-blue-400">"Add Node"</strong> or pick a node type from the left palette to start building your network topology.
               Connect nodes by dragging from one handle to another.
             </p>
           </div>

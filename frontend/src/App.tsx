@@ -322,9 +322,8 @@ function AppShell() {
             </div>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2">
-            <span className="hidden sm:inline"><LiveClock /></span>
+            <span className="hidden sm:inline text-[11px] font-mono tabular-nums" style={{ color: "var(--theme-text-muted)" }}><LiveClock /></span>
             <div className="h-4 w-px hidden sm:block" style={{ backgroundColor: "var(--theme-surface-border)" }} />
-            <ConnectionStatus />
             <button
               onClick={() => setSyncOpen(true)}
               className="p-1.5 rounded transition-colors hover:bg-white/[0.05]"
