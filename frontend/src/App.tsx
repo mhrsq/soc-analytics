@@ -390,7 +390,7 @@ function AppShell() {
       <SyncStatusPanel open={syncOpen} onClose={() => setSyncOpen(false)} />
 
       {/* AI Chat Widget — floating FAB */}
-      <AIChatWidget />
+      <AIChatWidget activePage={page} />
     </div>
   );
 }

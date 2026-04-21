@@ -97,6 +97,10 @@ async def send_message(
     # Build data context string
     data_context = _build_data_context(summary, top_alerts, start_date, end_date, customer)
 
+    # Page context
+    active_page = filters.get("active_page", "dashboard")
+    page_context = filters.get("page_context", "")
+
     # Load conversation history
     history_result = await db.execute(
         select(ChatMessage)
@@ -107,7 +111,17 @@ async def send_message(
     history = list(reversed(history_result.scalars().all()))
 
     # Build messages array for LLM
-    system_prompt = AIService.SYSTEM_PROMPT + f"\n\n--- CURRENT SOC DATA ---\n{data_context}"
+    system_prompt = AIService.SYSTEM_PROMPT + f"""
+
+--- CURRENT CONTEXT ---
+Active page: {active_page}
+{page_context}
+Dashboard filters: start={start_date}, end={end_date}, customer={customer or 'all'}
+
+--- CURRENT SOC DATA ---
+{data_context}
+
+Kalau user bertanya tentang halaman/menu yang sedang dibuka, jelaskan fungsi dan cara penggunaannya."""
 
     messages = [{"role": "system", "content": system_prompt}]
     for msg in history:
