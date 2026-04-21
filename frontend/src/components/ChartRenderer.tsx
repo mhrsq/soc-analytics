@@ -7,7 +7,7 @@ import {
 } from "recharts";
 import type { ChartType } from "../types";
 
-const COLORS = ["#00b0ff", "#1de9b6", "#ff1744", "#ff9100", "#ffd600", "#d500f9", "#00e676", "#7c4dff"];
+const COLORS = ["#60a5fa", "#10b981", "#ef4444", "#f59e0b", "#9b9ba8", "#a78bfa", "#646471", "#3e3e48"];
 
 function useChartColors() {
   return useMemo(() => {
@@ -257,6 +257,37 @@ export function ChartRenderer({ chartType, data, height = "100%", onClick }: Pro
             </Bar>
           </BarChart>
         </ResponsiveContainer>
+      );
+    }
+
+    case "text-stats": {
+      // Text-based stats display — shows each data row as label + value
+      const items = (data as Record<string, unknown>[]).slice(0, 10);
+      return (
+        <div className="h-full overflow-y-auto space-y-3 py-2 px-1">
+          {items.map((item, i) => {
+            const label = String(item[categoryKey] ?? `Item ${i + 1}`);
+            const val = valueKeys[0] ? Number(item[valueKeys[0]] ?? 0) : 0;
+            const total = (data as Record<string, unknown>[]).reduce((s, d) => s + Number(d[valueKeys[0]] ?? 0), 0) || 1;
+            const pctVal = ((val / total) * 100).toFixed(1);
+            return (
+              <div key={i}>
+                <div className="flex items-center justify-between mb-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="w-[6px] h-[6px] rounded-sm shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                    <span className="text-xs" style={{ color: "var(--theme-text-secondary)" }}>{label}</span>
+                  </div>
+                  <span className="text-base font-semibold font-mono tabular-nums" style={{ color: "var(--theme-text-primary)" }}>
+                    {pctVal}%
+                  </span>
+                </div>
+                <p className="text-[11px] font-mono pl-3.5" style={{ color: "var(--theme-text-muted)" }}>
+                  {val.toLocaleString()} {valueKeys[0] ?? ""}
+                </p>
+              </div>
+            );
+          })}
+        </div>
       );
     }
 
