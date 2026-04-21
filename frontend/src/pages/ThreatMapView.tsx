@@ -353,7 +353,7 @@ export function ThreatMapView() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <Crosshair className="w-5 h-5 text-cyan-400" />
-            <h2 className="text-base font-bold text-white tracking-wide">THREAT MAP</h2>
+            <h2 className="text-base font-semibold tracking-tight" style={{ color: "var(--theme-text-primary)" }}>Threat Map</h2>
           </div>
           <div className="flex items-center gap-3 ml-4 text-xs">
             <span className="px-2 py-0.5 rounded bg-red-500/20 text-red-400 font-mono">{stats.totalAttacks} attacks</span>

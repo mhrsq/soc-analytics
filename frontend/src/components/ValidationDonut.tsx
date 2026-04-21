@@ -11,9 +11,9 @@ interface Props {
 }
 
 const COLORS: Record<string, string> = {
-  "True Positive": "#00e676",
-  "False Positive": "#ff9100",
-  "Not Specified": "#627d98",
+  "True Positive": "#22c55e",
+  "False Positive": "#f59e0b",
+  "Not Specified": "#3f3f46",
 };
 
 function toChartData(data: ValidationBreakdown) {

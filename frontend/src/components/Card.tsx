@@ -12,8 +12,8 @@ export function Card({ title, children, className = "", action, noPad }: CardPro
   return (
     <div
       className={`
-        rounded-xl border transition-all duration-200
-        ${noPad ? "" : "p-3 sm:p-5"}
+        rounded-lg border transition-all duration-200
+        ${noPad ? "" : "p-3 sm:p-4"}
         ${className}
       `}
       style={{

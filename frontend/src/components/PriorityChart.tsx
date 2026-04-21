@@ -19,10 +19,10 @@ interface Props {
 }
 
 const PRIORITY_COLORS: Record<string, string> = {
-  Critical: "#ff1744",
-  High: "#ff9100",
-  Medium: "#ffd600",
-  Low: "#00e676",
+  Critical: "#ef4444",
+  High: "#f59e0b",
+  Medium: "#a1a1aa",
+  Low: "#52525b",
 };
 
 export function PriorityChart({ data, loading, bare }: Props) {

@@ -5,7 +5,7 @@
 @layer base {
   * {
     scrollbar-width: thin;
-    scrollbar-color: #486581 transparent;
+    scrollbar-color: #2a2a2e transparent;
   }
 
   *::-webkit-scrollbar {
@@ -18,7 +18,7 @@
   }
 
   *::-webkit-scrollbar-thumb {
-    background-color: #486581;
+    background-color: #2a2a2e;
     border-radius: 3px;
   }
 
@@ -129,18 +129,9 @@
     50% { opacity: 0.5; }
   }
 
-  /* Gradient border glow */
+  /* Subtle border highlight on hover */
   .glow-border {
     position: relative;
-  }
-  .glow-border::after {
-    content: '';
-    position: absolute;
-    inset: -1px;
-    border-radius: inherit;
-    background: linear-gradient(135deg, rgba(0,176,255,0.15), rgba(29,233,182,0.08), transparent 60%);
-    pointer-events: none;
-    z-index: 0;
   }
 
   /* Theme-aware input */
@@ -202,22 +193,10 @@
 }
 
 @layer utilities {
-  .text-glow-blue {
-    text-shadow: 0 0 20px rgba(0, 176, 255, 0.3);
-  }
-
-  .text-glow-green {
-    text-shadow: 0 0 20px rgba(0, 230, 118, 0.3);
-  }
-
-  .text-glow-red {
-    text-shadow: 0 0 20px rgba(255, 23, 68, 0.3);
-  }
-
   .bg-grid-pattern {
     background-image:
-      linear-gradient(color-mix(in srgb, var(--theme-accent, #3b82f6) 4%, transparent) 1px, transparent 1px),
-      linear-gradient(90deg, color-mix(in srgb, var(--theme-accent, #3b82f6) 4%, transparent) 1px, transparent 1px);
+      linear-gradient(color-mix(in srgb, var(--theme-surface-border, #2a2a2e) 30%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--theme-surface-border, #2a2a2e) 30%, transparent) 1px, transparent 1px);
     background-size: 32px 32px;
   }
 }
