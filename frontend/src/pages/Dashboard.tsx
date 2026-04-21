@@ -17,7 +17,7 @@ import { CustomerChart } from "../components/CustomerChart";
 import { TopAlertsTable } from "../components/TopAlertsTable";
 import { MttdChart } from "../components/MttdChart";
 import { AnalystTable } from "../components/AnalystTable";
-import { AIInsightsPanel } from "../components/AIInsightsPanel";
+// AI Insights panel removed — AI Chat widget covers this
 import { ChartRenderer } from "../components/ChartRenderer";
 import { WidgetWrapper } from "../components/WidgetWrapper";
 import { LiveTicketFeed } from "../components/LiveTicketFeed";
@@ -273,12 +273,7 @@ export function Dashboard() {
         </ResponsiveGridLayout>
       </div>
 
-      {/* AI Insights — stays outside grid */}
-      <AIInsightsPanel
-        customer={filters.customer || undefined}
-        startDate={filters.start || undefined}
-        endDate={filters.end || undefined}
-      />
+      {/* AI Insights removed — AI Chat widget (FAB) covers this functionality */}
 
       {/* Modals */}
       <AddWidgetModal open={addOpen} onClose={() => setAddOpen(false)} onAdd={addWidget} />
