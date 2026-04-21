@@ -1,24 +1,18 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { api } from "../api/client";
 import { useFetch } from "../hooks/useFetch";
 import { Card } from "../components/Card";
 import { Spinner } from "../components/Spinner";
-import { AnalystLeaderboard } from "../components/AnalystLeaderboard";
-import { AnalystScoreCard } from "../components/AnalystScoreCard";
 import { AnalystDetailModal } from "../components/AnalystDetailModal";
 import { TeamTrendChart } from "../components/AnalystTrendChart";
 import type { AnalystScore } from "../types";
-import { Users, Trophy, TrendingUp, Target, ChevronDown, BarChart3, Settings2, Eye, EyeOff, Info } from "lucide-react";
+import { Users, ChevronDown, BarChart3, AlertTriangle, Minus } from "lucide-react";
 
 const STORAGE_KEY = "soc-manager-excluded-analysts";
 function loadExcluded(): Set<string> {
   try { return new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]")); } catch { return new Set(); }
 }
-function saveExcluded(s: Set<string>) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify([...s]));
-}
 
-// Period presets (full calendar months)
 const PERIOD_OPTIONS = [
   { label: "Last 1 Month", months: 1 },
   { label: "Last 2 Months", months: 2 },
@@ -29,218 +23,80 @@ const PERIOD_OPTIONS = [
 function getDateRange(months: number) {
   if (months === 0) return { start: undefined, end: undefined };
   const now = new Date();
-  // End = last day of previous month
   const end = new Date(now.getFullYear(), now.getMonth(), 0);
-  // Start = 1st of (months) months before end's month
   const start = new Date(end.getFullYear(), end.getMonth() - months + 1, 1);
-  return {
-    start: start.toISOString().slice(0, 10),
-    end: end.toISOString().slice(0, 10),
-  };
+  return { start: start.toISOString().slice(0, 10), end: end.toISOString().slice(0, 10) };
 }
 
-function TeamKPIs({ data }: { data: AnalystScore[] }) {
-  const avgScore = data.length > 0 ? data.reduce((s, d) => s + d.composite_score, 0) / data.length : 0;
-  const tierCounts = data.reduce((acc, d) => { acc[d.tier] = (acc[d.tier] || 0) + 1; return acc; }, {} as Record<string, number>);
-  const totalTickets = data.reduce((s, d) => s + d.stats.total_tickets, 0);
-  const totalResolved = data.reduce((s, d) => s + d.stats.resolved, 0);
-
-  const kpis = [
-    { label: "Total Analysts", value: data.length, icon: <Users className="w-4 h-4" />, color: "var(--theme-accent)" },
-    { label: "Avg Score", value: avgScore.toFixed(1), icon: <Target className="w-4 h-4" />, color: avgScore >= 75 ? "#22C55E" : avgScore >= 60 ? "#3B82F6" : "#F59E0B" },
-    { label: "Total Tickets", value: totalTickets.toLocaleString(), icon: <TrendingUp className="w-4 h-4" />, color: "var(--theme-accent)" },
-    { label: "Resolved", value: `${totalResolved.toLocaleString()} (${totalTickets > 0 ? ((totalResolved / totalTickets) * 100).toFixed(0) : 0}%)`, icon: <Trophy className="w-4 h-4" />, color: "#22C55E" },
-  ];
-
-  return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-      {kpis.map((k) => (
-        <Card key={k.label}>
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg" style={{ backgroundColor: `color-mix(in srgb, ${k.color} 12%, transparent)`, color: k.color }}>
-              {k.icon}
-            </div>
-            <div>
-              <p className="text-[10px] uppercase tracking-wider" style={{ color: "var(--theme-text-muted)" }}>{k.label}</p>
-              <p className="font-bold font-mono" style={{ fontSize: 28, lineHeight: 1.2, color: "var(--theme-text-primary)" }}>{k.value}</p>
-            </div>
-          </div>
-          {/* Tier badges for Analysts card */}
-          {k.label === "Total Analysts" && Object.keys(tierCounts).length > 0 && (
-            <div className="flex gap-1.5 mt-2">
-              {["S", "A", "B", "C", "D"].filter((t) => tierCounts[t]).map((t) => {
-                const colors: Record<string, string> = { S: "#FFD700", A: "#22C55E", B: "#3B82F6", C: "#F59E0B", D: "#EF4444" };
-                const tierLabels: Record<string, string> = { S: "Tier S: Exceptional (90-100)", A: "Tier A: Excellent (75-89)", B: "Tier B: Good (60-74)", C: "Tier C: Average (40-59)", D: "Tier D: Needs Improvement (<40)" };
-                return (
-                  <Tip key={t} text={tierLabels[t]}>
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ backgroundColor: `color-mix(in srgb, ${colors[t]} 15%, transparent)`, color: colors[t] }}>
-                      {t}×{tierCounts[t]}
-                    </span>
-                  </Tip>
-                );
-              })}
-            </div>
-          )}
-        </Card>
-      ))}
-    </div>
-  );
+function fmt(seconds: number | null): string {
+  if (seconds === null || seconds === undefined) return "—";
+  if (seconds < 60) return `${Math.round(seconds)}s`;
+  if (seconds < 3600) return `${Math.round(seconds / 60)}m`;
+  return `${(seconds / 3600).toFixed(1)}h`;
 }
 
-type ViewMode = "cards" | "table";
+type WorkloadFlag = "overloaded" | "imbalanced" | "underutilized" | null;
 
-/* Tooltip wrapper */
-function Tip({ text, children }: { text: string; children: React.ReactNode }) {
-  return (
-    <span className="relative group/tip cursor-help">
-      {children}
-      <span className="pointer-events-none absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2.5 py-1.5 rounded-lg text-[10px] leading-tight font-normal whitespace-nowrap opacity-0 group-hover/tip:opacity-100 transition-opacity shadow-lg"
-        style={{ backgroundColor: "var(--theme-surface-raised)", color: "var(--theme-text-secondary)", border: "1px solid var(--theme-surface-border)" }}>
-        {text}
-      </span>
-    </span>
-  );
+function getWorkloadFlag(pct: number, avg: number): WorkloadFlag {
+  if (pct > 40) return "overloaded";
+  if (avg > 0 && pct > avg * 2) return "imbalanced";
+  if (pct < 10 && pct > 0) return "underutilized";
+  return null;
 }
+
+const FLAG_STYLES: Record<string, { bg: string; text: string; label: string }> = {
+  overloaded: { bg: "rgba(239,68,68,0.1)", text: "#ef4444", label: "Overloaded" },
+  imbalanced: { bg: "rgba(245,158,11,0.1)", text: "#f59e0b", label: "Imbalanced" },
+  underutilized: { bg: "rgba(161,161,170,0.1)", text: "#a1a1aa", label: "Underutilized" },
+};
 
 export function ManagerView() {
   const [periodMonths, setPeriodMonths] = useState(1);
   const [selectedAnalyst, setSelectedAnalyst] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>("cards");
-  const [excluded, setExcluded] = useState<Set<string>>(loadExcluded);
-  const [showExcludePanel, setShowExcludePanel] = useState(false);
+  const [excluded] = useState<Set<string>>(loadExcluded);
 
   const range = useMemo(() => getDateRange(periodMonths), [periodMonths]);
-
   const { data: rawData, loading } = useFetch<AnalystScore[]>(
     () => api.getAnalystScores({ start: range.start, end: range.end }),
     [range.start, range.end]
   );
 
-  // All unique analyst names seen (for the exclude panel)
-  const allAnalysts = useMemo(() => {
-    if (!rawData) return [];
-    return rawData.map((a) => a.analyst).sort();
-  }, [rawData]);
-
-  // Filter out excluded analysts
   const data = useMemo(() => {
     if (!rawData) return null;
     return rawData.filter((a) => !excluded.has(a.analyst));
   }, [rawData, excluded]);
 
-  const toggleExclude = useCallback((name: string) => {
-    setExcluded((prev) => {
-      const next = new Set(prev);
-      if (next.has(name)) next.delete(name); else next.add(name);
-      saveExcluded(next);
-      return next;
-    });
-  }, []);
+  const totalTeamTickets = useMemo(() => data?.reduce((s, d) => s + d.stats.total_tickets, 0) ?? 0, [data]);
+  const avgPct = data && data.length > 0 ? 100 / data.length : 0;
 
   return (
-    <div className="space-y-4 sm:space-y-6 py-4 sm:py-6">
-      {/* Period Filter Bar */}
+    <div className="space-y-4 py-4 sm:py-6">
+      {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-bold" style={{ color: "var(--theme-text-primary)" }}>
-          Analyst Performance
-        </h2>
-        <div className="flex items-center gap-2">
-          {/* Analyst Filter Button */}
-          <div className="relative">
-            <button
-              onClick={() => setShowExcludePanel(!showExcludePanel)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
-              style={{
-                backgroundColor: excluded.size > 0 ? "color-mix(in srgb, #F59E0B 15%, transparent)" : "color-mix(in srgb, var(--theme-surface-raised) 80%, transparent)",
-                color: excluded.size > 0 ? "#F59E0B" : "var(--theme-text-muted)",
-                border: `1px solid ${excluded.size > 0 ? "#F59E0B40" : "var(--theme-surface-border)"}`,
-              }}
-            >
-              <Settings2 className="w-3.5 h-3.5" />
-              {excluded.size > 0 && <span>{excluded.size} hidden</span>}
-            </button>
-
-            {/* Exclude Panel Dropdown */}
-            {showExcludePanel && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setShowExcludePanel(false)} />
-                <div
-                  className="absolute right-0 top-full mt-2 z-50 w-72 rounded-xl shadow-2xl p-4 space-y-3"
-                  style={{ backgroundColor: "var(--theme-card-bg)", border: "1px solid var(--theme-card-border)" }}
-                >
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--theme-text-muted)" }}>Manage Analysts</h4>
-                    {excluded.size > 0 && (
-                      <button
-                        onClick={() => { setExcluded(new Set()); saveExcluded(new Set()); }}
-                        className="text-[10px] px-2 py-0.5 rounded-full"
-                        style={{ color: "var(--theme-accent)", backgroundColor: "color-mix(in srgb, var(--theme-accent) 10%, transparent)" }}
-                      >
-                        Show All
-                      </button>
-                    )}
-                  </div>
-                  <p className="text-[10px]" style={{ color: "var(--theme-text-muted)" }}>Toggle analysts off to hide them from scoring &amp; charts (e.g. resigned staff).</p>
-                  <div className="max-h-60 overflow-y-auto space-y-1 pr-1">
-                    {allAnalysts.map((name) => {
-                      const isExcluded = excluded.has(name);
-                      return (
-                        <button
-                          key={name}
-                          onClick={() => toggleExclude(name)}
-                          className="flex items-center gap-2 w-full px-2.5 py-1.5 rounded-lg text-xs transition-all text-left"
-                          style={{
-                            backgroundColor: isExcluded ? "color-mix(in srgb, #EF4444 8%, transparent)" : "color-mix(in srgb, var(--theme-surface-raised) 40%, transparent)",
-                            color: isExcluded ? "var(--theme-text-muted)" : "var(--theme-text-primary)",
-                            opacity: isExcluded ? 0.5 : 1,
-                          }}
-                        >
-                          {isExcluded ? <EyeOff className="w-3.5 h-3.5 shrink-0 text-red-400" /> : <Eye className="w-3.5 h-3.5 shrink-0" style={{ color: "#22C55E" }} />}
-                          <span className={`truncate ${isExcluded ? "line-through" : ""}`}>{name}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* View mode toggle */}
-          <div className="flex rounded-lg overflow-hidden" style={{ border: "1px solid var(--theme-surface-border)" }}>
-            {(["cards", "table"] as ViewMode[]).map((mode) => (
-              <button
-                key={mode}
-                onClick={() => setViewMode(mode)}
-                className="px-3 py-1.5 text-xs font-medium transition-all capitalize"
-                style={{
-                  backgroundColor: viewMode === mode ? "color-mix(in srgb, var(--theme-accent) 15%, transparent)" : "transparent",
-                  color: viewMode === mode ? "var(--theme-accent)" : "var(--theme-text-muted)",
-                }}
-              >
-                {mode === "cards" ? "Cards" : "Table"}
-              </button>
+        <div>
+          <h2 className="text-base font-semibold" style={{ color: "var(--theme-text-primary)" }}>
+            Team Workload
+          </h2>
+          <p className="text-xs mt-0.5" style={{ color: "var(--theme-text-muted)" }}>
+            {data ? `${data.length} analysts · ${totalTeamTickets.toLocaleString()} tickets` : "Loading..."}
+          </p>
+        </div>
+        <div className="relative">
+          <select
+            value={periodMonths}
+            onChange={(e) => setPeriodMonths(Number(e.target.value))}
+            className="appearance-none pl-3 pr-8 py-1.5 rounded-lg text-xs font-medium cursor-pointer"
+            style={{
+              backgroundColor: "var(--theme-surface-raised)",
+              color: "var(--theme-text-secondary)",
+              border: "1px solid var(--theme-surface-border)",
+            }}
+          >
+            {PERIOD_OPTIONS.map((p) => (
+              <option key={p.months} value={p.months}>{p.label}</option>
             ))}
-          </div>
-
-          {/* Period selector */}
-          <div className="relative">
-            <select
-              value={periodMonths}
-              onChange={(e) => setPeriodMonths(Number(e.target.value))}
-              className="appearance-none pl-3 pr-8 py-1.5 rounded-lg text-xs font-medium cursor-pointer"
-              style={{
-                backgroundColor: "color-mix(in srgb, var(--theme-surface-raised) 80%, transparent)",
-                color: "var(--theme-text-secondary)",
-                border: "1px solid var(--theme-surface-border)",
-              }}
-            >
-              {PERIOD_OPTIONS.map((p) => (
-                <option key={p.months} value={p.months}>{p.label}</option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none" style={{ color: "var(--theme-text-muted)" }} />
-          </div>
+          </select>
+          <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none" style={{ color: "var(--theme-text-muted)" }} />
         </div>
       </div>
 
@@ -251,69 +107,128 @@ export function ManagerView() {
           <div className="text-center py-12">
             <Users className="w-10 h-10 mx-auto mb-3 opacity-30" style={{ color: "var(--theme-text-muted)" }} />
             <p className="text-sm font-medium" style={{ color: "var(--theme-text-muted)" }}>
-              No analyst performance data for this period
+              No analyst data for this period
             </p>
             <p className="text-xs mt-1 max-w-sm mx-auto" style={{ color: "var(--theme-text-muted)" }}>
-              Analysts need at least 5 resolved tickets to appear in scoring.
-              Try selecting a longer period or "All Time".
+              Analysts need at least 5 resolved tickets. Try "All Time".
             </p>
-            <div className="mt-4 flex justify-center gap-2">
-              <button
-                onClick={() => setPeriodMonths(0)}
-                className="px-3 py-1.5 text-xs rounded-lg font-medium transition-all"
-                style={{
-                  backgroundColor: "color-mix(in srgb, var(--theme-accent) 15%, transparent)",
-                  color: "var(--theme-accent)",
-                }}
-              >
-                View All Time
-              </button>
-            </div>
+            <button
+              onClick={() => setPeriodMonths(0)}
+              className="mt-3 px-3 py-1.5 text-xs rounded-lg font-medium"
+              style={{ backgroundColor: "color-mix(in srgb, var(--theme-accent) 15%, transparent)", color: "var(--theme-accent)" }}
+            >
+              View All Time
+            </button>
           </div>
         </Card>
       ) : (
         <>
-          {/* Team KPIs */}
-          <TeamKPIs data={data} />
+          {/* Workload Table */}
+          <Card noPad>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr style={{ borderBottom: "1px solid var(--theme-surface-border)" }}>
+                    {["Analyst", "Assigned", "Resolved", "Open", "MTTD", "MTTR", "SLA", "Workload", ""].map((h) => (
+                      <th
+                        key={h}
+                        className="px-4 py-2.5 text-left font-medium uppercase tracking-wider text-[10px]"
+                        style={{ color: "var(--theme-text-muted)" }}
+                      >
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.map((a) => {
+                    const pct = totalTeamTickets > 0 ? (a.stats.total_tickets / totalTeamTickets) * 100 : 0;
+                    const openCount = a.stats.total_tickets - a.stats.resolved;
+                    const flag = getWorkloadFlag(pct, avgPct);
+                    const slaPct = a.stats.sla_pct;
 
-          {/* Leaderboard or Cards */}
-          {viewMode === "table" ? (
-            <AnalystLeaderboard data={data} loading={false} onSelect={setSelectedAnalyst} />
-          ) : (
-            <div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {data.map((analyst, i) => (
-                  <AnalystScoreCard
-                    key={analyst.analyst}
-                    data={analyst}
-                    rank={i + 1}
-                    onClick={() => setSelectedAnalyst(analyst.analyst)}
-                  />
-                ))}
-              </div>
+                    return (
+                      <tr
+                        key={a.analyst}
+                        className="transition-colors hover:bg-white/[0.02] cursor-pointer"
+                        style={{ borderBottom: "1px solid var(--theme-surface-border)" }}
+                        onClick={() => setSelectedAnalyst(a.analyst)}
+                      >
+                        <td className="px-4 py-3">
+                          <span className="font-medium text-xs" style={{ color: "var(--theme-text-primary)" }}>
+                            {a.analyst}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 font-mono tabular-nums" style={{ color: "var(--theme-text-primary)" }}>
+                          {a.stats.total_tickets}
+                        </td>
+                        <td className="px-4 py-3 font-mono tabular-nums" style={{ color: "var(--theme-text-primary)" }}>
+                          {a.stats.resolved}
+                        </td>
+                        <td className="px-4 py-3 font-mono tabular-nums" style={{ color: openCount > 0 ? "#f59e0b" : "var(--theme-text-muted)" }}>
+                          {openCount}
+                        </td>
+                        <td className="px-4 py-3 font-mono tabular-nums" style={{ color: "var(--theme-text-secondary)" }}>
+                          {fmt(a.stats.avg_mttd_seconds)}
+                        </td>
+                        <td className="px-4 py-3 font-mono tabular-nums" style={{ color: "var(--theme-text-secondary)" }}>
+                          {fmt(a.stats.avg_mttr_seconds)}
+                        </td>
+                        <td className="px-4 py-3 font-mono tabular-nums" style={{ color: slaPct !== null && slaPct < 90 ? "#ef4444" : "var(--theme-text-secondary)" }}>
+                          {slaPct !== null ? `${slaPct.toFixed(0)}%` : "—"}
+                        </td>
+                        <td className="px-4 py-3 w-48">
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--theme-surface-border)" }}>
+                              <div
+                                className="h-full rounded-full transition-all duration-500"
+                                style={{
+                                  width: `${Math.min(pct, 100)}%`,
+                                  backgroundColor: flag === "overloaded" ? "#ef4444" : flag === "imbalanced" ? "#f59e0b" : "var(--theme-accent)",
+                                }}
+                              />
+                            </div>
+                            <span className="text-[10px] font-mono w-8 text-right" style={{ color: "var(--theme-text-muted)" }}>
+                              {pct.toFixed(0)}%
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-3 py-3">
+                          {flag && (
+                            <span
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium whitespace-nowrap"
+                              style={{ backgroundColor: FLAG_STYLES[flag].bg, color: FLAG_STYLES[flag].text }}
+                            >
+                              {flag === "overloaded" && <AlertTriangle className="w-3 h-3" />}
+                              {flag === "underutilized" && <Minus className="w-3 h-3" />}
+                              {FLAG_STYLES[flag].label}
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
-          )}
+          </Card>
 
-          {/* Team Performance Trends */}
+          {/* Performance Trends */}
           <Card>
             <div className="flex items-center gap-2 mb-4">
-              <BarChart3 className="w-5 h-5" style={{ color: "var(--theme-accent)" }} />
-              <h3 className="text-lg font-semibold" style={{ color: "var(--theme-text)" }}>
+              <BarChart3 className="w-4 h-4" style={{ color: "var(--theme-text-muted)" }} />
+              <h3 className="text-sm font-medium" style={{ color: "var(--theme-text-primary)" }}>
                 Performance Trends
               </h3>
-              <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--theme-accent-dim)", color: "var(--theme-accent)" }}>
-                Weekly Snapshots
+              <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: "var(--theme-surface-raised)", color: "var(--theme-text-muted)" }}>
+                Weekly
               </span>
             </div>
-            <TeamTrendChart
-              selectedAnalysts={data.map((a) => a.analyst)}
-              granularity="weekly"
-            />
+            <TeamTrendChart selectedAnalysts={data.map((a) => a.analyst)} granularity="weekly" />
           </Card>
         </>
       )}
 
-      {/* Detail Modal */}
       <AnalystDetailModal
         analyst={selectedAnalyst}
         startDate={range.start}

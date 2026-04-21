@@ -10,7 +10,7 @@ interface Props {
 export function DashboardToolbar({ editMode, onToggleEdit, onAddWidget, onReset }: Props) {
   return (
     <div
-      className="flex items-center gap-2 p-2 rounded-xl border transition-all duration-300"
+      className="flex items-center gap-2 p-2 rounded-lg border transition-all duration-300"
       style={{
         backgroundColor: editMode ? "color-mix(in srgb, var(--theme-accent) 5%, transparent)" : "var(--theme-card-bg)",
         borderColor: editMode ? "color-mix(in srgb, var(--theme-accent) 25%, transparent)" : "var(--theme-card-border)",

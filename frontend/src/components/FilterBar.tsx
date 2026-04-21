@@ -122,7 +122,7 @@ export function FilterBar({ filters, onApply, filterOptions, editMode, onToggleE
   };
 
   return (
-    <div className="rounded-xl px-2 sm:px-3 py-2 animate-fade-in-up" style={{ backgroundColor: "var(--theme-card-bg)", border: "1px solid var(--theme-card-border)" }}>
+    <div className="rounded-lg px-2 sm:px-3 py-2 animate-fade-in-up" style={{ backgroundColor: "var(--theme-card-bg)", border: "1px solid var(--theme-card-border)" }}>
       <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
         {/* ── Time Range Dropdown ── */}
         <div className="relative" ref={dropdownRef}>

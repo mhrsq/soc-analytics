@@ -9,7 +9,7 @@ export function SyncBanner({ syncStatus }: Props) {
   if (!syncStatus || syncStatus.total_in_db > 0) return null;
 
   return (
-    <div className="relative overflow-hidden rounded-xl p-4 flex items-center gap-3 animate-fade-in-up"
+    <div className="relative overflow-hidden rounded-lg p-4 flex items-center gap-3 animate-fade-in-up"
       style={{ backgroundColor: "color-mix(in srgb, var(--theme-accent) 5%, var(--theme-surface-raised))", border: "1px solid color-mix(in srgb, var(--theme-accent) 20%, transparent)" }}>
       {/* Animated gradient sweep */}
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[.03] to-transparent animate-pulse" />
