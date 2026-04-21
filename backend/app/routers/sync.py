@@ -6,7 +6,12 @@ import logging
 from fastapi import APIRouter
 
 from app.config import get_settings
-from app.schemas import SDPConnectionStatus, SyncStatus, SyncTriggerResponse
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.database import async_session
+from app.models import SyncLog
+from app.schemas import SDPConnectionStatus, SyncDetailedStatus, SyncLogEntry, SyncStatus, SyncTriggerResponse
 from app.services.sdp_client import SDPClient
 from app.services.sync_service import SyncService
 
@@ -21,6 +26,34 @@ sync_service = SyncService()
 async def get_sync_status():
     """Get current sync status and last sync info."""
     return await sync_service.get_sync_status()
+
+
+@router.get("/status/detailed", response_model=SyncDetailedStatus)
+async def get_sync_status_detailed():
+    """Get detailed sync status with recent log history."""
+    base = await sync_service.get_sync_status()
+    async with async_session() as session:
+        result = await session.execute(
+            select(SyncLog).order_by(SyncLog.id.desc()).limit(20)
+        )
+        logs = result.scalars().all()
+    return SyncDetailedStatus(
+        **base,
+        recent_logs=[
+            SyncLogEntry(
+                id=l.id,
+                sync_type=l.sync_type or "unknown",
+                status=l.status or "unknown",
+                tickets_synced=l.tickets_synced or 0,
+                tickets_total=l.tickets_total or 0,
+                errors=l.errors or 0,
+                started_at=l.started_at,
+                finished_at=l.finished_at,
+                details=l.details,
+            )
+            for l in logs
+        ],
+    )
 
 
 @router.post("/trigger", response_model=SyncTriggerResponse)

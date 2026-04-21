@@ -248,14 +248,27 @@ export function ManagerView() {
         <div className="flex items-center justify-center py-20"><Spinner /></div>
       ) : !data || data.length === 0 ? (
         <Card>
-          <div className="text-center py-16">
-            <Users className="w-12 h-12 mx-auto mb-3 opacity-30" style={{ color: "var(--theme-text-muted)" }} />
+          <div className="text-center py-12">
+            <Users className="w-10 h-10 mx-auto mb-3 opacity-30" style={{ color: "var(--theme-text-muted)" }} />
             <p className="text-sm font-medium" style={{ color: "var(--theme-text-muted)" }}>
-              No analyst performance data available for this period
+              No analyst performance data for this period
             </p>
-            <p className="text-xs mt-1" style={{ color: "var(--theme-text-muted)" }}>
-              Analysts need at least 5 tickets to appear in the scoring
+            <p className="text-xs mt-1 max-w-sm mx-auto" style={{ color: "var(--theme-text-muted)" }}>
+              Analysts need at least 5 resolved tickets to appear in scoring.
+              Try selecting a longer period or "All Time".
             </p>
+            <div className="mt-4 flex justify-center gap-2">
+              <button
+                onClick={() => setPeriodMonths(0)}
+                className="px-3 py-1.5 text-xs rounded-lg font-medium transition-all"
+                style={{
+                  backgroundColor: "color-mix(in srgb, var(--theme-accent) 15%, transparent)",
+                  color: "var(--theme-accent)",
+                }}
+              >
+                View All Time
+              </button>
+            </div>
           </div>
         </Card>
       ) : (

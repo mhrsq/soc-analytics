@@ -80,6 +80,22 @@ export interface SyncStatus {
   is_running: boolean;
 }
 
+export interface SyncLogEntry {
+  id: number;
+  sync_type: string;
+  status: string;
+  tickets_synced: number;
+  tickets_total: number;
+  errors: number;
+  started_at: string | null;
+  finished_at: string | null;
+  details: Record<string, unknown> | null;
+}
+
+export interface SyncDetailedStatus extends SyncStatus {
+  recent_logs: SyncLogEntry[];
+}
+
 export interface SDPConnectionStatus {
   connected: boolean;
   api_key_valid: boolean | null;

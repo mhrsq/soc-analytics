@@ -37,7 +37,7 @@ export function PriorityChart({ data, loading, bare }: Props) {
     <ResponsiveContainer width="100%" height="100%">
       <BarChart data={data} layout="vertical" barCategoryGap="20%">
         <XAxis type="number" tick={{ fill: cc.tick, fontSize: 11 }} tickLine={false} axisLine={false} />
-        <YAxis type="category" dataKey="priority" tick={{ fill: cc.label, fontSize: 12 }} tickLine={false} axisLine={false} width={70} />
+        <YAxis type="category" dataKey="priority" tick={{ fill: cc.label, fontSize: 11 }} tickLine={false} axisLine={false} width={95} />
         <Tooltip contentStyle={tooltipStyle}
           formatter={(value: number) => [`${value} tickets`, "Count"]} />
         <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={18}>

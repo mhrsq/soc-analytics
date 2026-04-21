@@ -5,7 +5,7 @@ import { CustomerView } from "./pages/CustomerView";
 import { ThreatMapView } from "./pages/ThreatMapView";
 import { TopologyEditor } from "./pages/TopologyEditor";
 import { UserManagement } from "./components/UserManagement";
-import { Wifi, WifiOff, Palette, Settings2, LayoutDashboard, Users, Building2, Globe, Shield, LogOut, Network, ServerCrash, Server, KeyRound } from "lucide-react";
+import { Wifi, WifiOff, Palette, Settings2, LayoutDashboard, Users, Building2, Globe, Shield, LogOut, Network, ServerCrash, Server, KeyRound, Database } from "lucide-react";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import { DashboardProvider } from "./contexts/DashboardContext";
@@ -13,6 +13,7 @@ import { CustomerDashboardProvider } from "./contexts/CustomerDashboardContext";
 import { NotificationBell } from "./components/NotificationBell";
 import { ThemePanel } from "./components/ThemePanel";
 import { LLMSettingsPanel } from "./components/LLMSettingsPanel";
+import { SyncStatusPanel } from "./components/SyncStatusPanel";
 import { api, type AuthUser } from "./api/client";
 import type { SDPConnectionStatus } from "./types";
 
@@ -176,6 +177,7 @@ function SDPStatusIndicator() {
 function AppShell() {
   const [themeOpen, setThemeOpen] = useState(false);
   const [llmOpen, setLlmOpen] = useState(false);
+  const [syncOpen, setSyncOpen] = useState(false);
   const [page, setPage] = useState<Page>("dashboard");
   const [authChecked, setAuthChecked] = useState(false);
 
@@ -324,6 +326,14 @@ function AppShell() {
             <div className="h-4 w-px hidden sm:block" style={{ backgroundColor: "var(--theme-surface-border)" }} />
             <ConnectionStatus />
             <SDPStatusIndicator />
+            <button
+              onClick={() => setSyncOpen(true)}
+              className="p-1 rounded-lg transition-opacity hover:opacity-80"
+              style={{ color: "var(--theme-text-muted)" }}
+              title="Sync Status"
+            >
+              <Database className="w-3.5 h-3.5" />
+            </button>
             <div className="h-4 w-px hidden sm:block" style={{ backgroundColor: "var(--theme-surface-border)" }} />
             <NotificationBell />
             <div className="h-4 w-px" style={{ backgroundColor: "var(--theme-surface-border)" }} />
@@ -387,6 +397,7 @@ function AppShell() {
       {/* Settings Panels */}
       <ThemePanel open={themeOpen} onClose={() => setThemeOpen(false)} />
       <LLMSettingsPanel open={llmOpen} onClose={() => setLlmOpen(false)} />
+      <SyncStatusPanel open={syncOpen} onClose={() => setSyncOpen(false)} />
     </div>
   );
 }

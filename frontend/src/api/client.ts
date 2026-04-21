@@ -46,6 +46,7 @@ import type {
   MttdPoint,
   AnalystPerformance,
   SyncStatus,
+  SyncDetailedStatus,
   AIInsight,
   FilterOptions,
   TicketDetail,
@@ -111,6 +112,8 @@ export const api = {
 
   // ── Sync ──
   getSyncStatus: () => request<SyncStatus>("/sync/status"),
+
+  getSyncDetailedStatus: () => request<SyncDetailedStatus>("/sync/status/detailed"),
 
   getSDPStatus: () => request<SDPConnectionStatus>("/sync/sdp-status"),
 

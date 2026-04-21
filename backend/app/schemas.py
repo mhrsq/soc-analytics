@@ -148,6 +148,31 @@ class SDPConnectionStatus(BaseModel):
     error: Optional[str] = None
 
 
+class SyncLogEntry(BaseModel):
+    id: int
+    sync_type: str
+    status: str
+    tickets_synced: int
+    tickets_total: int
+    errors: int
+    started_at: Optional[datetime]
+    finished_at: Optional[datetime]
+    details: Optional[dict] = None
+
+    class Config:
+        from_attributes = True
+
+
+class SyncDetailedStatus(BaseModel):
+    last_sync: Optional[datetime]
+    last_sync_type: Optional[str]
+    last_status: Optional[str]
+    tickets_synced: Optional[int]
+    total_in_db: int
+    is_running: bool
+    recent_logs: list[SyncLogEntry]
+
+
 class SyncTriggerResponse(BaseModel):
     message: str
     sync_id: Optional[int]

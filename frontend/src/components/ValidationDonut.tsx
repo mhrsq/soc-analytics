@@ -11,8 +11,8 @@ interface Props {
 }
 
 const COLORS: Record<string, string> = {
-  "True Positive": "#ff1744",
-  "False Positive": "#00e676",
+  "True Positive": "#00e676",
+  "False Positive": "#ff9100",
   "Not Specified": "#627d98",
 };
 

@@ -32,6 +32,9 @@ snapshot_task = None
 async def _periodic_sync():
     """Background task for periodic incremental sync."""
     from app.routers.sync import get_sync_service
+    from app.database import async_session as _async_session
+    from app.models import Ticket
+    from sqlalchemy import func, select as sa_select
     import httpx
 
     sync_svc = get_sync_service()
@@ -39,6 +42,21 @@ async def _periodic_sync():
 
     # Wait a bit before first sync to let the app fully start
     await asyncio.sleep(10)
+
+    # Auto-trigger full initial sync if DB has very few tickets
+    try:
+        async with _async_session() as _sess:
+            count = (await _sess.execute(sa_select(func.count(Ticket.id)))).scalar() or 0
+        if count < 1000:
+            total_in_sdp = await sync_svc.sdp.get_ticket_count()
+            if total_in_sdp > count + 100:
+                logger.info(
+                    f"Auto-triggering full initial sync: DB has {count} tickets, "
+                    f"SDP has {total_in_sdp}"
+                )
+                await sync_svc.run_initial_sync()
+    except Exception as e:
+        logger.warning(f"Auto initial sync check failed: {e}")
 
     consecutive_failures = 0
     max_backoff = 600  # 10 min max — SOC needs near-real-time data
