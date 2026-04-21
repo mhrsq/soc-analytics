@@ -166,7 +166,7 @@ export function Dashboard() {
     if (widget.builtIn && !chartTypeChanged) {
       switch (widget.id) {
         case "kpi":
-          return <KPICards data={summary.data} loading={summary.loading} onCardClick={setKpiDetail} />;
+          return <KPICards data={summary.data} loading={summary.loading} onCardClick={setKpiDetail} volumeData={volume.data} />;
         case "volume":
           return <VolumeTrendChart data={volume.data} loading={volume.loading} bare />;
         case "validation":
