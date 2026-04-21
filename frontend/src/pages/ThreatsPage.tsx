@@ -543,7 +543,7 @@ export function ThreatsPage() {
           </div>
         )}
 
-        {/* Graph: Empty state */
+        {/* Graph: Empty state */}
         {mode === "graph" && nodes.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="text-center">
