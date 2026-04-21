@@ -103,10 +103,13 @@ interface FeedItem {
   asset: string | null;
   customer: string | null;
   priority: string | null;
+  category: string | null;
   validation: string | null;
+  status: string | null;
   time: string | null;
   rule_id: string | null;
   rule_name: string | null;
+  subject: string | null;
   is_private: boolean;
 }
 
@@ -339,7 +342,7 @@ export function ThreatMapView() {
                 </span>
                 <span className="w-1.5 h-1.5 rounded-sm shrink-0" style={{ backgroundColor: getPrioColor(f.priority) }} />
                 <span className="truncate" style={{ color: "#9b9ba8" }}>
-                  {f.rule_name || f.rule_id || "Unknown rule"}
+                  {f.rule_name || f.subject || f.category || "Alert"}
                 </span>
                 <span style={{ color: "#3e3e48" }}>→</span>
                 <span className="font-mono truncate" style={{ color: "#e8e8ec" }}>{f.asset || "—"}</span>

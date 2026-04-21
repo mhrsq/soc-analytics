@@ -138,6 +138,16 @@ async def get_attacks(
     return arcs
 
 
+def _short_subject(subject: Optional[str]) -> Optional[str]:
+    """Extract a short description from ticket subject like '[SE] | CMWI | CPUUsage | Medium | ...'"""
+    if not subject:
+        return None
+    parts = subject.split("|")
+    if len(parts) >= 5:
+        return parts[-1].strip()[:80]  # Last part is usually the description
+    return subject[:80]
+
+
 # ── Attack Feed (lightweight recent attacks) ────────────────────
 
 @router.get("/feed")
@@ -146,22 +156,20 @@ async def get_attack_feed(
     limit: int = Query(50, ge=10, le=200),
     db: AsyncSession = Depends(get_db),
 ):
-    """Get recent attacks for the live feed ticker. Lightweight — no geolocation."""
-    filters = [Ticket.ip_address.isnot(None), Ticket.ip_address != ""]
+    """Get recent tickets for the live feed ticker. Shows ALL tickets, not just ones with IPs."""
+    filters: list = []
     if customer:
         filters.append(Ticket.customer == customer)
 
-    q = (
-        select(
-            Ticket.id, Ticket.ip_address, Ticket.asset_name,
-            Ticket.customer, Ticket.priority, Ticket.attack_category,
-            Ticket.validation, Ticket.created_time, Ticket.wazuh_rule_id,
-            Ticket.wazuh_rule_name,
-        )
-        .where(and_(*filters))
-        .order_by(Ticket.created_time.desc())
-        .limit(limit)
+    q = select(
+        Ticket.id, Ticket.subject, Ticket.ip_address, Ticket.asset_name,
+        Ticket.customer, Ticket.priority, Ticket.attack_category,
+        Ticket.validation, Ticket.status, Ticket.created_time,
+        Ticket.wazuh_rule_id, Ticket.wazuh_rule_name,
     )
+    if filters:
+        q = q.where(and_(*filters))
+    q = q.order_by(Ticket.created_time.desc()).limit(limit)
     result = await db.execute(q)
     return [
         {
@@ -172,9 +180,11 @@ async def get_attack_feed(
             "priority": r.priority,
             "category": r.attack_category,
             "validation": r.validation,
+            "status": r.status,
             "time": r.created_time.isoformat() if r.created_time else None,
             "rule_id": r.wazuh_rule_id,
             "rule_name": r.wazuh_rule_name,
+            "subject": _short_subject(r.subject),
             "is_private": is_private_ip(r.ip_address) if r.ip_address else True,
         }
         for r in result.all()
