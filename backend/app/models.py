@@ -144,6 +144,19 @@ class SiemLocation(Base):
     updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
+class DashboardProfile(Base):
+    __tablename__ = "dashboard_profiles"
+
+    id = Column(String(100), primary_key=True)
+    user_id = Column(Integer, primary_key=True)
+    name = Column(String(200), nullable=False)
+    widgets = Column(JSONB, nullable=False, default=list)
+    is_default = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
 class User(Base):
     __tablename__ = "users"
 

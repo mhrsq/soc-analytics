@@ -123,6 +123,16 @@ export const api = {
       { method: "POST" }
     ),
 
+  // ── Dashboard Profiles ──
+  getDashboardProfiles: () =>
+    request<{ id: string; name: string; widgets: unknown[]; is_default: boolean; is_active: boolean }[]>("/dashboard/profiles"),
+
+  saveDashboardProfiles: (profiles: { id: string; name: string; widgets: unknown[]; is_default: boolean; is_active?: boolean }[], activeProfileId: string | null) =>
+    request<{ ok: boolean }>("/dashboard/profiles", {
+      method: "PUT",
+      body: JSON.stringify({ profiles, active_profile_id: activeProfileId }),
+    }),
+
   // ── AI ──
   getInsights: (opts: { period?: string; customer?: string; provider_id?: number; start_date?: string; end_date?: string }) =>
     request<AIInsight>("/ai/insights", {

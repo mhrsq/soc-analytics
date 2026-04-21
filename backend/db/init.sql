@@ -220,6 +220,21 @@ CREATE TABLE IF NOT EXISTS topology_links (
     created_at   TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Dashboard profiles (per-user persistent layouts)
+CREATE TABLE IF NOT EXISTS dashboard_profiles (
+    id           VARCHAR(100) NOT NULL,
+    user_id      INTEGER NOT NULL,
+    name         VARCHAR(200) NOT NULL,
+    widgets      JSONB NOT NULL DEFAULT '[]',
+    is_default   BOOLEAN DEFAULT false,
+    is_active    BOOLEAN DEFAULT false,
+    created_at   TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at   TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    PRIMARY KEY (id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_dashboard_profiles_user ON dashboard_profiles(user_id);
+
 -- Users & Authentication
 CREATE TABLE IF NOT EXISTS users (
     id              SERIAL PRIMARY KEY,

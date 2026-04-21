@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { api } from "../api/client";
 import type { WidgetConfig, ChartType, DataSource, DashboardLayout } from "../types";
 
 const DEFAULT_WIDGETS: WidgetConfig[] = [
@@ -12,7 +13,6 @@ const DEFAULT_WIDGETS: WidgetConfig[] = [
   { id: "analysts",   name: "Analyst Performance",   chartType: "bar",            dataSource: "analysts",   builtIn: true,  x: 0, y: 12, w: 12, h: 5 },
 ];
 
-/* ── Profile types ── */
 export interface DashboardProfile {
   id: string;
   name: string;
@@ -30,7 +30,6 @@ interface DashboardContextValue {
   updateWidget: (id: string, updates: Partial<WidgetConfig>) => void;
   updateLayout: (layouts: { i: string; x: number; y: number; w: number; h: number }[]) => void;
   resetLayout: () => void;
-  /* Profile management */
   profiles: DashboardProfile[];
   activeProfileId: string | null;
   switchProfile: (id: string) => void;
@@ -46,93 +45,97 @@ const STORAGE_KEY = "soc-dashboard-layout";
 const PROFILES_KEY = "soc-dashboard-profiles";
 const ACTIVE_PROFILE_KEY = "soc-dashboard-active-profile";
 
-function loadProfiles(): DashboardProfile[] {
+// ── localStorage helpers (cache layer) ──
+function loadLocalProfiles(): DashboardProfile[] {
   try {
     const stored = localStorage.getItem(PROFILES_KEY);
     if (stored) {
       const parsed = JSON.parse(stored) as DashboardProfile[];
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
     }
-  } catch { /* ignore */ }
-  // Seed with a "Default" profile from existing layout
-  const widgets = loadLegacyLayout();
-  const seed: DashboardProfile = {
-    id: "default",
-    name: "Default",
-    widgets,
-    isDefault: true,
-    createdAt: new Date().toISOString(),
-  };
-  return [seed];
+  } catch {}
+  return [{ id: "default", name: "Default", widgets: DEFAULT_WIDGETS, isDefault: true, createdAt: new Date().toISOString() }];
 }
 
-function loadLegacyLayout(): WidgetConfig[] {
+function saveLocalProfiles(profiles: DashboardProfile[], activeId: string | null) {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const parsed: DashboardLayout = JSON.parse(stored);
-      if (parsed.widgets?.length > 0) return parsed.widgets;
-    }
-  } catch { /* ignore */ }
-  return DEFAULT_WIDGETS;
+    localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles));
+    if (activeId) localStorage.setItem(ACTIVE_PROFILE_KEY, activeId);
+    const active = profiles.find(p => p.id === activeId) ?? profiles[0];
+    if (active) localStorage.setItem(STORAGE_KEY, JSON.stringify({ widgets: active.widgets }));
+  } catch {}
 }
 
-function saveProfiles(profiles: DashboardProfile[]) {
-  try { localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles)); } catch { /* ignore */ }
-}
-
-function loadActiveProfileId(profiles: DashboardProfile[]): string {
+function loadLocalActiveId(profiles: DashboardProfile[]): string {
   try {
     const stored = localStorage.getItem(ACTIVE_PROFILE_KEY);
     if (stored && profiles.some(p => p.id === stored)) return stored;
-  } catch { /* ignore */ }
-  const def = profiles.find(p => p.isDefault);
-  return def?.id ?? profiles[0]?.id ?? "default";
+  } catch {}
+  return profiles.find(p => p.isDefault)?.id ?? profiles[0]?.id ?? "default";
 }
 
-function saveActiveProfileId(id: string) {
-  try { localStorage.setItem(ACTIVE_PROFILE_KEY, id); } catch { /* ignore */ }
-}
-
-/** Also keep legacy key in sync so old code/tab still works */
-function saveLegacyLayout(widgets: WidgetConfig[]) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ widgets })); } catch { /* ignore */ }
+// ── API sync helper ──
+function syncToAPI(profiles: DashboardProfile[], activeId: string | null) {
+  api.saveDashboardProfiles(
+    profiles.map(p => ({
+      id: p.id,
+      name: p.name,
+      widgets: p.widgets as unknown[],
+      is_default: p.isDefault,
+    })),
+    activeId
+  ).catch(() => {}); // Silent fail — localStorage is the fallback
 }
 
 export function DashboardProvider({ children }: { children: ReactNode }) {
-  const [profiles, setProfiles] = useState<DashboardProfile[]>(loadProfiles);
-  const [activeProfileId, setActiveProfileId] = useState<string>(() => loadActiveProfileId(profiles));
+  const [profiles, setProfiles] = useState<DashboardProfile[]>(loadLocalProfiles);
+  const [activeProfileId, setActiveProfileId] = useState<string>(() => loadLocalActiveId(profiles));
   const [editMode, setEditMode] = useState(false);
+  const apiLoaded = useRef(false);
 
-  // Derive widgets from active profile
+  // Load from API on mount (override localStorage if API has data)
+  useEffect(() => {
+    if (apiLoaded.current) return;
+    apiLoaded.current = true;
+    api.getDashboardProfiles().then(serverProfiles => {
+      if (!serverProfiles || serverProfiles.length === 0) return; // No server data, keep local
+      const mapped: DashboardProfile[] = serverProfiles.map(p => ({
+        id: p.id,
+        name: p.name,
+        widgets: p.widgets as WidgetConfig[],
+        isDefault: p.is_default,
+        createdAt: new Date().toISOString(),
+      }));
+      const activeFromServer = serverProfiles.find(p => p.is_active)?.id
+        ?? serverProfiles.find(p => p.is_default)?.id
+        ?? serverProfiles[0]?.id;
+      setProfiles(mapped);
+      if (activeFromServer) setActiveProfileId(activeFromServer);
+      saveLocalProfiles(mapped, activeFromServer ?? null);
+    }).catch(() => {}); // Offline — use localStorage
+  }, []);
+
   const activeProfile = profiles.find(p => p.id === activeProfileId) ?? profiles[0];
   const widgets = activeProfile?.widgets ?? DEFAULT_WIDGETS;
 
-  // Helper: update widgets for the active profile
+  // Persist helper
+  const persist = useCallback((nextProfiles: DashboardProfile[], nextActiveId?: string) => {
+    const aid = nextActiveId ?? activeProfileId;
+    saveLocalProfiles(nextProfiles, aid);
+    syncToAPI(nextProfiles, aid);
+    return nextProfiles;
+  }, [activeProfileId]);
+
   const updateActiveWidgets = useCallback((next: WidgetConfig[]) => {
     setProfiles(prev => {
-      const updated = prev.map(p =>
-        p.id === activeProfileId ? { ...p, widgets: next } : p
-      );
-      saveProfiles(updated);
-      saveLegacyLayout(next);
-      return updated;
+      const updated = prev.map(p => p.id === activeProfileId ? { ...p, widgets: next } : p);
+      return persist(updated);
     });
-  }, [activeProfileId]);
+  }, [activeProfileId, persist]);
 
   const addWidget = useCallback((name: string, chartType: ChartType, dataSource: DataSource) => {
     const maxY = widgets.reduce((m, w) => Math.max(m, w.y + w.h), 0);
-    const newWidget: WidgetConfig = {
-      id: uuidv4(),
-      name,
-      chartType,
-      dataSource,
-      builtIn: false,
-      w: 6,
-      h: 5,
-      x: 0,
-      y: maxY,
-    };
+    const newWidget: WidgetConfig = { id: uuidv4(), name, chartType, dataSource, builtIn: false, w: 6, h: 5, x: 0, y: maxY };
     updateActiveWidgets([...widgets, newWidget]);
   }, [widgets, updateActiveWidgets]);
 
@@ -157,76 +160,55 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     updateActiveWidgets(DEFAULT_WIDGETS);
   }, [updateActiveWidgets]);
 
-  /* ── Profile operations ── */
-
   const switchProfile = useCallback((id: string) => {
     setActiveProfileId(id);
-    saveActiveProfileId(id);
-    const target = profiles.find(p => p.id === id);
-    if (target) saveLegacyLayout(target.widgets);
-  }, [profiles]);
+    setProfiles(prev => persist(prev, id));
+  }, [persist]);
 
   const setAsDefault = useCallback(() => {
     setProfiles(prev => {
       const updated = prev.map(p => ({ ...p, isDefault: p.id === activeProfileId }));
-      saveProfiles(updated);
-      return updated;
+      return persist(updated);
     });
-  }, [activeProfileId]);
+  }, [activeProfileId, persist]);
 
   const saveToNewProfile = useCallback((name: string) => {
     const newProfile: DashboardProfile = {
-      id: uuidv4(),
-      name,
-      widgets: JSON.parse(JSON.stringify(widgets)), // deep clone
-      isDefault: false,
-      createdAt: new Date().toISOString(),
+      id: uuidv4(), name, widgets: JSON.parse(JSON.stringify(widgets)), isDefault: false, createdAt: new Date().toISOString(),
     };
+    const newId = newProfile.id;
     setProfiles(prev => {
       const updated = [...prev, newProfile];
-      saveProfiles(updated);
-      return updated;
+      return persist(updated, newId);
     });
-    setActiveProfileId(newProfile.id);
-    saveActiveProfileId(newProfile.id);
-  }, [widgets]);
+    setActiveProfileId(newId);
+  }, [widgets, persist]);
 
   const deleteProfile = useCallback((id: string) => {
     setProfiles(prev => {
-      if (prev.length <= 1) return prev; // cannot delete last profile
-      const updated = prev.filter(p => p.id !== id);
-      // if deleted the default, make the first one default
-      if (!updated.some(p => p.isDefault) && updated.length > 0) {
-        updated[0].isDefault = true;
-      }
-      saveProfiles(updated);
-      // if active was deleted, switch to default
-      if (id === activeProfileId) {
-        const def = updated.find(p => p.isDefault) ?? updated[0];
-        setActiveProfileId(def.id);
-        saveActiveProfileId(def.id);
-        saveLegacyLayout(def.widgets);
-      }
-      return updated;
+      if (prev.length <= 1) return prev;
+      let updated = prev.filter(p => p.id !== id);
+      if (!updated.some(p => p.isDefault) && updated.length > 0) updated[0].isDefault = true;
+      const newActiveId = id === activeProfileId ? (updated[0]?.id ?? "default") : activeProfileId;
+      if (id === activeProfileId) setActiveProfileId(newActiveId);
+      return persist(updated, newActiveId);
     });
-  }, [activeProfileId]);
+  }, [activeProfileId, persist]);
 
   const renameProfile = useCallback((id: string, name: string) => {
     setProfiles(prev => {
       const updated = prev.map(p => p.id === id ? { ...p, name } : p);
-      saveProfiles(updated);
-      return updated;
+      return persist(updated);
     });
-  }, []);
+  }, [persist]);
 
   return (
-    <DashboardContext.Provider
-      value={{
-        widgets, editMode, setEditMode,
-        addWidget, removeWidget, updateWidget, updateLayout, resetLayout,
-        profiles, activeProfileId, switchProfile, setAsDefault, saveToNewProfile, deleteProfile, renameProfile,
-      }}
-    >
+    <DashboardContext.Provider value={{
+      widgets, editMode, setEditMode,
+      addWidget, removeWidget, updateWidget, updateLayout, resetLayout,
+      profiles, activeProfileId, switchProfile, setAsDefault,
+      saveToNewProfile, deleteProfile, renameProfile,
+    }}>
       {children}
     </DashboardContext.Provider>
   );
