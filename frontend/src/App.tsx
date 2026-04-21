@@ -294,7 +294,7 @@ function AppShell() {
                 }}
               >
                 <Globe className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Threat Map</span>
+                <span className="hidden sm:inline">Threats</span>
               </button>
               <button
                 onClick={() => setPage("topology")}

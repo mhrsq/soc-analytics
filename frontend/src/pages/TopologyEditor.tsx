@@ -1,660 +1,312 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+/**
+ * Topology Editor — Network graph editor with map coordinate picker
+ * Simplified: focused on site/node management with visual graph layout
+ */
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import ReactFlow, {
-  Background,
-  Controls,
-  MiniMap,
-  addEdge,
-  applyNodeChanges,
-  applyEdgeChanges,
-  type Node,
-  type Edge,
-  type OnNodesChange,
-  type OnEdgesChange,
-  type OnConnect,
-  type NodeTypes,
-  Handle,
-  Position,
+  Background, Controls, MiniMap,
+  applyNodeChanges, applyEdgeChanges, addEdge,
+  type Node, type Edge, type OnNodesChange, type OnEdgesChange, type OnConnect,
 } from "reactflow";
 import "reactflow/dist/style.css";
+import { Server, Shield, Monitor, Database, Cloud, Radio, Router as RouterIcon, Cpu, Plus, Trash2, Save, X, MapPin } from "lucide-react";
 import { api } from "../api/client";
-import type { TopologyNode, TopologyLink, TopologyNodeCreate, TopologyLinkCreate } from "../types";
-import {
-  Plus, Trash2, Save, X, Server, Shield, Monitor, Database, Cloud, Radio,
-  Router, Cpu, Globe, ChevronDown,
-} from "lucide-react";
+import type { TopologyNode, TopologyLink } from "../types";
 
-// ── Node type config ───────────────────────────────────────────
-const NODE_TYPE_CONFIG: Record<string, { label: string; color: string; icon: typeof Server }> = {
-  server: { label: "Server", color: "#60a5fa", icon: Server },
+// ── Node type config ──
+const NODE_CONFIG: Record<string, { label: string; color: string; icon: typeof Server }> = {
+  server:   { label: "Server",   color: "#60a5fa", icon: Server },
   firewall: { label: "Firewall", color: "#f59e0b", icon: Shield },
   endpoint: { label: "Endpoint", color: "#10b981", icon: Monitor },
   database: { label: "Database", color: "#9b9ba8", icon: Database },
-  cloud: { label: "Cloud", color: "#a78bfa", icon: Cloud },
-  siem: { label: "SIEM", color: "#ef4444", icon: Radio },
-  router: { label: "Router", color: "#8B5CF6", icon: Router },
-  switch: { label: "Switch", color: "#60a5fa", icon: Cpu },
+  cloud:    { label: "Cloud",    color: "#a78bfa", icon: Cloud },
+  siem:     { label: "SIEM",     color: "#ef4444", icon: Radio },
+  router:   { label: "Router",   color: "#8B5CF6", icon: RouterIcon },
+  switch:   { label: "Switch",   color: "#60a5fa", icon: Cpu },
 };
 
 const LINK_TYPES = ["fiber", "vpn", "internet", "lan", "wan", "mpls"];
 
-// ── Custom topology node ───────────────────────────────────────
-function TopologyNodeComponent({ data }: { data: { label: string; nodeType: string; hostname: string; customer: string; selected: boolean } }) {
-  const config = NODE_TYPE_CONFIG[data.nodeType] || NODE_TYPE_CONFIG.server;
-  const IconComp = config.icon;
+// ── Custom node renderer ──
+function TopoNode({ data }: { data: { label: string; nodeType: string; hostname: string; customer: string } }) {
+  const cfg = NODE_CONFIG[data.nodeType] || NODE_CONFIG.server;
+  const Icon = cfg.icon;
   return (
     <div
-      className={`relative px-3 py-2 rounded-lg border-2 min-w-[100px] text-center transition-all ${
-        data.selected ? "ring-2 ring-blue-400 ring-offset-2 ring-offset-[#0a0a0c]" : ""
-      }`}
-      style={{
-        background: "rgba(10,10,12,0.92)",
-        borderColor: config.color + "80",
-        boxShadow: `0 0 12px ${config.color}30`,
-      }}
+      className="rounded-lg px-3 py-2 min-w-[120px] text-center border"
+      style={{ backgroundColor: "#141418", borderColor: cfg.color + "40", boxShadow: `0 0 8px ${cfg.color}15` }}
     >
-      <Handle type="target" position={Position.Top} className="!w-2 !h-2 !bg-white/30 !border-white/20" />
-      <Handle type="source" position={Position.Bottom} className="!w-2 !h-2 !bg-white/30 !border-white/20" />
-      <Handle type="target" position={Position.Left} className="!w-2 !h-2 !bg-white/30 !border-white/20" id="left" />
-      <Handle type="source" position={Position.Right} className="!w-2 !h-2 !bg-white/30 !border-white/20" id="right" />
-
-      <div className="flex flex-col items-center gap-1">
-        <IconComp className="w-5 h-5" style={{ color: config.color }} />
-        <p className="text-xs font-semibold text-white/90 leading-tight">{data.label}</p>
-        {data.hostname && (
-          <p className="text-[9px] text-white/40 font-mono truncate max-w-[90px]">{data.hostname}</p>
-        )}
-        {data.customer && (
-          <p className="text-[9px] px-1.5 rounded-full" style={{ background: config.color + "20", color: config.color }}>
-            {data.customer}
-          </p>
-        )}
-      </div>
+      <Icon className="w-5 h-5 mx-auto mb-1" style={{ color: cfg.color }} />
+      <div className="text-xs font-medium truncate" style={{ color: "#e8e8ec" }}>{data.label}</div>
+      {data.hostname && <div className="text-[9px] font-mono truncate" style={{ color: "#646471" }}>{data.hostname}</div>}
+      {data.customer && <div className="text-[9px] truncate" style={{ color: "#646471" }}>{data.customer}</div>}
     </div>
   );
 }
 
-const nodeTypes: NodeTypes = {
-  topology: TopologyNodeComponent,
-};
+const nodeTypes = { topology: TopoNode };
 
-// ── Main Component ─────────────────────────────────────────────
 export function TopologyEditor() {
-  const [nodes, setNodes] = useState<Node[]>([]);
-  const [edges, setEdges] = useState<Edge[]>([]);
+  const [rfNodes, setRfNodes] = useState<Node[]>([]);
+  const [rfEdges, setRfEdges] = useState<Edge[]>([]);
   const [topoNodes, setTopoNodes] = useState<TopologyNode[]>([]);
   const [topoLinks, setTopoLinks] = useState<TopologyLink[]>([]);
-  const [selectedNode, setSelectedNode] = useState<TopologyNode | null>(null);
-  const [selectedEdge, setSelectedEdge] = useState<string | null>(null);
-  const [panelOpen, setPanelOpen] = useState(false);
-  const [addMode, setAddMode] = useState(false);
+  const [showPanel, setShowPanel] = useState<"add" | "edit" | null>(null);
+  const [editNode, setEditNode] = useState<TopologyNode | null>(null);
+  const [assets, setAssets] = useState<{ asset_name: string; count: number }[]>([]);
   const [customers, setCustomers] = useState<string[]>([]);
-  const [ticketAssets, setTicketAssets] = useState<{ asset_name: string; count: number }[]>([]);
-  const [saving, setSaving] = useState(false);
-  const [dirty, setDirty] = useState(false);
-  const dragSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Node form
-  const [nodeForm, setNodeForm] = useState({
-    label: "",
-    hostname: "",
-    customer: "",
-    node_type: "server",
-    lat: "",
-    lng: "",
-  });
-
-  // Link form
-  const [linkForm, setLinkForm] = useState({
-    link_type: "lan",
-    label: "",
-    bandwidth: "",
-  });
+  // Form state
+  const [form, setForm] = useState({ label: "", node_type: "server", hostname: "", customer: "", lat: "", lng: "" });
 
   // Load data
   const loadData = useCallback(async () => {
     try {
-      const [nodeData, linkData, opts, assetData] = await Promise.all([
+      const [nodes, links, assetData, filterOpts] = await Promise.all([
         api.getTopologyNodes(),
         api.getTopologyLinks(),
-        api.getFilterOptions(),
         api.getTicketAssets(),
+        api.getFilterOptions(),
       ]);
-      setTopoNodes(nodeData);
-      setTopoLinks(linkData);
-      setCustomers(opts.customers);
-      setTicketAssets(assetData);
+      setTopoNodes(nodes);
+      setTopoLinks(links);
+      setAssets(assetData);
+      setCustomers(filterOpts.customers || []);
 
-      // Convert to ReactFlow nodes
-      setNodes(
-        nodeData.map((n) => ({
-          id: String(n.id),
-          type: "topology",
-          position: { x: n.pos_x, y: n.pos_y },
-          data: {
-            label: n.label,
-            nodeType: n.node_type,
-            hostname: n.hostname || "",
-            customer: n.customer || "",
-            selected: false,
-          },
-        }))
-      );
-
-      // Convert to ReactFlow edges
-      setEdges(
-        linkData.map((l) => ({
-          id: String(l.id),
-          source: String(l.source_id),
-          target: String(l.target_id),
-          label: l.label || l.link_type,
-          type: "default",
-          animated: l.link_type === "vpn" || l.link_type === "internet",
-          style: {
-            stroke: l.link_type === "fiber" ? "#60a5fa" : l.link_type === "vpn" ? "#a78bfa" : l.link_type === "internet" ? "#9b9ba8" : "#666",
-            strokeWidth: l.bandwidth ? Math.min(1 + (parseInt(l.bandwidth) || 0) / 500, 4) : 2,
-          },
-          labelStyle: { fill: "#aaa", fontSize: 10 },
-          labelBgStyle: { fill: "#0a0a0c", fillOpacity: 0.8 },
-        }))
-      );
-    } catch (e) {
-      console.error("Failed to load topology:", e);
-    }
+      // Convert to ReactFlow format
+      setRfNodes(nodes.map(n => ({
+        id: String(n.id),
+        type: "topology",
+        position: { x: n.pos_x || Math.random() * 600, y: n.pos_y || Math.random() * 400 },
+        data: { label: n.label, nodeType: n.node_type, hostname: n.hostname || "", customer: n.customer || "" },
+      })));
+      setRfEdges(links.map(l => ({
+        id: String(l.id),
+        source: String(l.source_id),
+        target: String(l.target_id),
+        label: l.label || l.link_type,
+        style: { stroke: l.link_type === "fiber" ? "#60a5fa" : l.link_type === "vpn" ? "#a78bfa" : "#3e3e48", strokeWidth: 1.5 },
+        animated: l.link_type === "vpn" || l.link_type === "internet",
+        labelStyle: { fill: "#646471", fontSize: 9 },
+        labelBgStyle: { fill: "#0a0a0c", fillOpacity: 0.8 },
+      })));
+    } catch (e) { console.error("Failed to load topology:", e); }
   }, []);
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  useEffect(() => { loadData(); }, [loadData]);
 
-  // ── ReactFlow handlers ──
-  const onNodesChange: OnNodesChange = useCallback(
-    (changes) => {
-      setNodes((nds) => applyNodeChanges(changes, nds));
-      // Check for position changes (drag) and save positions
-      const posChanges = changes.filter((c) => c.type === "position" && c.dragging === false);
-      if (posChanges.length > 0) {
-        setDirty(true);
-        // Debounce position save
-        if (dragSaveTimerRef.current) clearTimeout(dragSaveTimerRef.current);
-        dragSaveTimerRef.current = setTimeout(() => {
-          savePositions();
-        }, 1000);
-      }
-    },
-    []
-  );
+  // ReactFlow handlers
+  const onNodesChange: OnNodesChange = useCallback((changes) => setRfNodes(nds => applyNodeChanges(changes, nds)), []);
+  const onEdgesChange: OnEdgesChange = useCallback((changes) => setRfEdges(eds => applyEdgeChanges(changes, eds)), []);
+  const onConnect: OnConnect = useCallback(async (conn) => {
+    if (!conn.source || !conn.target) return;
+    try {
+      const link = await api.createTopologyLink({ source_id: Number(conn.source), target_id: Number(conn.target), link_type: "lan" });
+      setRfEdges(eds => addEdge({
+        ...conn, id: String(link.id), label: "lan",
+        style: { stroke: "#3e3e48", strokeWidth: 1.5 },
+        labelStyle: { fill: "#646471", fontSize: 9 },
+        labelBgStyle: { fill: "#0a0a0c", fillOpacity: 0.8 },
+      }, eds));
+    } catch {}
+  }, []);
 
-  const onEdgesChange: OnEdgesChange = useCallback(
-    (changes) => setEdges((eds) => applyEdgeChanges(changes, eds)),
-    []
-  );
-
-  const onConnect: OnConnect = useCallback(
-    async (connection) => {
-      if (!connection.source || !connection.target) return;
-      try {
-        const link = await api.createTopologyLink({
-          source_id: parseInt(connection.source),
-          target_id: parseInt(connection.target),
-          link_type: "lan",
-          label: "",
-        });
-        setTopoLinks((prev) => [...prev, link]);
-        setEdges((eds) =>
-          addEdge(
-            {
-              ...connection,
-              id: String(link.id),
-              animated: false,
-              style: { stroke: "#666", strokeWidth: 2 },
-              label: "lan",
-              labelStyle: { fill: "#aaa", fontSize: 10 },
-              labelBgStyle: { fill: "#0a0a0c", fillOpacity: 0.8 },
-            },
-            eds
-          )
-        );
-      } catch (e) {
-        console.error("Failed to create link:", e);
-      }
-    },
-    []
-  );
-
-  const onNodeClick = useCallback(
-    (_: React.MouseEvent, node: Node) => {
-      const topoNode = topoNodes.find((n) => n.id === parseInt(node.id));
-      if (topoNode) {
-        setSelectedNode(topoNode);
-        setSelectedEdge(null);
-        setNodeForm({
-          label: topoNode.label,
-          hostname: topoNode.hostname || "",
-          customer: topoNode.customer || "",
-          node_type: topoNode.node_type,
-          lat: topoNode.lat != null ? String(topoNode.lat) : "",
-          lng: topoNode.lng != null ? String(topoNode.lng) : "",
-        });
-        setPanelOpen(true);
-        setAddMode(false);
-      }
-    },
-    [topoNodes]
-  );
-
-  const onEdgeClick = useCallback(
-    (_: React.MouseEvent, edge: Edge) => {
-      const topoLink = topoLinks.find((l) => l.id === parseInt(edge.id));
-      if (topoLink) {
-        setSelectedEdge(edge.id);
-        setSelectedNode(null);
-        setLinkForm({
-          link_type: topoLink.link_type || "lan",
-          label: topoLink.label || "",
-          bandwidth: topoLink.bandwidth || "",
-        });
-        setPanelOpen(true);
-        setAddMode(false);
-      }
-    },
-    [topoLinks]
-  );
-
-  // ── Save positions (bulk update) ──
+  // Save positions on drag end
   const savePositions = useCallback(async () => {
-    setNodes((current) => {
-      const positions = current.map((n) => ({
-        id: parseInt(n.id),
-        pos_x: Math.round(n.position.x),
-        pos_y: Math.round(n.position.y),
-      }));
-      api.updateTopologyPositions(positions).then(() => setDirty(false)).catch(console.error);
-      return current;
-    });
-  }, []);
+    const positions = rfNodes.map(n => ({ id: Number(n.id), pos_x: n.position.x, pos_y: n.position.y }));
+    try { await api.updateTopologyPositions(positions); } catch {}
+  }, [rfNodes]);
 
-  // ── Add node ──
-  const handleAddNode = async () => {
-    if (!nodeForm.label) return;
-    setSaving(true);
-    try {
-      const data: TopologyNodeCreate = {
-        label: nodeForm.label,
-        hostname: nodeForm.hostname || undefined,
-        customer: nodeForm.customer || undefined,
-        node_type: nodeForm.node_type,
-        lat: nodeForm.lat ? parseFloat(nodeForm.lat) : undefined,
-        lng: nodeForm.lng ? parseFloat(nodeForm.lng) : undefined,
-        pos_x: 200 + Math.random() * 400,
-        pos_y: 200 + Math.random() * 400,
-      };
-      const created = await api.createTopologyNode(data);
-      setTopoNodes((prev) => [...prev, created]);
-      setNodes((prev) => [
-        ...prev,
-        {
-          id: String(created.id),
-          type: "topology",
-          position: { x: created.pos_x, y: created.pos_y },
-          data: {
-            label: created.label,
-            nodeType: created.node_type,
-            hostname: created.hostname || "",
-            customer: created.customer || "",
-            selected: false,
-          },
-        },
-      ]);
-      setAddMode(false);
-      setNodeForm({ label: "", hostname: "", customer: "", node_type: "server", lat: "", lng: "" });
-    } catch (e) {
-      console.error("Failed to add node:", e);
-    } finally {
-      setSaving(false);
+  // Node click → edit
+  const onNodeClick = useCallback((_: any, node: Node) => {
+    const tn = topoNodes.find(n => n.id === Number(node.id));
+    if (tn) {
+      setEditNode(tn);
+      setForm({ label: tn.label, node_type: tn.node_type, hostname: tn.hostname || "", customer: tn.customer || "", lat: tn.lat?.toString() || "", lng: tn.lng?.toString() || "" });
+      setShowPanel("edit");
     }
-  };
+  }, [topoNodes]);
 
-  // ── Update node ──
-  const handleUpdateNode = async () => {
-    if (!selectedNode) return;
-    setSaving(true);
+  // Create node
+  const createNode = async () => {
+    if (!form.label.trim()) return;
     try {
-      const updated = await api.updateTopologyNode(selectedNode.id, {
-        label: nodeForm.label,
-        hostname: nodeForm.hostname || undefined,
-        customer: nodeForm.customer || undefined,
-        node_type: nodeForm.node_type,
-        lat: nodeForm.lat ? parseFloat(nodeForm.lat) : undefined,
-        lng: nodeForm.lng ? parseFloat(nodeForm.lng) : undefined,
+      const node = await api.createTopologyNode({
+        label: form.label, node_type: form.node_type, hostname: form.hostname || undefined,
+        customer: form.customer || undefined, lat: form.lat ? Number(form.lat) : undefined,
+        lng: form.lng ? Number(form.lng) : undefined,
       });
-      setTopoNodes((prev) => prev.map((n) => (n.id === updated.id ? updated : n)));
-      setNodes((prev) =>
-        prev.map((n) =>
-          n.id === String(updated.id)
-            ? {
-                ...n,
-                data: {
-                  label: updated.label,
-                  nodeType: updated.node_type,
-                  hostname: updated.hostname || "",
-                  customer: updated.customer || "",
-                  selected: false,
-                },
-              }
-            : n
-        )
-      );
-      setSelectedNode(updated);
-    } catch (e) {
-      console.error("Failed to update node:", e);
-    } finally {
-      setSaving(false);
-    }
+      setShowPanel(null);
+      setForm({ label: "", node_type: "server", hostname: "", customer: "", lat: "", lng: "" });
+      await loadData();
+    } catch {}
   };
 
-  // ── Delete node ──
-  const handleDeleteNode = async () => {
-    if (!selectedNode) return;
+  // Update node
+  const updateNode = async () => {
+    if (!editNode) return;
     try {
-      await api.deleteTopologyNode(selectedNode.id);
-      setTopoNodes((prev) => prev.filter((n) => n.id !== selectedNode.id));
-      setTopoLinks((prev) => prev.filter((l) => l.source_id !== selectedNode.id && l.target_id !== selectedNode.id));
-      setNodes((prev) => prev.filter((n) => n.id !== String(selectedNode.id)));
-      setEdges((prev) =>
-        prev.filter((e) => e.source !== String(selectedNode.id) && e.target !== String(selectedNode.id))
-      );
-      setSelectedNode(null);
-      setPanelOpen(false);
-    } catch (e) {
-      console.error("Failed to delete node:", e);
-    }
-  };
-
-  // ── Update link ──
-  const handleUpdateLink = async () => {
-    if (!selectedEdge) return;
-    setSaving(true);
-    try {
-      const updated = await api.updateTopologyLink(parseInt(selectedEdge), {
-        link_type: linkForm.link_type,
-        label: linkForm.label || undefined,
-        bandwidth: linkForm.bandwidth || undefined,
+      await api.updateTopologyNode(editNode.id, {
+        label: form.label, node_type: form.node_type, hostname: form.hostname || undefined,
+        customer: form.customer || undefined, lat: form.lat ? Number(form.lat) : undefined,
+        lng: form.lng ? Number(form.lng) : undefined,
       });
-      setTopoLinks((prev) => prev.map((l) => (l.id === updated.id ? updated : l)));
-      setEdges((prev) =>
-        prev.map((e) =>
-          e.id === selectedEdge
-            ? {
-                ...e,
-                label: updated.label || updated.link_type,
-                animated: updated.link_type === "vpn" || updated.link_type === "internet",
-                style: {
-                  stroke: updated.link_type === "fiber" ? "#60a5fa" : updated.link_type === "vpn" ? "#a78bfa" : updated.link_type === "internet" ? "#9b9ba8" : "#666",
-                  strokeWidth: updated.bandwidth ? Math.min(1 + (parseInt(updated.bandwidth) || 0) / 500, 4) : 2,
-                },
-              }
-            : e
-        )
-      );
-    } catch (e) {
-      console.error("Failed to update link:", e);
-    } finally {
-      setSaving(false);
-    }
+      setShowPanel(null);
+      setEditNode(null);
+      await loadData();
+    } catch {}
   };
 
-  // ── Delete link ──
-  const handleDeleteLink = async () => {
-    if (!selectedEdge) return;
+  // Delete node
+  const deleteNode = async () => {
+    if (!editNode || !confirm(`Delete "${editNode.label}"?`)) return;
     try {
-      await api.deleteTopologyLink(parseInt(selectedEdge));
-      setTopoLinks((prev) => prev.filter((l) => l.id !== parseInt(selectedEdge)));
-      setEdges((prev) => prev.filter((e) => e.id !== selectedEdge));
-      setSelectedEdge(null);
-      setPanelOpen(false);
-    } catch (e) {
-      console.error("Failed to delete link:", e);
-    }
+      await api.deleteTopologyNode(editNode.id);
+      setShowPanel(null);
+      setEditNode(null);
+      await loadData();
+    } catch {}
   };
-
-  const inputCls = "w-full px-2 py-1.5 rounded-lg text-xs focus:outline-none transition-colors theme-input";
-  const selectCls = `${inputCls} appearance-none pr-7 cursor-pointer`;
-  const chevronCls = "absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 pointer-events-none" as const;
 
   return (
-    <div className="relative w-full" style={{ height: "calc(100vh - 56px)", background: "#0a0a0c" }}>
-      {/* ReactFlow Canvas */}
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        onNodeClick={onNodeClick}
-        onEdgeClick={onEdgeClick}
-        nodeTypes={nodeTypes}
-        fitView
-        proOptions={{ hideAttribution: true }}
-        style={{ background: "#0a0a0c" }}
-        defaultEdgeOptions={{
-          type: "default",
-          style: { stroke: "#666", strokeWidth: 2 },
-          labelStyle: { fill: "#aaa", fontSize: 10 },
-          labelBgStyle: { fill: "#0a0a0c", fillOpacity: 0.8 },
-        }}
-      >
-        <Background color="#1a1a2e" gap={20} size={1} />
-        <Controls
-          position="bottom-right"
-          style={{ background: "#0a0a0c", border: "1px solid rgba(38,38,46,0.8)", borderRadius: 8 }}
-        />
-        <MiniMap
-          style={{ background: "#0a0a0c", border: "1px solid rgba(38,38,46,0.8)", borderRadius: 8 }}
-          nodeColor={(n) => {
-            const nodeType = n.data?.nodeType || "server";
-            return NODE_TYPE_CONFIG[nodeType]?.color || "#60a5fa";
-          }}
-          maskColor="rgba(10,10,26,0.8)"
-        />
-      </ReactFlow>
+    <div className="relative w-full flex" style={{ height: "calc(100vh - 56px)", background: "#0a0a0c" }}>
+      {/* Graph Canvas */}
+      <div className="flex-1">
+        <ReactFlow
+          nodes={rfNodes}
+          edges={rfEdges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          onNodeClick={onNodeClick}
+          onNodeDragStop={savePositions}
+          nodeTypes={nodeTypes}
+          fitView
+          style={{ background: "#0a0a0c" }}
+          defaultEdgeOptions={{ type: "default" }}
+        >
+          <Background gap={32} size={1} color="#1d1d23" />
+          <Controls position="top-left" style={{ background: "#141418", border: "1px solid #26262e", borderRadius: 8 }} />
+          <MiniMap style={{ background: "#141418", border: "1px solid #26262e", borderRadius: 8 }} nodeColor={(n) => NODE_CONFIG[n.data?.nodeType]?.color || "#60a5fa"} />
+        </ReactFlow>
 
-      {/* Top toolbar */}
-      <div className="absolute top-0 left-0 right-0 z-[1000] flex items-center justify-between px-4 py-3"
-        style={{ background: "linear-gradient(180deg, rgba(10,10,26,0.95) 0%, rgba(10,10,26,0) 100%)" }}>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <Globe className="w-5 h-5 text-blue-400" />
-            <h2 className="text-base font-semibold tracking-tight" style={{ color: "var(--theme-text-primary)" }}>Topology Editor</h2>
+        {/* Empty state */}
+        {topoNodes.length === 0 && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="text-center">
+              <Server className="w-10 h-10 mx-auto mb-3 opacity-20" style={{ color: "#646471" }} />
+              <p className="text-sm" style={{ color: "#646471" }}>No topology nodes yet</p>
+              <p className="text-xs mt-1" style={{ color: "#3e3e48" }}>Click "Add Node" to start building your network</p>
+            </div>
           </div>
-          <span className="text-xs text-white/40 font-mono">{topoNodes.length} nodes · {topoLinks.length} links</span>
-          {dirty && <span className="text-[10px] text-yellow-400/80 font-mono">unsaved positions</span>}
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => { setAddMode(true); setPanelOpen(true); setSelectedNode(null); setSelectedEdge(null); setNodeForm({ label: "", hostname: "", customer: "", node_type: "server", lat: "", lng: "" }); }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30 transition-colors"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            Add Node
-          </button>
-          <button onClick={savePositions}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium bg-white/5 border border-white/10 text-white/60 hover:text-blue-400 hover:border-blue-500/30 transition-colors"
-            title="Save positions">
-            <Save className="w-3.5 h-3.5" />
-          </button>
-        </div>
+        )}
       </div>
 
-      {/* Node type palette (left side) */}
-      <div className="absolute top-16 left-4 z-[1000] rounded-lg p-2 space-y-1"
-        style={{ background: "rgba(10,10,26,0.85)", border: "1px solid rgba(38,38,46,0.8)" }}>
-        <p className="text-[9px] font-semibold uppercase tracking-widest text-blue-400/60 px-1 pb-1">Node Types</p>
-        {Object.entries(NODE_TYPE_CONFIG).map(([type, config]) => {
-          const IconComp = config.icon;
+      {/* Toolbar */}
+      <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+        <span className="text-xs font-mono px-2 py-1 rounded" style={{ backgroundColor: "#141418", border: "1px solid #26262e", color: "#646471" }}>
+          {topoNodes.length} nodes · {topoLinks.length} links
+        </span>
+        <button onClick={() => { setShowPanel("add"); setEditNode(null); setForm({ label: "", node_type: "server", hostname: "", customer: "", lat: "", lng: "" }); }}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors hover:bg-white/[0.05]"
+          style={{ backgroundColor: "#141418", border: "1px solid #26262e", color: "#e8e8ec" }}>
+          <Plus className="w-3.5 h-3.5" /> Add Node
+        </button>
+        <button onClick={savePositions}
+          className="p-1.5 rounded-lg transition-colors hover:bg-white/[0.05]"
+          style={{ backgroundColor: "#141418", border: "1px solid #26262e", color: "#9b9ba8" }} title="Save positions">
+          <Save className="w-3.5 h-3.5" />
+        </button>
+      </div>
+
+      {/* Node palette (left) */}
+      <div className="absolute top-16 left-4 z-10 flex flex-col gap-1 p-2 rounded-lg" style={{ backgroundColor: "#141418", border: "1px solid #26262e" }}>
+        {Object.entries(NODE_CONFIG).map(([type, cfg]) => {
+          const Icon = cfg.icon;
           return (
-            <button
-              key={type}
-              onClick={() => {
-                setAddMode(true);
-                setPanelOpen(true);
-                setSelectedNode(null);
-                setSelectedEdge(null);
-                setNodeForm({ label: "", hostname: "", customer: "", node_type: type, lat: "", lng: "" });
-              }}
-              className="flex items-center gap-2 w-full px-2 py-1.5 rounded text-left hover:bg-white/5 transition-colors group"
-              title={`Add ${config.label}`}
-            >
-              <IconComp className="w-3.5 h-3.5 flex-shrink-0" style={{ color: config.color }} />
-              <span className="text-[10px] text-white/50 group-hover:text-white/80">{config.label}</span>
+            <button key={type} onClick={() => { setShowPanel("add"); setForm({ label: "", node_type: type, hostname: "", customer: "", lat: "", lng: "" }); }}
+              className="flex items-center gap-2 px-2 py-1.5 rounded text-[10px] transition-colors hover:bg-white/[0.05]"
+              style={{ color: cfg.color }} title={cfg.label}>
+              <Icon className="w-3.5 h-3.5" />
+              <span style={{ color: "#9b9ba8" }}>{cfg.label}</span>
             </button>
           );
         })}
       </div>
 
-      {/* Right panel (node/link detail) */}
-      {panelOpen && (
-        <div className="absolute top-0 right-0 bottom-0 z-[1100] w-72 overflow-y-auto"
-          style={{ background: "rgba(10,10,26,0.95)", borderLeft: "1px solid rgba(38,38,46,0.8)" }}>
-
-          <div className="flex items-center justify-between p-3 border-b border-white/5">
-            <h3 className="text-sm font-semibold text-white">
-              {addMode ? "Add Node" : selectedNode ? "Edit Node" : selectedEdge ? "Edit Link" : "Details"}
-            </h3>
-            <button onClick={() => { setPanelOpen(false); setAddMode(false); }} className="text-white/40 hover:text-white">
+      {/* Side Panel (add/edit) */}
+      {showPanel && (
+        <div className="w-72 border-l shrink-0 overflow-y-auto" style={{ backgroundColor: "#0a0a0c", borderColor: "#1d1d23" }}>
+          <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid #1d1d23" }}>
+            <h3 className="text-sm font-medium" style={{ color: "#e8e8ec" }}>{showPanel === "add" ? "Add Node" : "Edit Node"}</h3>
+            <button onClick={() => { setShowPanel(null); setEditNode(null); }} className="p-1 rounded hover:bg-white/[0.05]" style={{ color: "#646471" }}>
               <X className="w-4 h-4" />
             </button>
           </div>
-
-          <div className="p-3 space-y-3">
-            {/* Add / Edit node form */}
-            {(addMode || selectedNode) && (
-              <>
-                <div>
-                  <label className="text-[10px] uppercase tracking-wider text-blue-400/60 block mb-1">Label *</label>
-                  <input value={nodeForm.label} onChange={(e) => setNodeForm({ ...nodeForm, label: e.target.value })} placeholder="e.g. Web Server 1" className={inputCls} />
-                </div>
-                <div>
-                  <label className="text-[10px] uppercase tracking-wider text-blue-400/60 block mb-1">Type</label>
-                  <div className="relative">
-                    <select value={nodeForm.node_type} onChange={(e) => setNodeForm({ ...nodeForm, node_type: e.target.value })} className={selectCls}>
-                      {Object.entries(NODE_TYPE_CONFIG).map(([k, v]) => (
-                        <option key={k} value={k}>{v.label}</option>
-                      ))}
-                    </select>
-                    <ChevronDown className={chevronCls} style={{ color: "var(--theme-text-muted)" }} />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-[10px] uppercase tracking-wider text-blue-400/60 block mb-1">Hostname / Asset</label>
-                  <div className="relative">
-                    <select
-                      value={nodeForm.hostname}
-                      onChange={(e) => setNodeForm({ ...nodeForm, hostname: e.target.value })}
-                      className={selectCls}
-                    >
-                      <option value="">Select from tickets...</option>
-                      {ticketAssets
-                        .filter((a) => !nodeForm.customer || a.asset_name.toLowerCase().includes(nodeForm.customer.toLowerCase()) || true)
-                        .map((a) => (
-                          <option key={a.asset_name} value={a.asset_name}>{a.asset_name} ({a.count} tickets)</option>
-                        ))}
-                    </select>
-                    <ChevronDown className={chevronCls} style={{ color: "var(--theme-text-muted)" }} />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-[10px] uppercase tracking-wider text-blue-400/60 block mb-1">Customer</label>
-                  <div className="relative">
-                    <select value={nodeForm.customer} onChange={(e) => setNodeForm({ ...nodeForm, customer: e.target.value })} className={selectCls}>
-                      <option value="">None</option>
-                      {customers.map((c) => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                    <ChevronDown className={chevronCls} style={{ color: "var(--theme-text-muted)" }} />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-[10px] uppercase tracking-wider text-blue-400/60 block mb-1">Latitude</label>
-                    <input value={nodeForm.lat} onChange={(e) => setNodeForm({ ...nodeForm, lat: e.target.value })} placeholder="Lat" type="number" step="any" className={inputCls} />
-                  </div>
-                  <div>
-                    <label className="text-[10px] uppercase tracking-wider text-blue-400/60 block mb-1">Longitude</label>
-                    <input value={nodeForm.lng} onChange={(e) => setNodeForm({ ...nodeForm, lng: e.target.value })} placeholder="Lng" type="number" step="any" className={inputCls} />
-                  </div>
-                </div>
-                <p className="text-[9px] text-white/30">Lat/Lng is used by the Threat Map to place this node on the map</p>
-
-                <div className="flex gap-2 pt-2">
-                  {addMode ? (
-                    <button onClick={handleAddNode} disabled={saving || !nodeForm.label}
-                      className="flex-1 py-1.5 rounded text-xs font-medium bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors disabled:opacity-40">
-                      {saving ? "Saving..." : "Create Node"}
-                    </button>
-                  ) : (
-                    <>
-                      <button onClick={handleUpdateNode} disabled={saving}
-                        className="flex-1 py-1.5 rounded text-xs font-medium bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors disabled:opacity-40">
-                        {saving ? "Saving..." : "Update"}
-                      </button>
-                      <button onClick={handleDeleteNode}
-                        className="py-1.5 px-3 rounded text-xs font-medium bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </>
-                  )}
-                </div>
-              </>
-            )}
-
-            {/* Edit link form */}
-            {selectedEdge && !selectedNode && !addMode && (
-              <>
-                <div>
-                  <label className="text-[10px] uppercase tracking-wider text-blue-400/60 block mb-1">Link Type</label>
-                  <div className="relative">
-                    <select value={linkForm.link_type} onChange={(e) => setLinkForm({ ...linkForm, link_type: e.target.value })} className={selectCls}>
-                      {LINK_TYPES.map((t) => <option key={t} value={t}>{t.toUpperCase()}</option>)}
-                    </select>
-                    <ChevronDown className={chevronCls} style={{ color: "var(--theme-text-muted)" }} />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-[10px] uppercase tracking-wider text-blue-400/60 block mb-1">Label</label>
-                  <input value={linkForm.label} onChange={(e) => setLinkForm({ ...linkForm, label: e.target.value })} placeholder="Optional label" className={inputCls} />
-                </div>
-                <div>
-                  <label className="text-[10px] uppercase tracking-wider text-blue-400/60 block mb-1">Bandwidth (Mbps)</label>
-                  <input value={linkForm.bandwidth} onChange={(e) => setLinkForm({ ...linkForm, bandwidth: e.target.value })} placeholder="e.g. 1000" type="number" className={inputCls} />
-                </div>
-                <div className="flex gap-2 pt-2">
-                  <button onClick={handleUpdateLink} disabled={saving}
-                    className="flex-1 py-1.5 rounded text-xs font-medium bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors disabled:opacity-40">
-                    {saving ? "Saving..." : "Update"}
-                  </button>
-                  <button onClick={handleDeleteLink}
-                    className="py-1.5 px-3 rounded text-xs font-medium bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors">
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Instructions overlay (when empty) */}
-      {topoNodes.length === 0 && (
-        <div className="absolute inset-0 z-[500] flex items-center justify-center pointer-events-none">
-          <div className="text-center p-6 rounded-xl" style={{ background: "rgba(10,10,26,0.8)", border: "1px solid rgba(0,212,255,0.1)" }}>
-            <Globe className="w-10 h-10 text-blue-400/30 mx-auto mb-3" />
-            <p className="text-sm text-white/60 mb-1">No topology nodes yet</p>
-            <p className="text-xs text-white/30 max-w-xs">
-              Click <strong className="text-blue-400">"Add Node"</strong> or pick a node type from the left palette to start building your network topology.
-              Connect nodes by dragging from one handle to another.
+          <div className="p-4 space-y-3">
+            <Field label="Label" value={form.label} onChange={v => setForm(f => ({ ...f, label: v }))} placeholder="e.g. Web Server 1" />
+            <div>
+              <label className="text-[10px] uppercase tracking-wider font-medium block mb-1" style={{ color: "#646471" }}>Type</label>
+              <select value={form.node_type} onChange={e => setForm(f => ({ ...f, node_type: e.target.value }))}
+                className="w-full text-xs px-3 py-2 rounded-lg" style={{ backgroundColor: "#141418", border: "1px solid #26262e", color: "#e8e8ec" }}>
+                {Object.entries(NODE_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-[10px] uppercase tracking-wider font-medium block mb-1" style={{ color: "#646471" }}>Hostname</label>
+              <select value={form.hostname} onChange={e => setForm(f => ({ ...f, hostname: e.target.value }))}
+                className="w-full text-xs px-3 py-2 rounded-lg" style={{ backgroundColor: "#141418", border: "1px solid #26262e", color: "#e8e8ec" }}>
+                <option value="">Select asset...</option>
+                {assets.map(a => <option key={a.asset_name} value={a.asset_name}>{a.asset_name} ({a.count})</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-[10px] uppercase tracking-wider font-medium block mb-1" style={{ color: "#646471" }}>Customer</label>
+              <select value={form.customer} onChange={e => setForm(f => ({ ...f, customer: e.target.value }))}
+                className="w-full text-xs px-3 py-2 rounded-lg" style={{ backgroundColor: "#141418", border: "1px solid #26262e", color: "#e8e8ec" }}>
+                <option value="">None</option>
+                {customers.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Field label="Latitude" value={form.lat} onChange={v => setForm(f => ({ ...f, lat: v }))} placeholder="-6.2" type="number" />
+              <Field label="Longitude" value={form.lng} onChange={v => setForm(f => ({ ...f, lng: v }))} placeholder="106.8" type="number" />
+            </div>
+            <p className="text-[9px] flex items-center gap-1" style={{ color: "#3e3e48" }}>
+              <MapPin className="w-3 h-3" /> Coordinates are used by the Threat Map
             </p>
+
+            {showPanel === "add" ? (
+              <button onClick={createNode} disabled={!form.label.trim()}
+                className="w-full py-2 rounded-lg text-xs font-medium transition-colors disabled:opacity-30"
+                style={{ backgroundColor: "#1b1b21", color: "#e8e8ec", border: "1px solid #26262e" }}>
+                Create Node
+              </button>
+            ) : (
+              <div className="flex gap-2">
+                <button onClick={updateNode} className="flex-1 py-2 rounded-lg text-xs font-medium"
+                  style={{ backgroundColor: "#1b1b21", color: "#e8e8ec", border: "1px solid #26262e" }}>
+                  Save
+                </button>
+                <button onClick={deleteNode} className="px-3 py-2 rounded-lg text-xs transition-colors hover:bg-red-500/10"
+                  style={{ color: "#ef4444", border: "1px solid #26262e" }}>
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function Field({ label, value, onChange, placeholder, type = "text" }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; type?: string }) {
+  return (
+    <div>
+      <label className="text-[10px] uppercase tracking-wider font-medium block mb-1" style={{ color: "#646471" }}>{label}</label>
+      <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
+        className="w-full text-xs px-3 py-2 rounded-lg outline-none focus:ring-1" style={{ backgroundColor: "#141418", border: "1px solid #26262e", color: "#e8e8ec" }} />
     </div>
   );
 }

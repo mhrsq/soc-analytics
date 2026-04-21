@@ -1,516 +1,362 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { MapContainer, TileLayer, Polyline, CircleMarker, Tooltip, useMap } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
+/**
+ * Threat Map — Real-time attack visualization
+ * Shows site markers, internal attack pulses, external attack arcs, and live feed.
+ */
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { MapContainer, TileLayer, CircleMarker, Polyline, Tooltip, useMap } from "react-leaflet";
+import { Shield, RefreshCw, Crosshair, Clock } from "lucide-react";
 import { api } from "../api/client";
-import { Spinner } from "../components/Spinner";
 import type { AttackArc, TopologyNode } from "../types";
-import {
-  Crosshair, Shield, Server, RefreshCw,
-  ChevronDown, Database, Cloud, Monitor, Wifi,
-  Play, Pause, Square, Clock, SkipForward, SkipBack,
-} from "lucide-react";
+import "leaflet/dist/leaflet.css";
 
-// ── Color Palette (cyberpunk) ──────────────────────────────────
-const PRIORITY_COLORS: Record<string, string> = {
-  "P1-Critical": "#ef4444",
-  "P1 - Critical": "#ef4444",
-  "P2-High": "#f59e0b",
-  "P2 - High": "#f59e0b",
-  "P3-Medium": "#9b9ba8",
-  "P3 - Medium": "#9b9ba8",
-  "P4-Low": "#646471",
-  "P4 - Low": "#646471",
+// ── Priority colors (design guide) ──
+const PRIORITY_COLOR: Record<string, string> = {
+  "P1-Critical": "#ef4444", "P1 - Critical": "#ef4444", Critical: "#ef4444",
+  "P2-High": "#f59e0b", "P2 - High": "#f59e0b", High: "#f59e0b",
+  "P3-Medium": "#9b9ba8", "P3 - Medium": "#9b9ba8", Medium: "#9b9ba8",
+  "P4-Low": "#646471", "P4 - Low": "#646471", Low: "#646471",
 };
-
-const ARC_COLORS = ["#ef4444", "#f59e0b", "#60a5fa", "#a78bfa", "#9b9ba8", "#646471"];
-
-const ICON_TYPES: Record<string, { icon: typeof Server; color: string }> = {
-  server: { icon: Server, color: "#60a5fa" },
-  firewall: { icon: Shield, color: "#f59e0b" },
-  endpoint: { icon: Monitor, color: "#10b981" },
-  database: { icon: Database, color: "#9b9ba8" },
-  cloud: { icon: Cloud, color: "#a78bfa" },
-  siem: { icon: Wifi, color: "#ef4444" },
-  router: { icon: Server, color: "#8B5CF6" },
-  switch: { icon: Server, color: "#60a5fa" },
-};
-
-// ── Animated polyline with dashes ──────────────────────────────
-function AnimatedArc({ positions, color, weight, opacity }: {
-  positions: [number, number][];
-  color: string;
-  weight: number;
-  opacity: number;
-}) {
-  return (
-    <>
-      <Polyline positions={positions} pathOptions={{ color, weight: weight + 3, opacity: opacity * 0.2, lineCap: "round" }} />
-      <Polyline positions={positions} pathOptions={{ color, weight, opacity, dashArray: "8 6", lineCap: "round" }} />
-    </>
-  );
+function getPrioColor(p: string | null): string {
+  return (p && PRIORITY_COLOR[p]) || "#646471";
 }
 
-// ── Curved arc points between two coordinates ──────────────────
-function curvedArc(
-  startLat: number, startLng: number,
-  endLat: number, endLng: number,
-  segments = 30
-): [number, number][] {
-  const points: [number, number][] = [];
-  const midLat = (startLat + endLat) / 2;
-  const midLng = (startLng + endLng) / 2;
-  const dist = Math.sqrt((endLat - startLat) ** 2 + (endLng - startLng) ** 2);
-  const dx = endLng - startLng;
-  const dy = endLat - startLat;
-  const offsetLat = midLat + (-dx * 0.15 * Math.min(dist / 30, 1));
-  const offsetLng = midLng + (dy * 0.15 * Math.min(dist / 30, 1));
-  for (let i = 0; i <= segments; i++) {
-    const t = i / segments;
-    const lat = (1 - t) * (1 - t) * startLat + 2 * (1 - t) * t * offsetLat + t * t * endLat;
-    const lng = (1 - t) * (1 - t) * startLng + 2 * (1 - t) * t * offsetLng + t * t * endLng;
-    points.push([lat, lng]);
+// ── Site grouping from topology nodes ──
+interface Site {
+  id: number;
+  label: string;
+  customer: string | null;
+  lat: number;
+  lng: number;
+  nodeCount: number;
+  nodes: TopologyNode[];
+}
+
+function groupToSites(nodes: TopologyNode[]): Site[] {
+  const map = new Map<string, Site>();
+  for (const n of nodes) {
+    if (n.lat == null || n.lng == null) continue;
+    // Group by customer + rounded coords (same physical site)
+    const key = `${n.customer || "none"}_${n.lat.toFixed(2)}_${n.lng.toFixed(2)}`;
+    if (!map.has(key)) {
+      map.set(key, {
+        id: n.id,
+        label: n.label,
+        customer: n.customer,
+        lat: n.lat,
+        lng: n.lng,
+        nodeCount: 0,
+        nodes: [],
+      });
+    }
+    const site = map.get(key)!;
+    site.nodeCount++;
+    site.nodes.push(n);
   }
-  return points;
+  return Array.from(map.values());
 }
 
-// ── Map invalidation on resize ─────────────────────────────────
-function MapResizer() {
+// ── Auto-fit bounds ──
+function FitBounds({ sites, attacks }: { sites: Site[]; attacks: AttackArc[] }) {
   const map = useMap();
   useEffect(() => {
-    const handleResize = () => map.invalidateSize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [map]);
+    const pts: [number, number][] = [];
+    sites.forEach(s => pts.push([s.lat, s.lng]));
+    attacks.forEach(a => {
+      if (a.source_lat && a.source_lng && !a.is_private_ip) pts.push([a.source_lat, a.source_lng]);
+      if (a.target_lat && a.target_lng) pts.push([a.target_lat, a.target_lng]);
+    });
+    if (pts.length >= 2) {
+      map.fitBounds(pts as any, { padding: [40, 40], maxZoom: 10 });
+    } else if (pts.length === 1) {
+      map.setView(pts[0] as any, 8);
+    }
+  }, [sites, attacks, map]);
   return null;
 }
 
-// ── Replay ticket label (appearing/disappearing) ──────────────
-function ReplayLabel({ attack, visible }: { attack: AttackArc; visible: boolean }) {
-  if (!visible || !attack.target_lat || !attack.target_lng) return null;
-  const color = PRIORITY_COLORS[attack.priority || ""] || "#9b9ba8";
-  return (
-    <CircleMarker center={[attack.target_lat, attack.target_lng]} radius={0} pathOptions={{ opacity: 0 }}>
-      <Tooltip permanent direction="top" offset={[0, -10]} className="replay-tooltip">
-        <div className="text-[10px] font-mono px-2 py-1 rounded shadow-lg"
-          style={{ background: "rgba(10,10,12,0.92)", border: `1px solid ${color}40`, color, maxWidth: 220, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-          <span className="opacity-50">{attack.source_ip}</span>{" → "}
-          <span className="font-semibold">{attack.target_asset || "Target"}</span>
-          {attack.priority && <span className="ml-1 opacity-60">[{attack.priority}]</span>}
-        </div>
-      </Tooltip>
-    </CircleMarker>
-  );
+// ── Curved arc path ──
+function curvedArc(from: [number, number], to: [number, number], segments = 30): [number, number][] {
+  const [lat1, lng1] = from;
+  const [lat2, lng2] = to;
+  const midLat = (lat1 + lat2) / 2;
+  const midLng = (lng1 + lng2) / 2;
+  const dx = lng2 - lng1;
+  const dy = lat2 - lat1;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  const offset = dist * 0.15;
+  const perpLat = midLat + (-dx / dist) * offset;
+  const perpLng = midLng + (dy / dist) * offset;
+  const pts: [number, number][] = [];
+  for (let i = 0; i <= segments; i++) {
+    const t = i / segments;
+    const lat = (1 - t) * (1 - t) * lat1 + 2 * (1 - t) * t * perpLat + t * t * lat2;
+    const lng = (1 - t) * (1 - t) * lng1 + 2 * (1 - t) * t * perpLng + t * t * lng2;
+    pts.push([lat, lng]);
+  }
+  return pts;
 }
 
-// ── Main Component ─────────────────────────────────────────────
+// ── Feed item type ──
+interface FeedItem {
+  id: number;
+  ip: string;
+  asset: string | null;
+  customer: string | null;
+  priority: string | null;
+  validation: string | null;
+  time: string | null;
+  rule_id: string | null;
+  rule_name: string | null;
+  is_private: boolean;
+}
+
 export function ThreatMapView() {
   const [attacks, setAttacks] = useState<AttackArc[]>([]);
-  const [topoNodes, setTopoNodes] = useState<TopologyNode[]>([]);
-  const [customers, setCustomers] = useState<string[]>([]);
+  const [nodes, setNodes] = useState<TopologyNode[]>([]);
+  const [feed, setFeed] = useState<FeedItem[]>([]);
   const [customer, setCustomer] = useState<string>("");
+  const [customers, setCustomers] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // ── Replay state ──
-  const [replayOpen, setReplayOpen] = useState(false);
-  const [replayStart, setReplayStart] = useState("");
-  const [replayEnd, setReplayEnd] = useState("");
-  const [replayData, setReplayData] = useState<AttackArc[]>([]);
-  const [replayPlaying, setReplayPlaying] = useState(false);
-  const [replayIndex, setReplayIndex] = useState(0);
-  const [replaySpeed, setReplaySpeed] = useState(1);
-  const [visibleLabels, setVisibleLabels] = useState<Set<number>>(new Set());
-  const replayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Load customers list
-  useEffect(() => {
-    api.getFilterOptions().then((opts) => setCustomers(opts.customers));
-  }, []);
+  const feedRef = useRef<HTMLDivElement>(null);
 
   // Load data
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [attackData, topoData] = await Promise.all([
-        api.getAttacks(customer ? { customer } : {}, 500),
+      const [attackData, nodeData, feedData, filterOpts] = await Promise.all([
+        api.getAttacks({ customer: customer || undefined, limit: 500 }),
         api.getTopologyNodes(),
+        fetch(`/api/threatmap/feed?limit=50${customer ? `&customer=${customer}` : ""}`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("soc_token")}` },
+        }).then(r => r.json()),
+        api.getFilterOptions(),
       ]);
       setAttacks(attackData);
-      setTopoNodes(topoData);
-    } catch (e) {
-      console.error("Failed to load threat map data:", e);
-    } finally {
-      setLoading(false);
-    }
+      setNodes(nodeData);
+      setFeed(feedData);
+      setCustomers(filterOpts.customers || []);
+    } catch (e) { console.error("Failed to load threat map:", e); }
+    setLoading(false);
   }, [customer]);
 
+  useEffect(() => { loadData(); }, [loadData]);
+
+  // Auto-refresh feed every 30s
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    const id = setInterval(async () => {
+      try {
+        const feedData = await fetch(`/api/threatmap/feed?limit=50${customer ? `&customer=${customer}` : ""}`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("soc_token")}` },
+        }).then(r => r.json());
+        setFeed(feedData);
+      } catch {}
+    }, 30000);
+    return () => clearInterval(id);
+  }, [customer]);
 
-  // ── Build arc data ──
-  const arcsData = useMemo(() => {
-    return attacks
-      .filter((a) => a.target_lat && a.target_lng && (!a.is_private_ip ? (a.source_lat !== 0 || a.source_lng !== 0) : true))
-      .map((a, i) => {
-        // For private IPs: create short arc from small offset around target
-        const srcLat = a.is_private_ip || (a.source_lat === 0 && a.source_lng === 0)
-          ? a.target_lat! + (((a.ticket_id * 7) % 100) - 50) / 200
-          : a.source_lat;
-        const srcLng = a.is_private_ip || (a.source_lat === 0 && a.source_lng === 0)
-          ? a.target_lng! + (((a.ticket_id * 13) % 100) - 50) / 200
-          : a.source_lng;
-        return {
-          positions: curvedArc(srcLat, srcLng, a.target_lat!, a.target_lng!),
-          color: PRIORITY_COLORS[a.priority || ""] || ARC_COLORS[i % ARC_COLORS.length],
-          label: `${a.source_ip} ${a.is_private_ip ? "(Internal)" : `(${a.source_city || a.source_country || "Unknown"})`} → ${a.target_asset || "Target"}`,
-          weight: a.priority?.startsWith("P1") ? 2.5 : a.priority?.startsWith("P2") ? 1.8 : 1.2,
-          priority: a.priority,
-        };
-      });
-  }, [attacks]);
+  const sites = useMemo(() => groupToSites(nodes), [nodes]);
 
-  // ── Stats ──
-  const stats = useMemo(() => {
-    const countries = new Set(attacks.filter((a) => a.source_country).map((a) => a.source_country));
-    const p1Count = attacks.filter((a) => a.priority?.startsWith("P1")).length;
-    const p2Count = attacks.filter((a) => a.priority?.startsWith("P2")).length;
-    const privateCount = attacks.filter((a) => a.is_private_ip).length;
-    const categories = new Map<string, number>();
-    attacks.forEach((a) => {
-      if (a.attack_category) categories.set(a.attack_category, (categories.get(a.attack_category) || 0) + 1);
+  // Stats
+  const totalAttacks = attacks.length;
+  const internalCount = attacks.filter(a => a.is_private_ip).length;
+  const externalCount = totalAttacks - internalCount;
+  const criticalCount = attacks.filter(a => a.priority?.includes("Critical")).length;
+  const highCount = attacks.filter(a => a.priority?.includes("High")).length;
+
+  // Render external arcs (public IPs with geolocation)
+  const externalArcs = useMemo(() =>
+    attacks.filter(a => !a.is_private_ip && a.source_lat && a.source_lng && a.target_lat && a.target_lng)
+      .slice(0, 50),
+    [attacks]
+  );
+
+  // Count internal attacks per site (for pulse intensity)
+  const siteAttackCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    attacks.forEach(a => {
+      if (a.is_private_ip && a.target_lat && a.target_lng) {
+        const key = `${a.target_lat.toFixed(2)}_${a.target_lng.toFixed(2)}`;
+        counts.set(key, (counts.get(key) || 0) + 1);
+      }
     });
-    const topCategory = [...categories.entries()].sort((a, b) => b[1] - a[1])[0];
-    const uniqueAssets = new Set(attacks.map((a) => a.target_asset).filter(Boolean));
-    return {
-      totalAttacks: attacks.length,
-      countries: countries.size,
-      p1Count,
-      p2Count,
-      topCategory: topCategory ? `${topCategory[0]} (${topCategory[1]})` : null,
-      privateCount,
-      targetAssets: uniqueAssets.size,
-    };
+    return counts;
   }, [attacks]);
-
-  // ── Replay logic ──
-  const loadReplayData = useCallback(async () => {
-    if (!replayStart || !replayEnd) return;
-    try {
-      const data = await api.getAttacks(
-        { customer: customer || undefined, start: replayStart, end: replayEnd },
-        1000
-      );
-      const sorted = [...data].sort((a, b) => {
-        const ta = a.created_time ? new Date(a.created_time).getTime() : 0;
-        const tb = b.created_time ? new Date(b.created_time).getTime() : 0;
-        return ta - tb;
-      });
-      setReplayData(sorted);
-      setReplayIndex(0);
-      setVisibleLabels(new Set());
-    } catch (e) {
-      console.error("Failed to load replay data:", e);
-    }
-  }, [replayStart, replayEnd, customer]);
-
-  // Auto-advance replay
-  useEffect(() => {
-    if (!replayPlaying || replayIndex >= replayData.length) {
-      if (replayIndex >= replayData.length && replayPlaying) setReplayPlaying(false);
-      return;
-    }
-    const current = replayData[replayIndex];
-    const next = replayData[replayIndex + 1];
-    let delay = 800;
-    if (current?.created_time && next?.created_time) {
-      const diff = new Date(next.created_time).getTime() - new Date(current.created_time).getTime();
-      delay = Math.max(200, Math.min(3000, diff / (60 * replaySpeed)));
-    }
-    replayTimerRef.current = setTimeout(() => {
-      setReplayIndex((i) => i + 1);
-      const ticketId = current.ticket_id;
-      setVisibleLabels((prev) => new Set(prev).add(ticketId));
-      setTimeout(() => {
-        setVisibleLabels((prev) => { const n = new Set(prev); n.delete(ticketId); return n; });
-      }, 3000 / replaySpeed);
-    }, delay / replaySpeed);
-    return () => { if (replayTimerRef.current) clearTimeout(replayTimerRef.current); };
-  }, [replayPlaying, replayIndex, replayData, replaySpeed]);
-
-  const replayStop = () => {
-    setReplayPlaying(false);
-    setReplayIndex(0);
-    setVisibleLabels(new Set());
-    if (replayTimerRef.current) clearTimeout(replayTimerRef.current);
-  };
-
-  const replayCurrentTime = useMemo(() => {
-    if (replayData.length === 0 || replayIndex === 0) return null;
-    const idx = Math.min(replayIndex, replayData.length - 1);
-    return replayData[idx]?.created_time || null;
-  }, [replayData, replayIndex]);
-
-  // Arcs visible during replay (up to current index)
-  const replayArcs = useMemo(() => {
-    if (!replayOpen || replayData.length === 0) return [];
-    return replayData.slice(0, replayIndex)
-      .filter((a) => a.target_lat && a.target_lng)
-      .map((a, i) => {
-        const srcLat = a.is_private_ip || (a.source_lat === 0 && a.source_lng === 0)
-          ? a.target_lat! + (((a.ticket_id * 7) % 100) - 50) / 200
-          : a.source_lat;
-        const srcLng = a.is_private_ip || (a.source_lat === 0 && a.source_lng === 0)
-          ? a.target_lng! + (((a.ticket_id * 13) % 100) - 50) / 200
-          : a.source_lng;
-        return {
-          positions: curvedArc(srcLat, srcLng, a.target_lat!, a.target_lng!),
-          color: PRIORITY_COLORS[a.priority || ""] || ARC_COLORS[i % ARC_COLORS.length],
-          weight: a.priority?.startsWith("P1") ? 2.5 : 1.5,
-        };
-      });
-  }, [replayOpen, replayData, replayIndex]);
-
-  const displayArcs = replayOpen && replayData.length > 0 ? replayArcs : arcsData;
-
-  // Set default replay date range (last 24h)
-  useEffect(() => {
-    if (!replayStart) {
-      const now = new Date();
-      const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-      setReplayEnd(now.toISOString().slice(0, 16));
-      setReplayStart(yesterday.toISOString().slice(0, 16));
-    }
-  }, [replayStart]);
 
   return (
-    <div className="relative w-full" style={{ height: "calc(100vh - 56px)", background: "#0a0a0c" }}>
-      {/* Leaflet Map */}
-      <MapContainer
-        center={[-2, 118]}
-        zoom={5}
-        minZoom={3}
-        maxZoom={14}
-        zoomControl={false}
-        attributionControl={false}
-        style={{ width: "100%", height: "100%", background: "#0a0a0c" }}
-      >
-        <MapResizer />
-        <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" subdomains="abcd" />
+    <div className="relative w-full flex flex-col" style={{ height: "calc(100vh - 56px)", background: "#0a0a0c" }}>
+      {/* Map */}
+      <div className="flex-1 relative">
+        <MapContainer
+          center={[-2, 118]}
+          zoom={5}
+          minZoom={3}
+          maxZoom={14}
+          zoomControl={false}
+          attributionControl={false}
+          style={{ width: "100%", height: "100%", background: "#0a0a0c" }}
+        >
+          <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" subdomains="abcd" />
+          <FitBounds sites={sites} attacks={externalArcs} />
 
-        {/* Attack arcs */}
-        {displayArcs.map((arc, i) => (
-          <AnimatedArc key={i} positions={arc.positions} color={arc.color} weight={arc.weight} opacity={0.7} />
-        ))}
+          {/* Site markers */}
+          {sites.map(site => {
+            const key = `${site.lat.toFixed(2)}_${site.lng.toFixed(2)}`;
+            const attackCount = siteAttackCounts.get(key) || 0;
+            const hasAttacks = attackCount > 0;
+            return (
+              <CircleMarker
+                key={`site-${site.id}`}
+                center={[site.lat, site.lng]}
+                radius={hasAttacks ? Math.min(8 + attackCount * 0.3, 20) : 6}
+                pathOptions={{
+                  color: hasAttacks ? "#f59e0b" : "#60a5fa",
+                  fillColor: hasAttacks ? "#f59e0b" : "#60a5fa",
+                  fillOpacity: hasAttacks ? 0.4 : 0.3,
+                  weight: 1.5,
+                }}
+              >
+                <Tooltip>
+                  <div className="text-xs" style={{ fontFamily: "'IBM Plex Sans', sans-serif" }}>
+                    <strong>{site.label}</strong>
+                    {site.customer && <span className="opacity-60"> · {site.customer}</span>}
+                    <br />
+                    <span className="opacity-60">{site.nodeCount} assets</span>
+                    {attackCount > 0 && <span className="text-amber-400"> · {attackCount} attacks</span>}
+                  </div>
+                </Tooltip>
+              </CircleMarker>
+            );
+          })}
 
-        {/* Topology node markers */}
-        {topoNodes.filter((n) => n.lat != null && n.lng != null && (!customer || n.customer === customer)).map((n) => {
-          const cfg = ICON_TYPES[n.node_type] || ICON_TYPES.server;
-          return (
-            <CircleMarker key={`topo-${n.id}`} center={[n.lat!, n.lng!]} radius={7}
-              pathOptions={{ color: cfg.color, fillColor: cfg.color, fillOpacity: 0.6, weight: 2 }}>
-              <Tooltip><span className="text-xs">🔷 {n.label}{n.hostname ? ` (${n.hostname})` : ""}{n.customer ? ` · ${n.customer}` : ""}</span></Tooltip>
-            </CircleMarker>
-          );
-        })}
+          {/* Internal attack pulse rings (private IPs) */}
+          {sites.map(site => {
+            const key = `${site.lat.toFixed(2)}_${site.lng.toFixed(2)}`;
+            const count = siteAttackCounts.get(key) || 0;
+            if (count === 0) return null;
+            return [12, 20, 28].map((r, i) => (
+              <CircleMarker
+                key={`pulse-${site.id}-${i}`}
+                center={[site.lat, site.lng]}
+                radius={r}
+                pathOptions={{
+                  color: "#f59e0b",
+                  fillColor: "transparent",
+                  fillOpacity: 0,
+                  weight: 1,
+                  opacity: 0.3 - i * 0.1,
+                  dashArray: "4 4",
+                }}
+              />
+            ));
+          })}
 
-        {/* Attack source clusters */}
-        {(() => {
-          const clusters = new Map<string, { lat: number; lng: number; count: number }>();
-          const src = replayOpen && replayData.length > 0 ? replayData.slice(0, replayIndex) : attacks;
-          src.filter((a) => {
-            if (a.is_private_ip) return a.target_lat && a.target_lng;
-            return a.source_lat !== 0 || a.source_lng !== 0;
-          }).forEach((a) => {
-            const lat = (a.is_private_ip || (a.source_lat === 0 && a.source_lng === 0)) ? a.target_lat! : a.source_lat;
-            const lng = (a.is_private_ip || (a.source_lat === 0 && a.source_lng === 0)) ? a.target_lng! : a.source_lng;
-            const key = `${Math.round(lat * 2) / 2}:${Math.round(lng * 2) / 2}`;
-            const existing = clusters.get(key);
-            if (existing) existing.count++;
-            else clusters.set(key, { lat, lng, count: 1 });
-          });
-          return Array.from(clusters.values()).map((c, i) => (
-            <CircleMarker key={`cluster-${i}`} center={[c.lat, c.lng]}
-              radius={Math.min(4 + c.count * 0.8, 18)}
-              pathOptions={{
-                color: c.count > 10 ? "#ef4444" : c.count > 5 ? "#f59e0b" : "#9b9ba8",
-                fillColor: c.count > 10 ? "#ef4444" : c.count > 5 ? "#f59e0b" : "#9b9ba8",
-                fillOpacity: 0.3, weight: 1,
-              }}>
-              <Tooltip><span className="text-xs">{c.count} attacks from this area</span></Tooltip>
-            </CircleMarker>
-          ));
-        })()}
+          {/* External attack arcs */}
+          {externalArcs.map((a, i) => {
+            const color = getPrioColor(a.priority);
+            const positions = curvedArc(
+              [a.source_lat!, a.source_lng!],
+              [a.target_lat!, a.target_lng!]
+            );
+            return (
+              <Polyline
+                key={`arc-${a.ticket_id}-${i}`}
+                positions={positions}
+                pathOptions={{ color, weight: 1.5, opacity: 0.5, dashArray: "6 4" }}
+              >
+                <Tooltip><span className="text-[10px] font-mono">{a.priority} → {a.target_asset}</span></Tooltip>
+              </Polyline>
+            );
+          })}
+        </MapContainer>
 
-        {/* Replay ticket labels */}
-        {replayOpen && replayData.slice(0, replayIndex).map((a) => (
-          <ReplayLabel key={`label-${a.ticket_id}`} attack={a} visible={visibleLabels.has(a.ticket_id)} />
-        ))}
-      </MapContainer>
-
-      {/* Top overlay bar */}
-      <div className="absolute top-0 left-0 right-0 z-[1000] flex items-center justify-between px-4 py-3"
-        style={{ background: "linear-gradient(180deg, rgba(10,10,26,0.95) 0%, rgba(10,10,26,0) 100%)" }}>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Crosshair className="w-5 h-5 text-blue-400" />
-            <h2 className="text-base font-semibold tracking-tight" style={{ color: "var(--theme-text-primary)" }}>Threat Map</h2>
+        {/* Overlay: Stats bar */}
+        <div className="absolute top-4 left-4 right-4 z-[1000] flex items-center justify-between">
+          <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg" style={{ backgroundColor: "rgba(10,10,12,0.92)", border: "1px solid #26262e" }}>
+            <div className="flex items-center gap-2">
+              <Shield className="w-4 h-4" style={{ color: "#9b9ba8" }} />
+              <h2 className="text-sm font-semibold" style={{ color: "#e8e8ec" }}>Threat Map</h2>
+            </div>
+            <div className="h-4 w-px" style={{ backgroundColor: "#26262e" }} />
+            <div className="flex items-center gap-3 text-[11px] font-mono" style={{ color: "#9b9ba8" }}>
+              <span>{totalAttacks} attacks</span>
+              {internalCount > 0 && <span style={{ color: "#f59e0b" }}>{internalCount} internal</span>}
+              {externalCount > 0 && <span style={{ color: "#60a5fa" }}>{externalCount} external</span>}
+              <span>{sites.length} sites</span>
+              {criticalCount > 0 && <span style={{ color: "#ef4444" }}>{criticalCount} P1</span>}
+              {highCount > 0 && <span style={{ color: "#f59e0b" }}>{highCount} P2</span>}
+            </div>
           </div>
-          <div className="flex items-center gap-3 ml-4 text-xs">
-            <span className="px-2 py-0.5 rounded bg-red-500/20 text-red-400 font-mono">{stats.totalAttacks} attacks</span>
-            {stats.countries > 0 && <span className="px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 font-mono">{stats.countries} countries</span>}
-            {stats.privateCount > 0 && <span className="px-2 py-0.5 rounded bg-violet-500/20 text-violet-400 font-mono">{stats.privateCount} internal</span>}
-            {stats.targetAssets > 0 && <span className="px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 font-mono">{stats.targetAssets} assets</span>}
-            {stats.p1Count > 0 && (
-              <span className="px-2 py-0.5 rounded bg-red-600/30 text-red-300 font-mono animate-pulse">{stats.p1Count} critical</span>
-            )}
-            {stats.p2Count > 0 && (
-              <span className="px-2 py-0.5 rounded bg-orange-600/30 text-orange-300 font-mono">{stats.p2Count} high</span>
-            )}
-            {stats.topCategory && (
-              <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono">Top: {stats.topCategory}</span>
-            )}
+          <div className="flex items-center gap-2">
+            <select
+              value={customer}
+              onChange={(e) => setCustomer(e.target.value)}
+              className="appearance-none text-xs px-3 py-2 pr-8 rounded-lg cursor-pointer"
+              style={{ backgroundColor: "rgba(10,10,12,0.92)", border: "1px solid #26262e", color: "#e8e8ec" }}
+            >
+              <option value="">All Customers</option>
+              {customers.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <button
+              onClick={loadData}
+              className="p-2 rounded-lg transition-colors hover:bg-white/[0.05]"
+              style={{ backgroundColor: "rgba(10,10,12,0.92)", border: "1px solid #26262e", color: "#9b9ba8" }}
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <select value={customer} onChange={(e) => setCustomer(e.target.value)}
-              className="appearance-none pl-3 pr-8 py-1.5 rounded-lg text-xs font-medium cursor-pointer"
-              style={{ backgroundColor: "color-mix(in srgb, var(--theme-surface-raised) 80%, transparent)", color: "var(--theme-text-secondary)", border: "1px solid var(--theme-surface-border)" }}>
-              <option value="">All Customers</option>
-              {customers.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none" style={{ color: "var(--theme-text-muted)" }} />
+
+        {/* Overlay: Legend */}
+        <div className="absolute bottom-2 left-4 z-[1000] px-3 py-2 rounded-lg text-[10px]" style={{ backgroundColor: "rgba(10,10,12,0.92)", border: "1px solid #26262e" }}>
+          <div className="flex items-center gap-3" style={{ color: "#646471" }}>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#60a5fa" }} />Site</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#f59e0b" }} />Under attack</span>
+            <span className="flex items-center gap-1"><span className="w-3 h-px" style={{ backgroundColor: "#ef4444" }} />P1 arc</span>
+            <span className="flex items-center gap-1"><span className="w-3 h-px" style={{ backgroundColor: "#f59e0b" }} />P2 arc</span>
           </div>
-          <button onClick={loadData} className="p-1.5 rounded bg-white/5 border border-white/10 text-white/60 hover:text-blue-400 hover:border-blue-500/30 transition-colors" title="Refresh">
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-          </button>
-          <button onClick={() => setReplayOpen(!replayOpen)}
-            className={`p-1.5 rounded border transition-colors ${replayOpen ? "bg-blue-500/20 border-blue-500/30 text-blue-400" : "bg-white/5 border-white/10 text-white/60 hover:text-blue-400"}`}
-            title="Event Replay">
-            <Clock className="w-4 h-4" />
-          </button>
         </div>
       </div>
 
-      {/* Replay Panel (bottom) */}
-      {replayOpen && (
-        <div className="absolute bottom-0 left-0 right-0 z-[1000] px-4 py-3"
-          style={{ background: "linear-gradient(0deg, rgba(10,10,26,0.95) 0%, rgba(10,10,26,0) 100%)" }}>
-          <div className="max-w-4xl mx-auto rounded-lg p-3"
-            style={{ background: "rgba(10,10,12,0.92)", border: "1px solid rgba(0,212,255,0.15)" }}>
-            <div className="flex items-center gap-3 flex-wrap">
-              <div className="flex items-center gap-2">
-                <label className="text-[10px] uppercase tracking-wider text-blue-400/60">From</label>
-                <input type="datetime-local" value={replayStart} onChange={(e) => setReplayStart(e.target.value)}
-                  className="px-2 py-1 rounded text-xs bg-white/5 border border-white/10 text-white/80 focus:outline-none focus:border-blue-500/50"
-                  style={{ colorScheme: "dark" }} />
-              </div>
-              <div className="flex items-center gap-2">
-                <label className="text-[10px] uppercase tracking-wider text-blue-400/60">To</label>
-                <input type="datetime-local" value={replayEnd} onChange={(e) => setReplayEnd(e.target.value)}
-                  className="px-2 py-1 rounded text-xs bg-white/5 border border-white/10 text-white/80 focus:outline-none focus:border-blue-500/50"
-                  style={{ colorScheme: "dark" }} />
-              </div>
-              <button onClick={loadReplayData}
-                className="px-3 py-1 rounded text-xs font-medium bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30 transition-colors">
-                Load
-              </button>
-              <div className="w-px h-6 bg-white/10" />
-              <div className="flex items-center gap-1">
-                <button onClick={() => setReplayIndex(Math.max(0, replayIndex - 10))} disabled={replayData.length === 0}
-                  className="p-1 rounded text-white/40 hover:text-white disabled:opacity-30" title="Back 10">
-                  <SkipBack className="w-4 h-4" />
-                </button>
-                {replayPlaying ? (
-                  <button onClick={() => setReplayPlaying(false)} className="p-1.5 rounded bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors" title="Pause">
-                    <Pause className="w-4 h-4" />
-                  </button>
-                ) : (
-                  <button onClick={() => { if (replayIndex >= replayData.length) setReplayIndex(0); setReplayPlaying(true); }}
-                    disabled={replayData.length === 0} className="p-1.5 rounded bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors disabled:opacity-30" title="Play">
-                    <Play className="w-4 h-4" />
-                  </button>
-                )}
-                <button onClick={replayStop} disabled={replayData.length === 0}
-                  className="p-1 rounded text-white/40 hover:text-red-400 disabled:opacity-30" title="Stop">
-                  <Square className="w-4 h-4" />
-                </button>
-                <button onClick={() => setReplayIndex(Math.min(replayData.length, replayIndex + 10))} disabled={replayData.length === 0}
-                  className="p-1 rounded text-white/40 hover:text-white disabled:opacity-30" title="Forward 10">
-                  <SkipForward className="w-4 h-4" />
-                </button>
-              </div>
-              <div className="relative">
-                <select value={replaySpeed} onChange={(e) => setReplaySpeed(Number(e.target.value))}
-                  className="appearance-none pl-2 pr-7 py-1 rounded-lg text-xs cursor-pointer"
-                  style={{ backgroundColor: "color-mix(in srgb, var(--theme-surface-raised) 80%, transparent)", color: "var(--theme-text-secondary)", border: "1px solid var(--theme-surface-border)" }}>
-                  <option value={0.5}>0.5x</option>
-                  <option value={1}>1x</option>
-                  <option value={2}>2x</option>
-                  <option value={4}>4x</option>
-                  <option value={8}>8x</option>
-                </select>
-                <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 pointer-events-none" style={{ color: "var(--theme-text-muted)" }} />
-              </div>
-              <div className="flex-1 flex items-center gap-2 min-w-[120px]">
-                <input type="range" min={0} max={replayData.length} value={replayIndex}
-                  onChange={(e) => { setReplayPlaying(false); setReplayIndex(Number(e.target.value)); }}
-                  className="flex-1 h-1 accent-blue-400" />
-                <span className="text-[10px] font-mono text-white/50 whitespace-nowrap">{replayIndex}/{replayData.length}</span>
-              </div>
-            </div>
-            {replayCurrentTime && (
-              <div className="mt-2 flex items-center gap-2">
-                <Clock className="w-3 h-3 text-blue-400/60" />
-                <span className="text-xs font-mono text-blue-400/80">{new Date(replayCurrentTime).toLocaleString()}</span>
-                {replayIndex > 0 && replayIndex <= replayData.length && (
-                  <span className="text-[10px] text-white/40 ml-2">
-                    {replayData[Math.min(replayIndex - 1, replayData.length - 1)]?.source_ip} → {replayData[Math.min(replayIndex - 1, replayData.length - 1)]?.target_asset || "Target"}
+      {/* Attack Feed Ticker */}
+      <div
+        ref={feedRef}
+        className="h-36 overflow-y-auto border-t shrink-0"
+        style={{ backgroundColor: "#0a0a0c", borderColor: "#1d1d23" }}
+      >
+        <div className="sticky top-0 z-10 px-4 py-1.5 text-[10px] uppercase tracking-wider font-medium flex items-center gap-2" style={{ backgroundColor: "#0a0a0c", borderBottom: "1px solid #1d1d23", color: "#646471" }}>
+          <Clock className="w-3 h-3" />
+          Live Attack Feed
+          <span className="ml-auto font-mono">{feed.length} events</span>
+        </div>
+        {feed.length === 0 ? (
+          <p className="text-xs text-center py-6" style={{ color: "#3e3e48" }}>No recent attacks</p>
+        ) : (
+          <div className="divide-y" style={{ borderColor: "#1d1d23" }}>
+            {feed.map(f => (
+              <div key={f.id} className="flex items-center gap-3 px-4 py-1.5 text-[11px] hover:bg-white/[0.02] transition-colors">
+                <span className="font-mono w-14 shrink-0" style={{ color: "#3e3e48" }}>
+                  {f.time ? new Date(f.time).toLocaleTimeString("id-ID", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "—"}
+                </span>
+                <span className="w-1.5 h-1.5 rounded-sm shrink-0" style={{ backgroundColor: getPrioColor(f.priority) }} />
+                <span className="truncate" style={{ color: "#9b9ba8" }}>
+                  {f.rule_name || f.rule_id || "Unknown rule"}
+                </span>
+                <span style={{ color: "#3e3e48" }}>→</span>
+                <span className="font-mono truncate" style={{ color: "#e8e8ec" }}>{f.asset || "—"}</span>
+                {f.customer && <span className="shrink-0" style={{ color: "#3e3e48" }}>{f.customer}</span>}
+                {f.validation && (
+                  <span className="shrink-0 text-[9px] px-1 py-0.5 rounded font-medium" style={{
+                    backgroundColor: f.validation === "True Positive" ? "rgba(16,185,129,0.1)" : "rgba(155,155,168,0.08)",
+                    color: f.validation === "True Positive" ? "#10b981" : "#646471",
+                  }}>
+                    {f.validation === "True Positive" ? "TP" : f.validation === "False Positive" ? "FP" : "—"}
                   </span>
                 )}
               </div>
-            )}
+            ))}
           </div>
-        </div>
-      )}
-
-      {/* Bottom-left: legend */}
-      <div className="absolute left-4 z-[1000] rounded-lg p-3 space-y-2"
-        style={{ background: "rgba(10,10,26,0.85)", border: "1px solid rgba(0,212,255,0.15)", bottom: replayOpen ? 90 : 16 }}>
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-blue-400/70">Priority</p>
-        {Object.entries(PRIORITY_COLORS).filter((_, i) => i % 2 === 0).map(([k, c]) => (
-          <div key={k} className="flex items-center gap-2">
-            <span className="w-3 h-0.5 rounded-full" style={{ background: c }} />
-            <span className="text-[10px] text-white/60">{k}</span>
-          </div>
-        ))}
-        <div className="border-t border-white/5 pt-1.5 mt-1.5">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-blue-400" />
-            <span className="text-[10px] text-white/60">Asset</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-violet-400" />
-            <span className="text-[10px] text-white/60">SIEM</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full" style={{ background: "#8B5CF6" }} />
-            <span className="text-[10px] text-white/60">Topology Node</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-yellow-400 opacity-50" />
-            <span className="text-[10px] text-white/60">Attack Source</span>
-          </div>
-        </div>
+        )}
       </div>
-
-      {/* Loading overlay */}
-      {loading && (
-        <div className="absolute inset-0 z-[2000] flex items-center justify-center bg-black/50">
-          <Spinner />
-        </div>
-      )}
-
     </div>
   );
 }
