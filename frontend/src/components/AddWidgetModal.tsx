@@ -22,6 +22,7 @@ const CHART_OPTIONS: { value: ChartType; label: string; icon: React.ElementType;
   { value: "treemap", label: "Treemap", icon: Layers, desc: "Nested rectangles for hierarchy" },
   { value: "funnel", label: "Funnel Chart", icon: BarChart3, desc: "Funnel for stage analysis" },
   { value: "text-stats", label: "Text Stats", icon: Activity, desc: "Text-based ratio/percentage display" },
+  { value: "gauge", label: "Gauge", icon: PieChart, desc: "Circular gauge for single metric (e.g. SLA)" },
 ];
 
 const DATA_OPTIONS: { value: DataSource; label: string; desc: string }[] = [

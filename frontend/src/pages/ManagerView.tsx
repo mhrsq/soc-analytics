@@ -215,14 +215,29 @@ export function ManagerView() {
 
           {/* Performance Trends */}
           <Card>
-            <div className="flex items-center gap-2 mb-4">
-              <BarChart3 className="w-4 h-4" style={{ color: "var(--theme-text-muted)" }} />
-              <h3 className="text-sm font-medium" style={{ color: "var(--theme-text-primary)" }}>
-                Performance Trends
-              </h3>
-              <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: "var(--theme-surface-raised)", color: "var(--theme-text-muted)" }}>
-                Weekly
-              </span>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <BarChart3 className="w-4 h-4" style={{ color: "var(--theme-text-muted)" }} />
+                <h3 className="text-sm font-medium" style={{ color: "var(--theme-text-primary)" }}>
+                  Performance Trends
+                </h3>
+                <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: "var(--theme-surface-raised)", color: "var(--theme-text-muted)" }}>
+                  Weekly
+                </span>
+              </div>
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await fetch("/api/analysts/snapshots/backfill?weeks=26", { method: "POST", headers: { Authorization: `Bearer ${localStorage.getItem("soc_token")}` } });
+                    const data = await res.json();
+                    alert(data.message || "Backfill triggered");
+                  } catch { alert("Backfill failed"); }
+                }}
+                className="text-[10px] px-2 py-1 rounded transition-colors hover:bg-white/[0.05]"
+                style={{ color: "var(--theme-text-muted)", border: "1px solid var(--theme-surface-border)" }}
+              >
+                Backfill snapshots
+              </button>
             </div>
             <TeamTrendChart selectedAnalysts={data.map((a) => a.analyst)} granularity="weekly" />
           </Card>

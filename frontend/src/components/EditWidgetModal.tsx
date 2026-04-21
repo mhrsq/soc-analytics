@@ -19,6 +19,7 @@ const CHART_OPTIONS: { value: ChartType; label: string; icon: React.ElementType 
   { value: "text-stats", label: "Text Stats", icon: Activity },
   { value: "radar", label: "Radar", icon: Radar },
   { value: "radial-bar", label: "Radial", icon: PieChart },
+  { value: "gauge", label: "Gauge", icon: PieChart },
   { value: "scatter", label: "Scatter", icon: Activity },
   { value: "treemap", label: "Treemap", icon: Layers },
   { value: "funnel", label: "Funnel", icon: BarChart3 },

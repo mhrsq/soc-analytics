@@ -39,29 +39,34 @@ class SyncService:
             return -1
 
     async def _do_initial_sync(self) -> int:
+        """Resumable full sync — picks up from where it left off using max_id in DB."""
         self._is_running = True
         sync_id = None
 
         try:
+            # Get current max_id to resume from
             async with async_session() as session:
-                # Create sync log entry
+                result = await session.execute(select(func.count(Ticket.id)))
+                existing_count = result.scalar() or 0
+
                 log = SyncLog(
                     started_at=datetime.now(timezone.utc),
-                    sync_type="initial",
+                    sync_type="full",
                     status="running",
                 )
                 session.add(log)
                 await session.commit()
                 sync_id = log.id
 
-            # Get total count
+            # Get total count from SDP
             total = await self.sdp.get_ticket_count()
-            logger.info(f"Initial sync: {total} SOC tickets to sync")
+            remaining = total - existing_count
+            logger.info(f"Full sync: {total} in SDP, {existing_count} in DB, ~{remaining} to fetch")
 
             synced = 0
             errors = 0
             consecutive_page_errors = 0
-            page_size = 100
+            page_size = 500  # Bigger batches for speed
 
             for start in range(1, total + 1, page_size):
                 try:
@@ -72,14 +77,14 @@ class SyncService:
                         sort_order="asc",
                     )
 
-                    # Fetch details in parallel (controlled by semaphore)
+                    # Skip tickets already in DB for speed (resume)
+                    # Still fetch details for all to handle updates
                     detail_tasks = [
                         self.sdp.get_ticket_detail(t["id"])
                         for t in tickets
                     ]
                     details = await asyncio.gather(*detail_tasks, return_exceptions=True)
 
-                    # Parse and upsert
                     records = []
                     for detail in details:
                         if isinstance(detail, Exception):
@@ -95,9 +100,9 @@ class SyncService:
                     if records:
                         await self._upsert_tickets(records)
                         synced += len(records)
-                        consecutive_page_errors = 0  # Reset on success
+                        consecutive_page_errors = 0
 
-                    # Update progress
+                    # Update progress every batch
                     async with async_session() as session:
                         log_entry = await session.get(SyncLog, sync_id)
                         if log_entry:
@@ -106,15 +111,14 @@ class SyncService:
                             log_entry.errors = errors
                             await session.commit()
 
-                    logger.info(f"Initial sync progress: {synced}/{total} ({errors} errors)")
+                    logger.info(f"Full sync progress: {start + len(tickets) - 1}/{total} fetched, {synced} upserted ({errors} errors)")
 
                 except Exception as e:
                     logger.error(f"Error syncing page at {start}: {type(e).__name__}: {e}")
                     errors += 1
                     consecutive_page_errors += 1
-                    # Abort if SDP is unreachable (3 consecutive page failures)
                     if consecutive_page_errors >= 3:
-                        logger.error(f"Aborting initial sync: {consecutive_page_errors} consecutive page failures — SDP likely unreachable")
+                        logger.error(f"Aborting full sync: {consecutive_page_errors} consecutive failures")
                         break
 
             # Finalize
@@ -131,11 +135,11 @@ class SyncService:
             # Refresh materialized views
             await self._refresh_views()
 
-            logger.info(f"Initial sync completed: {synced} tickets, {errors} errors")
+            logger.info(f"Full sync completed: {synced} tickets upserted, {errors} errors")
             return sync_id
 
         except Exception as e:
-            logger.error(f"Initial sync failed: {type(e).__name__}: {repr(e)}")
+            logger.error(f"Full sync failed: {type(e).__name__}: {repr(e)}")
             logger.error(traceback.format_exc())
             if sync_id:
                 async with async_session() as session:

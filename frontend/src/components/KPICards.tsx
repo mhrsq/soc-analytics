@@ -111,12 +111,12 @@ export function KPICards({ data, loading, onCardClick, volumeData }: Props) {
   const totalDelta = sparkDelta(last7?.total);
 
   const metrics = [
-    { key: "total" as KPIKey, label: "TOTAL TICKETS", value: data.total_tickets.toLocaleString(), delta: totalDelta, sparkData: last7?.total, sparkColor: "#9b9ba8" },
-    { key: "open" as KPIKey, label: "OPEN", value: data.open_tickets.toLocaleString(), delta: data.open_tickets > 0 ? { text: `${data.open_tickets} active`, color: "#f59e0b" } : null, sparkData: null, sparkColor: "#9b9ba8" },
-    { key: "tp" as KPIKey, label: "TRUE POSITIVE", value: pct(data.tp_rate), delta: tpDelta ? { text: tpDelta.text, color: (data.tp_rate ?? 0) < 20 ? "#f59e0b" : "#646471" } : null, sparkData: last7?.tp, sparkColor: "#10b981" },
-    { key: "fp" as KPIKey, label: "FALSE POSITIVE", value: pct(data.fp_rate), delta: fpDelta ? { text: fpDelta.text, color: (data.fp_rate ?? 0) > 80 ? "#f59e0b" : "#646471" } : null, sparkData: last7?.fp, sparkColor: "#9b9ba8" },
-    { key: "mttd" as KPIKey, label: "AVG MTTD", value: fmt(data.avg_mttd_seconds), delta: null, sparkData: null, sparkColor: "#9b9ba8" },
-    { key: "sla" as KPIKey, label: "SLA COMPLIANCE", value: pct(data.sla_compliance_pct), delta: (data.sla_compliance_pct ?? 0) >= 90 ? { text: "on target", color: "#10b981" } : { text: "below SLA", color: "#ef4444" }, sparkData: null, sparkColor: "#9b9ba8" },
+    { key: "total" as KPIKey, label: "TOTAL TICKETS", value: data.total_tickets.toLocaleString(), sparkData: last7?.total, sparkColor: "#9b9ba8" },
+    { key: "open" as KPIKey, label: "OPEN", value: data.open_tickets.toLocaleString(), sparkData: null, sparkColor: "#9b9ba8" },
+    { key: "tp" as KPIKey, label: "TRUE POSITIVE", value: pct(data.tp_rate), sparkData: last7?.tp, sparkColor: "#10b981" },
+    { key: "fp" as KPIKey, label: "FALSE POSITIVE", value: pct(data.fp_rate), sparkData: last7?.fp, sparkColor: "#9b9ba8" },
+    { key: "mttd" as KPIKey, label: "AVG MTTD", value: fmt(data.avg_mttd_seconds), sparkData: null, sparkColor: "#9b9ba8" },
+    { key: "sla" as KPIKey, label: "SLA COMPLIANCE", value: pct(data.sla_compliance_pct), sparkData: null, sparkColor: "#9b9ba8" },
   ];
 
   return (
@@ -129,15 +129,10 @@ export function KPICards({ data, loading, onCardClick, volumeData }: Props) {
           style={{ backgroundColor: "var(--theme-card-bg)" }}
         >
           {m.sparkData && <MiniSparkline data={m.sparkData} color={m.sparkColor} />}
-          <div className="flex items-baseline justify-between gap-1 relative z-10">
+          <div className="relative z-10">
             <span className="text-[10px] uppercase tracking-wider font-medium" style={{ color: "var(--theme-text-muted)", letterSpacing: "0.08em" }}>
               {m.label}
             </span>
-            {m.delta && (
-              <span className="text-[9px] font-mono whitespace-nowrap" style={{ color: m.delta.color }}>
-                {m.delta.text}
-              </span>
-            )}
           </div>
           <AnimatedValue
             value={m.value}
