@@ -26,13 +26,13 @@ const CHART_OPTIONS: { value: ChartType; label: string; icon: React.ElementType 
 
 const DATA_OPTIONS: { value: DataSource; label: string }[] = [
   { value: "volume", label: "Ticket Volume" },
-  { value: "validation", label: "Validation" },
-  { value: "priority", label: "Priority" },
-  { value: "customers", label: "Customers" },
-  { value: "top-alerts", label: "Top Alerts" },
-  { value: "mttd", label: "MTTD Trend" },
-  { value: "analysts", label: "Analysts" },
-  { value: "summary", label: "Summary" },
+  { value: "validation", label: "Alert Quality (TP/FP)" },
+  { value: "priority", label: "Priority Distribution" },
+  { value: "customers", label: "Tickets by Customer" },
+  { value: "top-alerts", label: "Top Alert Rules" },
+  { value: "mttd", label: "MTTD / SLA" },
+  { value: "analysts", label: "Analyst Performance" },
+  { value: "summary", label: "SLA Achievement Gauge" },
 ];
 
 export function EditWidgetModal({ widget, onClose, onSave }: Props) {

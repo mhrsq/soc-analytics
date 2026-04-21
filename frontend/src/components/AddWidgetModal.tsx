@@ -21,17 +21,18 @@ const CHART_OPTIONS: { value: ChartType; label: string; icon: React.ElementType;
   { value: "scatter", label: "Scatter Plot", icon: Activity, desc: "Dots for correlation analysis" },
   { value: "treemap", label: "Treemap", icon: Layers, desc: "Nested rectangles for hierarchy" },
   { value: "funnel", label: "Funnel Chart", icon: BarChart3, desc: "Funnel for stage analysis" },
+  { value: "text-stats", label: "Text Stats", icon: Activity, desc: "Text-based ratio/percentage display" },
 ];
 
 const DATA_OPTIONS: { value: DataSource; label: string; desc: string }[] = [
-  { value: "volume", label: "Ticket Volume", desc: "Daily ticket counts (total, TP, FP, NS)" },
-  { value: "validation", label: "Validation Breakdown", desc: "TP vs FP vs NS distribution" },
-  { value: "priority", label: "Priority Distribution", desc: "Tickets by priority level" },
-  { value: "customers", label: "Customers", desc: "Ticket metrics per customer" },
+  { value: "volume", label: "Ticket Volume", desc: "Daily ticket counts with TP/FP breakdown" },
+  { value: "validation", label: "Alert Quality (TP/FP)", desc: "True Positive vs False Positive ratio" },
+  { value: "priority", label: "Priority Distribution", desc: "Tickets by priority level (P1–P4)" },
+  { value: "customers", label: "Tickets by Customer", desc: "Ticket count per customer" },
   { value: "top-alerts", label: "Top Alert Rules", desc: "Most frequent Wazuh alert rules" },
-  { value: "mttd", label: "MTTD Trend", desc: "Mean Time To Detect over time" },
-  { value: "analysts", label: "Analyst Performance", desc: "Per-analyst metrics and workload" },
-  { value: "summary", label: "Summary KPIs", desc: "Overall KPI summary data" },
+  { value: "mttd", label: "MTTD / SLA", desc: "Mean Time To Detect trend" },
+  { value: "analysts", label: "Analyst Performance", desc: "Per-analyst workload and metrics" },
+  { value: "summary", label: "SLA Achievement Gauge", desc: "SLA compliance gauge (needs Gauge chart type)" },
 ];
 
 export function AddWidgetModal({ open, onClose, onAdd }: Props) {
