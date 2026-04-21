@@ -269,6 +269,7 @@ function AppShell() {
                 <Users className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Manager</span>
               </button>
+              {/* Customer View tab hidden — re-enable when ready
               <button
                 onClick={() => setPage("customer")}
                 className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-medium transition-all"
@@ -280,6 +281,7 @@ function AppShell() {
                 <Building2 className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Customer View</span>
               </button>
+              */}
               <button
                 onClick={() => setPage("threatmap")}
                 className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-medium transition-all"
@@ -370,7 +372,7 @@ function AppShell() {
       ) : (
         <>
           <main className="mx-auto px-3 sm:px-6 pb-6">
-            {page === "dashboard" ? <Dashboard /> : page === "manager" ? <ManagerView /> : page === "users" ? <UserManagement /> : <CustomerView />}
+            {page === "dashboard" ? <Dashboard /> : page === "manager" ? <ManagerView /> : page === "users" ? <UserManagement /> : <Dashboard />}
           </main>
           <footer style={{ borderTop: "1px solid var(--theme-surface-border)" }} className="mt-8">
             <div className="mx-auto px-3 sm:px-6 py-4 flex items-center justify-center">

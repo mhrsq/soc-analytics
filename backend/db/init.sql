@@ -192,6 +192,34 @@ CREATE TABLE IF NOT EXISTS siem_locations (
     updated_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Topology: Network Nodes
+CREATE TABLE IF NOT EXISTS topology_nodes (
+    id           SERIAL PRIMARY KEY,
+    label        VARCHAR(200) NOT NULL,
+    hostname     VARCHAR(500),
+    customer     VARCHAR(200),
+    node_type    VARCHAR(50) DEFAULT 'server',
+    lat          DOUBLE PRECISION,
+    lng          DOUBLE PRECISION,
+    pos_x        DOUBLE PRECISION DEFAULT 0,
+    pos_y        DOUBLE PRECISION DEFAULT 0,
+    metadata     JSONB DEFAULT '{}',
+    created_at   TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at   TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Topology: Network Links
+CREATE TABLE IF NOT EXISTS topology_links (
+    id           SERIAL PRIMARY KEY,
+    source_id    INTEGER NOT NULL REFERENCES topology_nodes(id) ON DELETE CASCADE,
+    target_id    INTEGER NOT NULL REFERENCES topology_nodes(id) ON DELETE CASCADE,
+    link_type    VARCHAR(50) DEFAULT 'ethernet',
+    label        VARCHAR(200),
+    bandwidth    VARCHAR(50),
+    metadata     JSONB DEFAULT '{}',
+    created_at   TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Users & Authentication
 CREATE TABLE IF NOT EXISTS users (
     id              SERIAL PRIMARY KEY,
