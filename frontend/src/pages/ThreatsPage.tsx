@@ -5,10 +5,10 @@
  */
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { MapContainer, TileLayer, CircleMarker, Polyline, Tooltip, useMap } from "react-leaflet";
-import ReactFlow, { Background, Controls, MiniMap, Handle, Position, applyNodeChanges, applyEdgeChanges, addEdge, type Node, type Edge, type OnNodesChange, type OnEdgesChange, type OnConnect } from "reactflow";
+import ReactFlow, { Background, MiniMap, Handle, Position, applyNodeChanges, applyEdgeChanges, addEdge, type Node, type Edge, type OnNodesChange, type OnEdgesChange, type OnConnect } from "reactflow";
 import "reactflow/dist/style.css";
 import "leaflet/dist/leaflet.css";
-import { Shield, RefreshCw, Clock, Globe, Network, Plus, Save, X, Trash2, MapPin, Play, Square, ChevronRight, Server, Monitor, Database, Cloud, Radio, Router as RouterIcon, Cpu, Download, Upload, Camera, Search } from "lucide-react";
+import { Shield, RefreshCw, Clock, Globe, Network, Plus, Save, X, Trash2, MapPin, Play, Square, ChevronRight, Server, Monitor, Database, Cloud, Radio, Router as RouterIcon, Cpu, Download, Upload, Camera, Search, Palette } from "lucide-react";
 import { api } from "../api/client";
 import type { AttackArc, TopologyNode, TopologyLink } from "../types";
 
@@ -127,6 +127,11 @@ export function ThreatsPage() {
   const [hostnameSearch, setHostnameSearch] = useState("");
   const graphRef = useRef<HTMLDivElement>(null);
 
+  // Link edit state
+  const [selectedEdge, setSelectedEdge] = useState<{ id: string; linkId: number; label: string; color: string; linkType: string } | null>(null);
+  const [edgeLabelInput, setEdgeLabelInput] = useState("");
+  const [edgeColorInput, setEdgeColorInput] = useState("");
+
   const feedRef = useRef<HTMLDivElement>(null);
 
   // Load all data
@@ -200,9 +205,6 @@ export function ThreatsPage() {
     return c;
   }, [attacks]);
 
-  const totalAttacks = attacks.length;
-  const internalCount = attacks.filter(a => a.is_private_ip).length;
-
   // ── Replay logic ──
   const loadReplay = async () => {
     if (!replayStart || !replayEnd) return;
@@ -260,6 +262,39 @@ export function ThreatsPage() {
       setRfEdges(eds => addEdge({ ...conn, id: String(link.id), label: "lan", style: { stroke: "#3e3e48", strokeWidth: 1.5 }, labelStyle: { fill: "#646471", fontSize: 9 }, labelBgStyle: { fill: "#0a0a0c", fillOpacity: 0.8 } }, eds));
     } catch {}
   }, []);
+
+  const onEdgeClick = useCallback((_: React.MouseEvent, edge: Edge) => {
+    const linkId = Number(edge.id);
+    const lbl = typeof edge.label === "string" ? edge.label : "";
+    const clr = edge.style?.stroke as string || "#3e3e48";
+    const lt = edge.data?.linkType || "lan";
+    setSelectedEdge({ id: edge.id, linkId, label: lbl, color: clr, linkType: lt });
+    setEdgeLabelInput(lbl);
+    setEdgeColorInput(clr);
+  }, []);
+
+  const updateEdge = useCallback(async () => {
+    if (!selectedEdge) return;
+    try {
+      await api.updateTopologyLink(selectedEdge.linkId, { label: edgeLabelInput, link_type: selectedEdge.linkType });
+      setRfEdges(eds => eds.map(e => e.id === selectedEdge.id ? {
+        ...e, label: edgeLabelInput,
+        style: { ...e.style, stroke: edgeColorInput },
+        labelStyle: { fill: "#646471", fontSize: 9 },
+        labelBgStyle: { fill: "#0a0a0c", fillOpacity: 0.8 },
+      } : e));
+      setSelectedEdge(null);
+    } catch {}
+  }, [selectedEdge, edgeLabelInput, edgeColorInput]);
+
+  const deleteEdge = useCallback(async () => {
+    if (!selectedEdge) return;
+    try {
+      await api.deleteTopologyLink(selectedEdge.linkId);
+      setRfEdges(eds => eds.filter(e => e.id !== selectedEdge.id));
+      setSelectedEdge(null);
+    } catch {}
+  }, [selectedEdge]);
   const savePositions = useCallback(async () => {
     const p = rfNodes.map(n => ({ id: Number(n.id), pos_x: n.position.x, pos_y: n.position.y }));
     try { await api.updateTopologyPositions(p); } catch {}
@@ -352,9 +387,7 @@ export function ThreatsPage() {
             </button>
           </div>
           <div className="h-4 w-px" style={{ backgroundColor: "#26262e" }} />
-          <span className="text-[11px] font-mono" style={{ color: "#9b9ba8" }}>{totalAttacks} attacks</span>
-          {internalCount > 0 && <span className="text-[11px] font-mono" style={{ color: "#f59e0b" }}>{internalCount} internal</span>}
-          <span className="text-[11px] font-mono" style={{ color: "#9b9ba8" }}>{sites.length} sites</span>
+
         </div>
         <div className="flex items-center gap-2">
           {mode === "map" && (
@@ -468,29 +501,49 @@ export function ThreatsPage() {
         {/* GRAPH MODE */}
         {mode === "graph" && (
           <ReactFlow nodes={rfNodes} edges={rfEdges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect}
-            onNodeDragStop={savePositions} nodeTypes={nodeTypes} fitView style={{ background: "#0a0a0c" }}>
+            onEdgeClick={onEdgeClick} onNodeDragStop={savePositions} nodeTypes={nodeTypes} fitView style={{ background: "#0a0a0c" }}>
             <Background gap={32} size={1} color="#1d1d23" />
-            <Controls position="top-left" style={{ background: "#141418", border: "1px solid #26262e", borderRadius: 8 }} />
             <MiniMap style={{ background: "#141418", border: "1px solid #26262e", borderRadius: 8 }} nodeColor={(n) => NODE_CFG[n.data?.nodeType]?.color || "#60a5fa"} />
           </ReactFlow>
         )}
 
-        {/* Graph: Node palette (left) */}
-        {mode === "graph" && (
-          <div className="absolute top-16 left-4 z-10 flex flex-col gap-1 p-2 rounded-lg" style={{ backgroundColor: "#141418", border: "1px solid #26262e" }}>
-            {Object.entries(NODE_CFG).map(([type, cfg]) => {
-              const Icon = cfg.icon;
-              return (
-                <button key={type} onClick={() => { setShowAddNode(true); setForm(f => ({ ...f, node_type: type })); }}
-                  className="flex items-center gap-2 px-2 py-1.5 rounded text-[10px] hover:bg-white/[0.05]" style={{ color: cfg.color }} title={cfg.label}>
-                  <Icon className="w-3.5 h-3.5" /><span style={{ color: "#9b9ba8" }}>{cfg.label}</span>
+        {/* Graph: Link edit panel */}
+        {mode === "graph" && selectedEdge && (
+          <div className="absolute top-16 left-4 z-[1000] w-56 rounded-lg overflow-hidden" style={{ backgroundColor: "#0a0a0c", border: "1px solid #26262e" }}>
+            <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: "1px solid #1d1d23" }}>
+              <div className="flex items-center gap-1.5">
+                <Palette className="w-3 h-3" style={{ color: "#9b9ba8" }} />
+                <span className="text-xs font-medium" style={{ color: "#e8e8ec" }}>Edit Link</span>
+              </div>
+              <button onClick={() => setSelectedEdge(null)} className="p-0.5 rounded hover:bg-white/[0.05]" style={{ color: "#646471" }}><X className="w-3.5 h-3.5" /></button>
+            </div>
+            <div className="p-3 space-y-2.5">
+              <div>
+                <label className="text-[10px] uppercase tracking-wider font-medium block mb-1" style={{ color: "#646471" }}>Description</label>
+                <input type="text" value={edgeLabelInput} onChange={e => setEdgeLabelInput(e.target.value)} placeholder="e.g. lan, fiber, vpn"
+                  className="w-full text-xs px-2.5 py-1.5 rounded-lg outline-none" style={{ backgroundColor: "#141418", border: "1px solid #26262e", color: "#e8e8ec" }} />
+              </div>
+              <div>
+                <label className="text-[10px] uppercase tracking-wider font-medium block mb-1" style={{ color: "#646471" }}>Color</label>
+                <div className="flex gap-1.5 flex-wrap">
+                  {["#3e3e48", "#60a5fa", "#a78bfa", "#10b981", "#f59e0b", "#ef4444", "#e8e8ec"].map(c => (
+                    <button key={c} onClick={() => setEdgeColorInput(c)}
+                      className="w-5 h-5 rounded-full border-2 transition-transform hover:scale-110"
+                      style={{ backgroundColor: c, borderColor: edgeColorInput === c ? "#e8e8ec" : "transparent" }} />
+                  ))}
+                </div>
+              </div>
+              <div className="flex gap-2 pt-1">
+                <button onClick={updateEdge} className="flex-1 py-1.5 rounded-lg text-[11px] font-medium" style={{ backgroundColor: "#1b1b21", border: "1px solid #26262e", color: "#e8e8ec" }}>Save</button>
+                <button onClick={deleteEdge} className="px-3 py-1.5 rounded-lg text-[11px] font-medium" style={{ backgroundColor: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444" }}>
+                  <Trash2 className="w-3 h-3" />
                 </button>
-              );
-            })}
+              </div>
+            </div>
           </div>
         )}
 
-        {/* Graph: Empty state */}
+        {/* Graph: Empty state */
         {mode === "graph" && nodes.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="text-center">
@@ -586,34 +639,30 @@ export function ThreatsPage() {
         </div>
       )}
 
-      {/* ── Attack Feed (bottom) ── */}
-      <div ref={feedRef} className="h-36 overflow-y-auto border-t shrink-0" style={{ backgroundColor: "#0a0a0c", borderColor: "#1d1d23" }}>
-        <div className="sticky top-0 z-10 px-4 py-1.5 text-[10px] uppercase tracking-wider font-medium flex items-center gap-2" style={{ backgroundColor: "#0a0a0c", borderBottom: "1px solid #1d1d23", color: "#646471" }}>
-          <Clock className="w-3 h-3" />
-          {replayPlaying ? `Replay Feed · ${replayIndex}/${replayData.length}` : "Live Attack Feed"}
-          <span className="ml-auto font-mono">{replayPlaying ? replayArcs.length : feed.length} events</span>
+      {/* ── Attack Feed (bottom, Map mode only) ── */}
+      {mode === "map" && (
+        <div ref={feedRef} className="h-36 overflow-y-auto border-t shrink-0" style={{ backgroundColor: "#0a0a0c", borderColor: "#1d1d23" }}>
+          <div className="sticky top-0 z-10 px-4 py-1.5 text-[10px] uppercase tracking-wider font-medium flex items-center gap-2" style={{ backgroundColor: "#0a0a0c", borderBottom: "1px solid #1d1d23", color: "#646471" }}>
+            <Clock className="w-3 h-3" />
+            {replayPlaying ? `Replay Feed · ${replayIndex}/${replayData.length}` : "Live Attack Feed"}
+            <span className="ml-auto font-mono">{replayPlaying ? replayArcs.length : feed.filter(f => !f.validation || (f.validation !== "True Positive" && f.validation !== "False Positive")).length} events</span>
+          </div>
+          <div className="divide-y" style={{ borderColor: "#1d1d23" }}>
+            {(replayPlaying || replayArcs.length > 0 ? [...replayArcs].reverse() : feed.filter(f => !f.validation || (f.validation !== "True Positive" && f.validation !== "False Positive"))).map((f, i) => (
+              <div key={`${f.id}-${i}`} className="flex items-center gap-3 px-4 py-1.5 text-[11px] hover:bg-white/[0.02]">
+                <span className="font-mono w-14 shrink-0" style={{ color: "#3e3e48" }}>
+                  {f.time ? new Date(f.time).toLocaleTimeString("id-ID", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "—"}
+                </span>
+                <span className="w-1.5 h-1.5 rounded-sm shrink-0" style={{ backgroundColor: pc(f.priority) }} />
+                <span className="truncate" style={{ color: "#9b9ba8" }}>{f.subject || f.category || "Alert"}</span>
+                <span style={{ color: "#3e3e48" }}>→</span>
+                <span className="font-mono truncate" style={{ color: "#e8e8ec" }}>{f.asset || "—"}</span>
+                {f.customer && <span className="shrink-0" style={{ color: "#3e3e48" }}>{f.customer}</span>}
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="divide-y" style={{ borderColor: "#1d1d23" }}>
-          {(replayPlaying || replayArcs.length > 0 ? [...replayArcs].reverse() : feed).map((f, i) => (
-            <div key={`${f.id}-${i}`} className="flex items-center gap-3 px-4 py-1.5 text-[11px] hover:bg-white/[0.02]">
-              <span className="font-mono w-14 shrink-0" style={{ color: "#3e3e48" }}>
-                {f.time ? new Date(f.time).toLocaleTimeString("id-ID", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "—"}
-              </span>
-              <span className="w-1.5 h-1.5 rounded-sm shrink-0" style={{ backgroundColor: pc(f.priority) }} />
-              <span className="truncate" style={{ color: "#9b9ba8" }}>{f.subject || f.category || "Alert"}</span>
-              <span style={{ color: "#3e3e48" }}>→</span>
-              <span className="font-mono truncate" style={{ color: "#e8e8ec" }}>{f.asset || "—"}</span>
-              {f.customer && <span className="shrink-0" style={{ color: "#3e3e48" }}>{f.customer}</span>}
-              {f.validation && (
-                <span className="shrink-0 text-[9px] px-1 py-0.5 rounded font-medium" style={{
-                  backgroundColor: f.validation === "True Positive" ? "rgba(16,185,129,0.1)" : "rgba(155,155,168,0.08)",
-                  color: f.validation === "True Positive" ? "#10b981" : "#646471",
-                }}>{f.validation === "True Positive" ? "TP" : f.validation === "False Positive" ? "FP" : "—"}</span>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
+      )}
     </div>
   );
 }
