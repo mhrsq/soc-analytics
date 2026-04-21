@@ -19,11 +19,29 @@ interface Props {
 }
 
 const PRIORITY_COLORS: Record<string, string> = {
-  Critical: "#ef4444",
-  High: "#f59e0b",
-  Medium: "#9b9ba8",
-  Low: "#3e3e48",
+  "P1 - Critical": "#ef4444",
+  "P1 -Critical": "#ef4444",
+  "Critical": "#ef4444",
+  "P2 - High": "#f59e0b",
+  "P2 -High": "#f59e0b",
+  "High": "#f59e0b",
+  "P3 - Medium": "#9b9ba8",
+  "P3 -Medium": "#9b9ba8",
+  "Medium": "#9b9ba8",
+  "P4 - Low": "#3e3e48",
+  "P4 -Low": "#3e3e48",
+  "Low": "#3e3e48",
 };
+
+function getPriorityColor(priority: string): string {
+  if (PRIORITY_COLORS[priority]) return PRIORITY_COLORS[priority];
+  const lower = priority.toLowerCase();
+  if (lower.includes("critical")) return "#ef4444";
+  if (lower.includes("high")) return "#f59e0b";
+  if (lower.includes("medium")) return "#9b9ba8";
+  if (lower.includes("low")) return "#3e3e48";
+  return "#646471";
+}
 
 export function PriorityChart({ data, loading, bare }: Props) {
   const cc = useChartColors();
@@ -42,7 +60,7 @@ export function PriorityChart({ data, loading, bare }: Props) {
           formatter={(value: number) => [`${value} tickets`, "Count"]} />
         <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={18}>
           {data.map((entry) => (
-            <Cell key={entry.priority} fill={PRIORITY_COLORS[entry.priority] ?? "#00b0ff"} />
+            <Cell key={entry.priority} fill={getPriorityColor(entry.priority)} />
           ))}
         </Bar>
       </BarChart>

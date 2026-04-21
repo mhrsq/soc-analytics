@@ -95,13 +95,28 @@ export function KPICards({ data, loading, onCardClick, volumeData }: Props) {
     };
   }, [volumeData]);
 
+  // Compute deltas from sparkline data (last value vs first value trend)
+  function sparkDelta(arr: number[] | null | undefined): { text: string; color: string } | null {
+    if (!arr || arr.length < 2) return null;
+    const first = arr[0] ?? 0;
+    const last = arr[arr.length - 1] ?? 0;
+    const diff = last - first;
+    if (diff === 0) return { text: "0 · 7d", color: "#646471" };
+    const sign = diff > 0 ? "+" : "";
+    return { text: `${sign}${diff} · 7d`, color: diff > 0 ? "#ef4444" : "#10b981" };
+  }
+
+  const tpDelta = sparkDelta(last7?.tp);
+  const fpDelta = sparkDelta(last7?.fp);
+  const totalDelta = sparkDelta(last7?.total);
+
   const metrics = [
-    { key: "total" as KPIKey, label: "TOTAL TICKETS", value: data.total_tickets.toLocaleString(), color: "var(--theme-text-primary)", sparkData: last7?.total },
-    { key: "open" as KPIKey, label: "OPEN", value: data.open_tickets.toLocaleString(), color: data.open_tickets > 0 ? "#f59e0b" : "var(--theme-text-primary)", sparkData: null },
-    { key: "tp" as KPIKey, label: "TRUE POSITIVE", value: pct(data.tp_rate), color: signalColor(data.tp_rate, { green: 50, amber: 20 }, true), sparkData: last7?.tp },
-    { key: "fp" as KPIKey, label: "FALSE POSITIVE", value: pct(data.fp_rate), color: signalColor(data.fp_rate, { green: 50, amber: 80 }, false), sparkData: last7?.fp },
-    { key: "mttd" as KPIKey, label: "AVG MTTD", value: fmt(data.avg_mttd_seconds), color: "var(--theme-text-primary)", sparkData: null },
-    { key: "sla" as KPIKey, label: "SLA COMPLIANCE", value: pct(data.sla_compliance_pct), color: signalColor(data.sla_compliance_pct, { green: 90, amber: 75 }, true), sparkData: null },
+    { key: "total" as KPIKey, label: "TOTAL TICKETS", value: data.total_tickets.toLocaleString(), delta: totalDelta, sparkData: last7?.total, sparkColor: "#9b9ba8" },
+    { key: "open" as KPIKey, label: "OPEN", value: data.open_tickets.toLocaleString(), delta: data.open_tickets > 0 ? { text: `${data.open_tickets} active`, color: "#f59e0b" } : null, sparkData: null, sparkColor: "#9b9ba8" },
+    { key: "tp" as KPIKey, label: "TRUE POSITIVE", value: pct(data.tp_rate), delta: tpDelta ? { text: tpDelta.text, color: (data.tp_rate ?? 0) < 20 ? "#f59e0b" : "#646471" } : null, sparkData: last7?.tp, sparkColor: "#10b981" },
+    { key: "fp" as KPIKey, label: "FALSE POSITIVE", value: pct(data.fp_rate), delta: fpDelta ? { text: fpDelta.text, color: (data.fp_rate ?? 0) > 80 ? "#f59e0b" : "#646471" } : null, sparkData: last7?.fp, sparkColor: "#9b9ba8" },
+    { key: "mttd" as KPIKey, label: "AVG MTTD", value: fmt(data.avg_mttd_seconds), delta: null, sparkData: null, sparkColor: "#9b9ba8" },
+    { key: "sla" as KPIKey, label: "SLA COMPLIANCE", value: pct(data.sla_compliance_pct), delta: (data.sla_compliance_pct ?? 0) >= 90 ? { text: "on target", color: "#10b981" } : { text: "below SLA", color: "#ef4444" }, sparkData: null, sparkColor: "#9b9ba8" },
   ];
 
   return (
@@ -113,14 +128,21 @@ export function KPICards({ data, loading, onCardClick, volumeData }: Props) {
           className="relative flex flex-col justify-center px-3 py-3 text-left transition-colors hover:bg-white/[0.02] cursor-pointer overflow-hidden"
           style={{ backgroundColor: "var(--theme-card-bg)" }}
         >
-          {m.sparkData && <MiniSparkline data={m.sparkData} color={m.color === "var(--theme-text-primary)" ? "#9b9ba8" : m.color} />}
-          <span className="text-[10px] uppercase tracking-wider font-medium relative z-10" style={{ color: "var(--theme-text-muted)", letterSpacing: "0.08em" }}>
-            {m.label}
-          </span>
+          {m.sparkData && <MiniSparkline data={m.sparkData} color={m.sparkColor} />}
+          <div className="flex items-baseline justify-between gap-1 relative z-10">
+            <span className="text-[10px] uppercase tracking-wider font-medium" style={{ color: "var(--theme-text-muted)", letterSpacing: "0.08em" }}>
+              {m.label}
+            </span>
+            {m.delta && (
+              <span className="text-[9px] font-mono whitespace-nowrap" style={{ color: m.delta.color }}>
+                {m.delta.text}
+              </span>
+            )}
+          </div>
           <AnimatedValue
             value={m.value}
             className="text-base sm:text-lg font-medium font-mono tabular-nums leading-tight relative z-10"
-            style={{ color: m.color, letterSpacing: "-0.02em" }}
+            style={{ color: "var(--theme-text-primary)", letterSpacing: "-0.02em" }}
           />
         </button>
       ))}
