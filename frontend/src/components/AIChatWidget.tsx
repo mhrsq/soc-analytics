@@ -59,8 +59,10 @@ export function AIChatWidget({ activePage, filters }: Props) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Track open state in ref for async callbacks
+  // Update ref synchronously via wrapper so async sendMessage can read it immediately
+  const openChat = useCallback(() => { setIsOpen(true); wasOpenRef.current = true; setHasUnread(false); }, []);
+  const closeChat = useCallback(() => { setIsOpen(false); wasOpenRef.current = false; }, []);
   useEffect(() => {
-    wasOpenRef.current = isOpen;
     if (isOpen) setHasUnread(false);
   }, [isOpen]);
 
@@ -77,7 +79,7 @@ export function AIChatWidget({ activePage, filters }: Props) {
   // Ctrl+K shortcut
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === "k") { e.preventDefault(); setIsOpen(p => !p); }
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") { e.preventDefault(); if (wasOpenRef.current) closeChat(); else openChat(); }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
@@ -184,7 +186,7 @@ export function AIChatWidget({ activePage, filters }: Props) {
             50% { box-shadow: 0 0 24px rgba(16,185,129,0.50), 0 0 48px rgba(16,185,129,0.15), 0 4px 24px rgba(0,0,0,0.4); }
           }
         `}</style>
-        <button onClick={() => setIsOpen(true)}
+        <button onClick={openChat}
           className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full flex items-center justify-center transition-all hover:scale-105 active:scale-95"
           style={{
             background: "linear-gradient(135deg, #1b1b21 0%, #141418 100%)",
@@ -243,7 +245,7 @@ export function AIChatWidget({ activePage, filters }: Props) {
           <button onClick={() => setIsFullscreen(f => !f)} className="p-1.5 rounded-md hover:bg-white/[0.05]" style={{ color: "#646471" }} title="Toggle fullscreen">
             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
           </button>
-          <button onClick={() => { setIsOpen(false); setIsFullscreen(false); }} className="p-1.5 rounded-md hover:bg-white/[0.05]" style={{ color: "#646471" }}>
+          <button onClick={() => { closeChat(); setIsFullscreen(false); }} className="p-1.5 rounded-md hover:bg-white/[0.05]" style={{ color: "#646471" }}>
             <X className="w-4 h-4" />
           </button>
         </div>
