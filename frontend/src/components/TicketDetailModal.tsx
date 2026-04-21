@@ -176,9 +176,8 @@ export function TicketDetailModal({ ticketId, onClose }: Props) {
               {ticket.description && (
                 <div className="p-3 rounded-lg" style={{ backgroundColor: "var(--theme-card-bg)", border: "1px solid var(--theme-card-border)" }}>
                   <p className="text-[10px] font-medium mb-1" style={{ color: "var(--theme-text-muted)" }}>Description</p>
-                  <p className="text-xs leading-relaxed whitespace-pre-wrap line-clamp-6" style={{ color: "var(--theme-text-secondary)" }}>
-                    {ticket.description}
-                  </p>
+                  <div className="text-xs leading-relaxed line-clamp-6 [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_li]:mb-0.5 [&_b]:font-semibold [&_a]:text-blue-400 [&_a]:underline" style={{ color: "var(--theme-text-secondary)" }}
+                    dangerouslySetInnerHTML={{ __html: ticket.description.replace(/<script[^>]*>.*?<\/script>/gi, '') }} />
                 </div>
               )}
 

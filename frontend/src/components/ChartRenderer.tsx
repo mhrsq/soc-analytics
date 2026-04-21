@@ -305,7 +305,12 @@ export function ChartRenderer({ chartType, data, height = "100%", onClick }: Pro
         gaugeLabel = "TP Rate";
       } else if (valueKeys.length > 0 && typeof row[valueKeys[0]] === "number") {
         gaugeValue = Number(row[valueKeys[0]]);
-        gaugeLabel = valueKeys[0];
+        // Show human-readable label instead of raw field name
+        const fieldLabels: Record<string, string> = {
+          avg_mttd_seconds: "Avg MTTD", avg_mttr_seconds: "Avg MTTR",
+          sla_pct: "SLA %", total: "Total", open: "Open",
+        };
+        gaugeLabel = fieldLabels[valueKeys[0]] || valueKeys[0].replace(/_/g, " ");
       }
       const clampedValue = Math.min(100, Math.max(0, gaugeValue));
       const gaugeColor = clampedValue >= 95 ? "#10b981" : clampedValue >= 70 ? "#f59e0b" : "#ef4444";

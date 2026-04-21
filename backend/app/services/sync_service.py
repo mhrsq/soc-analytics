@@ -66,7 +66,8 @@ class SyncService:
             synced = 0
             errors = 0
             consecutive_page_errors = 0
-            page_size = 500  # Bigger batches for speed
+            page_size = 500  # List batch size
+            detail_batch = 20  # Detail fetch concurrency per sub-batch
 
             for start in range(1, total + 1, page_size):
                 try:
@@ -77,13 +78,13 @@ class SyncService:
                         sort_order="asc",
                     )
 
-                    # Skip tickets already in DB for speed (resume)
-                    # Still fetch details for all to handle updates
-                    detail_tasks = [
-                        self.sdp.get_ticket_detail(t["id"])
-                        for t in tickets
-                    ]
-                    details = await asyncio.gather(*detail_tasks, return_exceptions=True)
+                    # Fetch details in smaller sub-batches to avoid overwhelming SDP
+                    details: list = []
+                    for i in range(0, len(tickets), detail_batch):
+                        sub = tickets[i:i + detail_batch]
+                        sub_tasks = [self.sdp.get_ticket_detail(t["id"]) for t in sub]
+                        sub_results = await asyncio.gather(*sub_tasks, return_exceptions=True)
+                        details.extend(sub_results)
 
                     records = []
                     for detail in details:

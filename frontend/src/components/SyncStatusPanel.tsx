@@ -51,10 +51,10 @@ export function SyncStatusPanel({ open, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <div
         className="relative w-full max-w-lg rounded-lg shadow-2xl border overflow-hidden"
-        style={{ backgroundColor: "var(--theme-surface-card)", borderColor: "var(--theme-surface-border)" }}
+        style={{ backgroundColor: "#1e1e26", borderColor: "var(--theme-surface-border)" }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
