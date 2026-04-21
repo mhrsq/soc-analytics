@@ -66,8 +66,8 @@ class SyncService:
             synced = 0
             errors = 0
             consecutive_page_errors = 0
-            page_size = 500  # List batch size
-            detail_batch = 20  # Detail fetch concurrency per sub-batch
+            page_size = 200  # List batch size (smaller for reliability)
+            detail_batch = 10  # Detail fetch concurrency per sub-batch
 
             for start in range(1, total + 1, page_size):
                 try:
@@ -118,9 +118,11 @@ class SyncService:
                     logger.error(f"Error syncing page at {start}: {type(e).__name__}: {e}")
                     errors += 1
                     consecutive_page_errors += 1
-                    if consecutive_page_errors >= 3:
+                    if consecutive_page_errors >= 5:
                         logger.error(f"Aborting full sync: {consecutive_page_errors} consecutive failures")
                         break
+                    # Wait before retrying
+                    await asyncio.sleep(2)
 
             # Finalize
             async with async_session() as session:

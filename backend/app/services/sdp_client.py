@@ -112,20 +112,31 @@ class SDPClient:
             total = data.get("list_info", {}).get("total_count", 0)
             return tickets, total
 
-    async def get_ticket_detail(self, ticket_id: int) -> Optional[dict]:
-        """Get full ticket detail including UDF fields."""
-        async with self.semaphore:
-            try:
-                async with self._get_client() as client:
-                    resp = await client.get(f"/api/v3/requests/{ticket_id}")
-                    data = resp.json()
-                    if "request" in data:
-                        return data["request"]
-                    logger.warning(f"No request data for ticket {ticket_id}: {data}")
+    async def get_ticket_detail(self, ticket_id: int, retries: int = 2) -> Optional[dict]:
+        """Get full ticket detail including UDF fields. Retries on failure."""
+        for attempt in range(retries + 1):
+            async with self.semaphore:
+                try:
+                    async with httpx.AsyncClient(
+                        base_url=self.base_url,
+                        headers={"authtoken": self.api_key},
+                        verify=False,
+                        timeout=45.0,  # Longer timeout for detail fetches
+                    ) as client:
+                        resp = await client.get(f"/api/v3/requests/{ticket_id}")
+                        data = resp.json()
+                        if "request" in data:
+                            return data["request"]
+                        logger.warning(f"No request data for ticket {ticket_id}: {data}")
+                        return None
+                except Exception as e:
+                    if attempt < retries:
+                        logger.warning(f"Retry {attempt+1}/{retries} for ticket {ticket_id}: {e}")
+                        await asyncio.sleep(1 * (attempt + 1))  # Backoff
+                        continue
+                    logger.error(f"Failed ticket {ticket_id} after {retries+1} attempts: {e}")
                     return None
-            except Exception as e:
-                logger.error(f"Error fetching ticket {ticket_id}: {e}")
-                return None
+        return None
 
     def parse_ticket(self, raw: dict) -> dict:
         """Parse raw SDP ticket response into our DB schema format."""
