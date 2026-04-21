@@ -138,12 +138,16 @@ class SDPClient:
                     return None
         return None
 
+    CAR_TEMPLATE_NAME = "CAR - Case Template"
+
     def parse_ticket(self, raw: dict) -> dict:
         """Parse raw SDP ticket response into our DB schema format."""
         udf = raw.get("udf_fields", {})
 
-        # Check if this is a SOC ticket (has SOC UDF fields)
-        if "udf_pick_1805" not in udf:
+        # Check if this is a SOC ticket (CAR - Case Template)
+        tmpl = raw.get("template", {})
+        tmpl_name = tmpl.get("name", "") if isinstance(tmpl, dict) else ""
+        if tmpl_name != self.CAR_TEMPLATE_NAME:
             return {}  # Not a SOC/CAR template ticket
 
         # Parse standard fields
