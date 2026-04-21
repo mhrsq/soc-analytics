@@ -53,8 +53,16 @@ export function AIChatWidget({ activePage, filters }: Props) {
   const [showHistory, setShowHistory] = useState(false);
   const [followUpChips, setFollowUpChips] = useState<string[]>([]);
   const [copiedId, setCopiedId] = useState<number | null>(null);
+  const [hasUnread, setHasUnread] = useState(false);
+  const wasOpenRef = useRef(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Track open state in ref for async callbacks
+  useEffect(() => {
+    wasOpenRef.current = isOpen;
+    if (isOpen) setHasUnread(false);
+  }, [isOpen]);
 
   // Auto-scroll
   useEffect(() => {
@@ -125,6 +133,8 @@ export function AIChatWidget({ activePage, filters }: Props) {
       setMessages(prev => [...prev, aiMsg]);
       if (!convId) setConvId(res.conversation_id);
       generateFollowUps(res.message);
+      // If user closed the panel while waiting, show notification
+      if (!wasOpenRef.current) setHasUnread(true);
     } catch (e: any) {
       setMessages(prev => [...prev, { role: "assistant", content: `Error: ${e.message}` }]);
     }
@@ -163,13 +173,31 @@ export function AIChatWidget({ activePage, filters }: Props) {
   // ── FAB (collapsed) ──
   if (!isOpen) {
     return (
-      <button onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-105 active:scale-95"
-        style={{ background: "linear-gradient(135deg, #1b1b21 0%, #141418 100%)", border: "1px solid #26262e", boxShadow: "0 4px 24px rgba(0,0,0,0.4)" }}
-        title="SOC AI Assistant (Ctrl+K)">
-        <Sparkles className="w-6 h-6" style={{ color: "#9b9ba8" }} />
-        <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full animate-pulse" style={{ backgroundColor: "#10b981" }} />
-      </button>
+      <>
+        <style>{`
+          @keyframes fabBreathe {
+            0%, 100% { box-shadow: 0 0 8px rgba(96,165,250,0.15), 0 4px 24px rgba(0,0,0,0.4); }
+            50% { box-shadow: 0 0 20px rgba(96,165,250,0.35), 0 0 40px rgba(96,165,250,0.10), 0 4px 24px rgba(0,0,0,0.4); }
+          }
+          @keyframes fabNotify {
+            0%, 100% { box-shadow: 0 0 8px rgba(16,185,129,0.25), 0 4px 24px rgba(0,0,0,0.4); }
+            50% { box-shadow: 0 0 24px rgba(16,185,129,0.50), 0 0 48px rgba(16,185,129,0.15), 0 4px 24px rgba(0,0,0,0.4); }
+          }
+        `}</style>
+        <button onClick={() => setIsOpen(true)}
+          className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+          style={{
+            background: "linear-gradient(135deg, #1b1b21 0%, #141418 100%)",
+            border: `1px solid ${hasUnread ? "#10b981" : "#26262e"}`,
+            animation: hasUnread ? "fabNotify 2s ease-in-out infinite" : "fabBreathe 3s ease-in-out infinite",
+          }}
+          title="SOC AI Assistant (Ctrl+K)">
+          <Sparkles className="w-6 h-6" style={{ color: hasUnread ? "#10b981" : "#9b9ba8" }} />
+          {hasUnread && (
+            <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full animate-pulse" style={{ backgroundColor: "#10b981" }} />
+          )}
+        </button>
+      </>
     );
   }
 

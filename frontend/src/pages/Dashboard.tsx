@@ -20,6 +20,7 @@ import { AnalystTable } from "../components/AnalystTable";
 import { AIInsightsPanel } from "../components/AIInsightsPanel";
 import { ChartRenderer } from "../components/ChartRenderer";
 import { WidgetWrapper } from "../components/WidgetWrapper";
+import { LiveTicketFeed } from "../components/LiveTicketFeed";
 
 import { AddWidgetModal } from "../components/AddWidgetModal";
 import { EditWidgetModal } from "../components/EditWidgetModal";
@@ -109,6 +110,7 @@ export function Dashboard() {
       mttd: mttd.data ?? null,
       analysts: analysts.data ?? null,
       summary: sumArr,
+      "live-feed": null, // Live feed manages its own data fetching
     };
   }, [volume.data, validation.data, priority.data, customers.data, topAlerts.data, mttd.data, analysts.data, summary.data]);
 
@@ -121,6 +123,7 @@ export function Dashboard() {
     mttd: mttd.loading,
     analysts: analysts.loading,
     summary: summary.loading,
+    "live-feed": false,
   };
 
   // Grid layout for react-grid-layout
@@ -182,6 +185,17 @@ export function Dashboard() {
         case "analysts":
           return <AnalystTable data={analysts.data} loading={analysts.loading} bare />;
       }
+    }
+
+    // Live ticket feed — self-contained component
+    if (widget.dataSource === "live-feed") {
+      return (
+        <LiveTicketFeed
+          filters={{ start: filters.start, end: filters.end, customer: filters.customer, asset_name: filters.asset_name }}
+          bare
+          onTicketClick={setTicketId}
+        />
+      );
     }
 
     // Generic chart renderer for custom widgets or changed built-in charts

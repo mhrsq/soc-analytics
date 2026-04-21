@@ -92,6 +92,7 @@ class TicketListItem(BaseModel):
     created_time: Optional[datetime]
     mttd_seconds: Optional[int]
     sla_met: Optional[bool]
+    asset_name: Optional[str] = None
 
 
 class TicketDetail(BaseModel):

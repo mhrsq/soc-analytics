@@ -144,6 +144,7 @@ async def list_tickets(
                 "created_time": t.created_time,
                 "mttd_seconds": t.mttd_seconds,
                 "sla_met": t.sla_met,
+                "asset_name": t.asset_name,
             }
             for t in tickets
         ],

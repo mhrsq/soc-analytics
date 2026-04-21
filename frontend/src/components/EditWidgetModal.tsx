@@ -23,6 +23,7 @@ const CHART_OPTIONS: { value: ChartType; label: string; icon: React.ElementType 
   { value: "scatter", label: "Scatter", icon: Activity },
   { value: "treemap", label: "Treemap", icon: Layers },
   { value: "funnel", label: "Funnel", icon: BarChart3 },
+  { value: "table", label: "Table", icon: Activity },
 ];
 
 const DATA_OPTIONS: { value: DataSource; label: string }[] = [
@@ -34,6 +35,7 @@ const DATA_OPTIONS: { value: DataSource; label: string }[] = [
   { value: "mttd", label: "MTTD / SLA" },
   { value: "analysts", label: "Analyst Performance" },
   { value: "summary", label: "SLA Achievement Gauge" },
+  { value: "live-feed", label: "Live Ticket Feed" },
 ];
 
 export function EditWidgetModal({ widget, onClose, onSave }: Props) {

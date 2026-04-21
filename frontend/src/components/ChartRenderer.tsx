@@ -291,7 +291,77 @@ export function ChartRenderer({ chartType, data, height = "100%", onClick }: Pro
       );
     }
 
-    case "gauge":
+    case "gauge": {
+      // Radial gauge — best for single-value metrics like SLA compliance
+      const row = (data as Record<string, unknown>[])[0] ?? {};
+      // Find a percentage-like value: prefer sla_compliance_pct, tp_rate, or first numeric key
+      let gaugeValue = 0;
+      let gaugeLabel = "";
+      if (typeof row.sla_compliance_pct === "number") {
+        gaugeValue = row.sla_compliance_pct;
+        gaugeLabel = "SLA Compliance";
+      } else if (typeof row.tp_rate === "number") {
+        gaugeValue = row.tp_rate;
+        gaugeLabel = "TP Rate";
+      } else if (valueKeys.length > 0 && typeof row[valueKeys[0]] === "number") {
+        gaugeValue = Number(row[valueKeys[0]]);
+        gaugeLabel = valueKeys[0];
+      }
+      const clampedValue = Math.min(100, Math.max(0, gaugeValue));
+      const gaugeColor = clampedValue >= 95 ? "#10b981" : clampedValue >= 70 ? "#f59e0b" : "#ef4444";
+      const gaugeData = [{ name: gaugeLabel, value: clampedValue, fill: gaugeColor }];
+
+      return (
+        <ResponsiveContainer width="100%" height={height}>
+          <RadialBarChart
+            cx="50%" cy="55%" innerRadius="60%" outerRadius="90%"
+            startAngle={210} endAngle={-30}
+            barSize={14}
+            data={gaugeData}
+          >
+            <RadialBar
+              dataKey="value"
+              cornerRadius={8}
+              background={{ fill: "rgba(100,120,140,0.10)" }}
+            />
+            <text x="50%" y="48%" textAnchor="middle" dominantBaseline="middle"
+              style={{ fill: gaugeColor, fontSize: "28px", fontWeight: 600, fontFamily: "'IBM Plex Mono', monospace" }}>
+              {clampedValue.toFixed(1)}%
+            </text>
+            <text x="50%" y="62%" textAnchor="middle" dominantBaseline="middle"
+              style={{ fill: cc.tick, fontSize: "11px", fontWeight: 500 }}>
+              {gaugeLabel}
+            </text>
+          </RadialBarChart>
+        </ResponsiveContainer>
+      );
+    }
+
+    case "table":
+      // Table type — fallback display (LiveTicketFeed handles its own rendering)
+      return (
+        <div className="h-full overflow-auto text-xs" style={{ color: "var(--theme-text-secondary)" }}>
+          <table className="w-full">
+            <thead>
+              <tr style={{ borderBottom: "1px solid var(--theme-surface-border)" }}>
+                {[categoryKey, ...valueKeys].map(k => (
+                  <th key={k} className="text-left py-1 px-2 text-[10px] font-semibold uppercase" style={{ color: "var(--theme-text-muted)" }}>{k}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {(data as Record<string, unknown>[]).slice(0, 20).map((row, i) => (
+                <tr key={i} className="hover:bg-white/[0.03] cursor-pointer" onClick={() => handleClick(row)}>
+                  {[categoryKey, ...valueKeys].map(k => (
+                    <td key={k} className="py-1 px-2 truncate max-w-[150px]">{String(row[k] ?? "—")}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+
     default:
       // Fallback to bar
       return (

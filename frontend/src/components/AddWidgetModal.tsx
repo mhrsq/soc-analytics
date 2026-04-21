@@ -23,6 +23,7 @@ const CHART_OPTIONS: { value: ChartType; label: string; icon: React.ElementType;
   { value: "funnel", label: "Funnel Chart", icon: BarChart3, desc: "Funnel for stage analysis" },
   { value: "text-stats", label: "Text Stats", icon: Activity, desc: "Text-based ratio/percentage display" },
   { value: "gauge", label: "Gauge", icon: PieChart, desc: "Circular gauge for single metric (e.g. SLA)" },
+  { value: "table", label: "Table", icon: Activity, desc: "Table view for live data feeds" },
 ];
 
 const DATA_OPTIONS: { value: DataSource; label: string; desc: string }[] = [
@@ -34,6 +35,7 @@ const DATA_OPTIONS: { value: DataSource; label: string; desc: string }[] = [
   { value: "mttd", label: "MTTD / SLA", desc: "Mean Time To Detect trend" },
   { value: "analysts", label: "Analyst Performance", desc: "Per-analyst workload and metrics" },
   { value: "summary", label: "SLA Achievement Gauge", desc: "SLA compliance gauge (needs Gauge chart type)" },
+  { value: "live-feed", label: "Live Ticket Feed", desc: "Latest 10 tickets with timestamp, ID, name, and asset" },
 ];
 
 export function AddWidgetModal({ open, onClose, onAdd }: Props) {

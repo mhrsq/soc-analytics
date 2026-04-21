@@ -170,6 +170,7 @@ export interface TicketListItem {
   created_time: string | null;
   mttd_seconds: number | null;
   sla_met: boolean | null;
+  asset_name: string | null;
 }
 
 export interface PaginatedTickets {
@@ -196,7 +197,8 @@ export type ChartType =
   | "funnel"
   | "stacked-bar"
   | "gauge"
-  | "text-stats";
+  | "text-stats"
+  | "table";
 
 export type DataSource =
   | "volume"
@@ -206,7 +208,8 @@ export type DataSource =
   | "top-alerts"
   | "mttd"
   | "analysts"
-  | "summary";
+  | "summary"
+  | "live-feed";
 
 export interface WidgetConfig {
   id: string;
