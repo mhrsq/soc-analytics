@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.config import get_settings
-from app.routers import ai, analysts, auth, dashboard, metrics, sync, tickets, llm, threatmap
+from app.routers import ai, analysts, auth, chat, dashboard, metrics, sync, tickets, llm, threatmap
 from app.services.auth_service import decode_token
 
 settings = get_settings()
@@ -238,6 +238,7 @@ app.include_router(ai.router)
 app.include_router(llm.router)
 app.include_router(threatmap.router)
 app.include_router(dashboard.router)
+app.include_router(chat.router)
 
 
 @app.get("/api/health")

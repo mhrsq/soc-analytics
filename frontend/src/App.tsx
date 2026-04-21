@@ -14,6 +14,7 @@ import { NotificationBell } from "./components/NotificationBell";
 import { ThemePanel } from "./components/ThemePanel";
 import { LLMSettingsPanel } from "./components/LLMSettingsPanel";
 import { SyncStatusPanel } from "./components/SyncStatusPanel";
+import { AIChatWidget } from "./components/AIChatWidget";
 import { api, type AuthUser } from "./api/client";
 import type { SDPConnectionStatus } from "./types";
 
@@ -387,6 +388,9 @@ function AppShell() {
       <ThemePanel open={themeOpen} onClose={() => setThemeOpen(false)} />
       <LLMSettingsPanel open={llmOpen} onClose={() => setLlmOpen(false)} />
       <SyncStatusPanel open={syncOpen} onClose={() => setSyncOpen(false)} />
+
+      {/* AI Chat Widget — floating FAB */}
+      <AIChatWidget />
     </div>
   );
 }

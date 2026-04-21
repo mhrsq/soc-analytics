@@ -133,7 +133,26 @@ export const api = {
       body: JSON.stringify({ profiles, active_profile_id: activeProfileId }),
     }),
 
-  // ── AI ──
+  // ── AI Chat ──
+  sendChatMessage: (data: { message: string; conversation_id?: string; provider_id?: number; model_override?: string; filters?: Record<string, string> }) =>
+    request<{ message: string; conversation_id: string; model_used: string | null; created_at: string }>("/chat/message", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  getChatConversations: () =>
+    request<{ conversation_id: string; title: string; message_count: number; last_message_at: string | null }[]>("/chat/conversations"),
+
+  getChatMessages: (convId: string) =>
+    request<{ id: number; role: string; content: string; metadata: Record<string, unknown> | null; created_at: string }[]>(`/chat/conversations/${convId}`),
+
+  deleteChatConversation: (convId: string) =>
+    request<{ ok: boolean }>(`/chat/conversations/${convId}`, { method: "DELETE" }),
+
+  getProviderModels: (providerId: number) =>
+    request<{ provider: string; models: { id: string; name: string }[] }>(`/llm/providers/${providerId}/models`),
+
+  // ── AI (legacy) ──
   getInsights: (opts: { period?: string; customer?: string; provider_id?: number; start_date?: string; end_date?: string }) =>
     request<AIInsight>("/ai/insights", {
       method: "POST",

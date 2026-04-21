@@ -220,6 +220,20 @@ CREATE TABLE IF NOT EXISTS topology_links (
     created_at   TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Chat messages (AI chatbot conversation history)
+CREATE TABLE IF NOT EXISTS chat_messages (
+    id              SERIAL PRIMARY KEY,
+    user_id         INTEGER NOT NULL,
+    conversation_id VARCHAR(100) NOT NULL,
+    role            VARCHAR(20) NOT NULL,
+    content         TEXT NOT NULL,
+    metadata        JSONB DEFAULT '{}',
+    created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_chat_user_conv ON chat_messages(user_id, conversation_id);
+CREATE INDEX IF NOT EXISTS idx_chat_conv_created ON chat_messages(conversation_id, created_at);
+
 -- Dashboard profiles (per-user persistent layouts)
 CREATE TABLE IF NOT EXISTS dashboard_profiles (
     id           VARCHAR(100) NOT NULL,

@@ -207,3 +207,74 @@ async def _test_llm_call(
 
     else:
         raise ValueError(f"Unsupported provider: {provider}")
+
+# ── Model Discovery ──
+
+ANTHROPIC_MODELS = [
+    {"id": "claude-sonnet-4-20250514", "name": "Claude Sonnet 4"},
+    {"id": "claude-3-5-sonnet-20241022", "name": "Claude 3.5 Sonnet"},
+    {"id": "claude-3-5-haiku-20241022", "name": "Claude 3.5 Haiku"},
+    {"id": "claude-3-haiku-20240307", "name": "Claude 3 Haiku"},
+    {"id": "claude-3-opus-20240229", "name": "Claude 3 Opus"},
+]
+
+FALLBACK_MODELS: dict[str, list[dict]] = {
+    "openai": [
+        {"id": "gpt-4o", "name": "GPT-4o"},
+        {"id": "gpt-4o-mini", "name": "GPT-4o Mini"},
+        {"id": "o4-mini", "name": "o4 Mini"},
+        {"id": "gpt-4.1", "name": "GPT-4.1"},
+        {"id": "gpt-4.1-mini", "name": "GPT-4.1 Mini"},
+    ],
+    "xai": [
+        {"id": "grok-3", "name": "Grok 3"},
+        {"id": "grok-3-mini", "name": "Grok 3 Mini"},
+        {"id": "grok-2", "name": "Grok 2"},
+        {"id": "grok-2-mini", "name": "Grok 2 Mini"},
+    ],
+    "google": [
+        {"id": "gemini-2.5-pro", "name": "Gemini 2.5 Pro"},
+        {"id": "gemini-2.5-flash", "name": "Gemini 2.5 Flash"},
+        {"id": "gemini-2.0-flash", "name": "Gemini 2.0 Flash"},
+        {"id": "gemini-1.5-pro", "name": "Gemini 1.5 Pro"},
+        {"id": "gemini-1.5-flash", "name": "Gemini 1.5 Flash"},
+    ],
+    "anthropic": ANTHROPIC_MODELS,
+}
+
+
+@router.get("/providers/{provider_id}/models")
+async def get_provider_models(provider_id: int, user: User = Depends(require_auth), db: AsyncSession = Depends(get_db)):
+    """Fetch available models from an LLM provider. Returns top 5."""
+    row = await db.get(LlmProvider, provider_id)
+    if not row:
+        raise HTTPException(404, "Provider not found")
+
+    if row.provider == "anthropic":
+        return {"provider": row.provider, "models": ANTHROPIC_MODELS}
+
+    # OpenAI-compatible providers
+    import httpx
+    if row.provider == "xai":
+        url = row.base_url or "https://api.x.ai/v1"
+    elif row.provider == "google":
+        url = row.base_url or "https://generativelanguage.googleapis.com/v1beta/openai"
+    else:
+        url = row.base_url or "https://api.openai.com/v1"
+
+    try:
+        async with httpx.AsyncClient(timeout=10) as http:
+            resp = await http.get(
+                f"{url}/models",
+                headers={"Authorization": f"Bearer {row.api_key}"},
+            )
+            if resp.status_code != 200:
+                return {"provider": row.provider, "models": FALLBACK_MODELS.get(row.provider, [])}
+
+            all_models = resp.json().get("data", [])
+            # Sort by created desc, take top 5
+            all_models.sort(key=lambda m: m.get("created", 0), reverse=True)
+            top = [{"id": m["id"], "name": m.get("id", "")} for m in all_models[:5]]
+            return {"provider": row.provider, "models": top if top else FALLBACK_MODELS.get(row.provider, [])}
+    except Exception:
+        return {"provider": row.provider, "models": FALLBACK_MODELS.get(row.provider, [])}
