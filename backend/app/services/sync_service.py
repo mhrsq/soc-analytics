@@ -66,7 +66,7 @@ class SyncService:
             synced = 0
             errors = 0
             consecutive_page_errors = 0
-            page_size = 200  # List batch size (smaller for reliability)
+            page_size = 100  # SDP hard limit is 100 per request
             detail_batch = 10  # Detail fetch concurrency per sub-batch
 
             for start in range(1, total + 1, page_size):
