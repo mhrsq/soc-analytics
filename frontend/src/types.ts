@@ -195,7 +195,8 @@ export type ChartType =
   | "treemap"
   | "funnel"
   | "stacked-bar"
-  | "gauge";
+  | "gauge"
+  | "text-stats";
 
 export type DataSource =
   | "volume"

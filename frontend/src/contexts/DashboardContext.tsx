@@ -5,7 +5,7 @@ import type { WidgetConfig, ChartType, DataSource, DashboardLayout } from "../ty
 const DEFAULT_WIDGETS: WidgetConfig[] = [
   { id: "kpi",        name: "Overview",               chartType: "gauge",          dataSource: "summary",    builtIn: true,  x: 0, y: 0,  w: 12, h: 2 },
   { id: "volume",     name: "Ticket Volume",          chartType: "area",           dataSource: "volume",     builtIn: true,  x: 0, y: 2,  w: 8,  h: 5 },
-  { id: "validation", name: "Alert Quality",          chartType: "donut",          dataSource: "validation", builtIn: true,  x: 8, y: 2,  w: 4,  h: 5 },
+  { id: "validation", name: "Alert Quality",          chartType: "text-stats",      dataSource: "validation", builtIn: true,  x: 8, y: 2,  w: 4,  h: 5 },
   { id: "priority",   name: "Priority Distribution", chartType: "horizontal-bar", dataSource: "priority",   builtIn: true,  x: 0, y: 7,  w: 4,  h: 5 },
   { id: "customers",  name: "Tickets by Customer",   chartType: "bar",            dataSource: "customers",  builtIn: true,  x: 4, y: 7,  w: 4,  h: 5 },
   { id: "topalerts",  name: "Top Alert Rules",       chartType: "bar",            dataSource: "top-alerts", builtIn: true,  x: 8, y: 7,  w: 4,  h: 5 },

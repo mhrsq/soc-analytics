@@ -16,6 +16,7 @@ const CHART_OPTIONS: { value: ChartType; label: string; icon: React.ElementType 
   { value: "stacked-bar", label: "Stacked", icon: Layers },
   { value: "pie", label: "Pie", icon: PieChart },
   { value: "donut", label: "Donut", icon: PieChart },
+  { value: "text-stats", label: "Text Stats", icon: Activity },
   { value: "radar", label: "Radar", icon: Radar },
   { value: "radial-bar", label: "Radial", icon: PieChart },
   { value: "scatter", label: "Scatter", icon: Activity },

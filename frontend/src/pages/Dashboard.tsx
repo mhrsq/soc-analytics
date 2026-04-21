@@ -140,7 +140,7 @@ export function Dashboard() {
 
   // Default chart types for built-in widgets (to detect if user changed type via edit)
   const BUILTIN_CHART_TYPES: Record<string, ChartType> = {
-    kpi: "gauge", volume: "area", validation: "donut", mttd: "gauge",
+    kpi: "gauge", volume: "area", validation: "text-stats", mttd: "gauge",
     priority: "horizontal-bar", customers: "bar", topalerts: "bar", analysts: "bar",
   };
 
