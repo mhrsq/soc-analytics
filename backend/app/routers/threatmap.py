@@ -153,13 +153,24 @@ def _short_subject(subject: Optional[str]) -> Optional[str]:
 @router.get("/feed")
 async def get_attack_feed(
     customer: Optional[str] = None,
-    limit: int = Query(50, ge=10, le=200),
+    start: Optional[str] = None,
+    end: Optional[str] = None,
+    asset: Optional[str] = None,
+    limit: int = Query(50, ge=10, le=500),
     db: AsyncSession = Depends(get_db),
 ):
     """Get recent tickets for the live feed ticker. Shows ALL tickets, not just ones with IPs."""
     filters: list = []
     if customer:
         filters.append(Ticket.customer == customer)
+    parsed_start = _parse_time(start)
+    if parsed_start:
+        filters.append(Ticket.created_time >= parsed_start)
+    parsed_end = _parse_time(end)
+    if parsed_end:
+        filters.append(Ticket.created_time <= parsed_end)
+    if asset:
+        filters.append(Ticket.asset_name.ilike(f"%{asset}%"))
 
     q = select(
         Ticket.id, Ticket.subject, Ticket.ip_address, Ticket.asset_name,

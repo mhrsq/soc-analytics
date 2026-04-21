@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { Dashboard } from "./pages/Dashboard";
 import { ManagerView } from "./pages/ManagerView";
 import { CustomerView } from "./pages/CustomerView";
-import { ThreatMapView } from "./pages/ThreatMapView";
-import { TopologyEditor } from "./pages/TopologyEditor";
+import { ThreatsPage } from "./pages/ThreatsPage";
 import { UserManagement } from "./components/UserManagement";
 import { Wifi, WifiOff, Palette, Settings2, LayoutDashboard, Users, Building2, Globe, Shield, LogOut, Network, ServerCrash, Server, KeyRound, Database } from "lucide-react";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -18,7 +17,7 @@ import { AIChatWidget } from "./components/AIChatWidget";
 import { api, type AuthUser } from "./api/client";
 import type { SDPConnectionStatus } from "./types";
 
-type Page = "dashboard" | "manager" | "customer" | "threatmap" | "topology" | "users";
+type Page = "dashboard" | "manager" | "customer" | "threatmap" | "users";
 
 function LiveClock() {
   const [now, setNow] = useState(new Date());
@@ -294,17 +293,6 @@ function AppShell() {
                 <Globe className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Threats</span>
               </button>
-              <button
-                onClick={() => setPage("topology")}
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-medium transition-all"
-                style={{
-                  backgroundColor: page === "topology" ? "color-mix(in srgb, var(--theme-accent) 15%, transparent)" : "transparent",
-                  color: page === "topology" ? "var(--theme-accent)" : "var(--theme-text-muted)",
-                }}
-              >
-                <Network className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Topology</span>
-              </button>
               {isAdmin && (
                 <button
                   onClick={() => setPage("users")}
@@ -371,9 +359,7 @@ function AppShell() {
 
       {/* Main Content */}
       {page === "threatmap" ? (
-        <ThreatMapView />
-      ) : page === "topology" ? (
-        <TopologyEditor />
+        <ThreatsPage />
       ) : (
         <>
           <main className="mx-auto px-3 sm:px-6 pb-6">
