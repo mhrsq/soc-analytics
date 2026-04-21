@@ -1,9 +1,11 @@
 """Authentication & User management routes."""
 
+import time
+from collections import defaultdict
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -22,9 +24,31 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 # ── Schemas ──
 
+VALID_ROLES = {"superadmin", "admin", "viewer", "customer"}
+
+# ── Simple in-memory rate limiter for login ──
+_login_attempts: dict[str, list[float]] = defaultdict(list)
+LOGIN_MAX_ATTEMPTS = 5
+LOGIN_WINDOW_SECONDS = 300  # 5 minutes
+
+
+def _check_rate_limit(ip: str) -> None:
+    """Raise 429 if too many login attempts from this IP."""
+    now = time.monotonic()
+    attempts = _login_attempts[ip]
+    # Prune old entries
+    _login_attempts[ip] = [t for t in attempts if now - t < LOGIN_WINDOW_SECONDS]
+    if len(_login_attempts[ip]) >= LOGIN_MAX_ATTEMPTS:
+        raise HTTPException(
+            status_code=429,
+            detail=f"Too many login attempts. Try again in {LOGIN_WINDOW_SECONDS // 60} minutes.",
+        )
+    _login_attempts[ip].append(now)
+
+
 class LoginRequest(BaseModel):
-    username: str
-    password: str
+    username: str = Field(..., min_length=1, max_length=100)
+    password: str = Field(..., min_length=1, max_length=200)
 
 
 class TokenResponse(BaseModel):
@@ -46,39 +70,39 @@ class UserResponse(BaseModel):
 
 
 class UserCreate(BaseModel):
-    username: str
-    password: str
-    display_name: Optional[str] = None
+    username: str = Field(..., min_length=3, max_length=50, pattern=r"^[a-zA-Z0-9_.-]+$")
+    password: str = Field(..., min_length=8, max_length=200)
+    display_name: Optional[str] = Field(None, max_length=100)
     role: str = "viewer"
-    customer: Optional[str] = None
+    customer: Optional[str] = Field(None, max_length=200)
+
+    @field_validator("role")
+    @classmethod
+    def validate_role(cls, v: str) -> str:
+        if v not in VALID_ROLES:
+            raise ValueError(f"Invalid role. Must be one of: {', '.join(sorted(VALID_ROLES))}")
+        return v
 
 
 class UserUpdate(BaseModel):
-    display_name: Optional[str] = None
+    display_name: Optional[str] = Field(None, max_length=100)
     role: Optional[str] = None
-    customer: Optional[str] = None
+    customer: Optional[str] = Field(None, max_length=200)
     is_active: Optional[bool] = None
-    password: Optional[str] = None
+    password: Optional[str] = Field(None, min_length=8, max_length=200)
+
+    @field_validator("role")
+    @classmethod
+    def validate_role(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and v not in VALID_ROLES:
+            raise ValueError(f"Invalid role. Must be one of: {', '.join(sorted(VALID_ROLES))}")
+        return v
 
 
 TokenResponse.model_rebuild()
 
 
 # ── Auth dependency ──
-
-async def get_current_user(
-    db: AsyncSession = Depends(get_db),
-    authorization: Optional[str] = None,
-) -> User:
-    """Extract user from Authorization header or raise 401."""
-    # Try Authorization header via query param workaround or header
-    from fastapi import Request
-
-    raise HTTPException(status_code=401, detail="Not implemented via dependency; use middleware approach")
-
-
-from fastapi import Request
-
 
 async def require_auth(request: Request, db: AsyncSession = Depends(get_db)) -> User:
     """Dependency: require valid JWT in Authorization header."""
@@ -109,8 +133,11 @@ async def require_admin(user: User = Depends(require_auth)) -> User:
 # ── Routes ──
 
 @router.post("/login", response_model=TokenResponse)
-async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
+async def login(body: LoginRequest, request: Request, db: AsyncSession = Depends(get_db)):
     """Authenticate and return JWT."""
+    client_ip = request.headers.get("X-Real-IP") or request.client.host or "unknown"
+    _check_rate_limit(client_ip)
+
     user = await authenticate_user(db, body.username, body.password)
     if not user:
         raise HTTPException(status_code=401, detail="Invalid username or password")

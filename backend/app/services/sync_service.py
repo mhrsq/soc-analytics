@@ -23,6 +23,7 @@ class SyncService:
     def __init__(self):
         self.sdp = SDPClient()
         self._is_running = False
+        self._lock = asyncio.Lock()
 
     @property
     def is_running(self) -> bool:
@@ -30,10 +31,14 @@ class SyncService:
 
     async def run_initial_sync(self) -> int:
         """Full sync of all SOC tickets. Returns sync_log ID."""
-        if self._is_running:
+        if not self._lock.locked():
+            async with self._lock:
+                return await self._do_initial_sync()
+        else:
             logger.warning("Sync already running, skipping")
             return -1
 
+    async def _do_initial_sync(self) -> int:
         self._is_running = True
         sync_id = None
 
@@ -150,10 +155,14 @@ class SyncService:
 
         Returns sync_log ID.
         """
-        if self._is_running:
+        if not self._lock.locked():
+            async with self._lock:
+                return await self._do_incremental_sync()
+        else:
             logger.warning("Sync already running, skipping")
             return -1
 
+    async def _do_incremental_sync(self) -> int:
         self._is_running = True
         sync_id = None
 

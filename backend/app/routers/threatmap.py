@@ -18,6 +18,8 @@ from app.schemas import (
     TopologyLinkCreate, TopologyLinkUpdate, TopologyLinkOut,
 )
 from app.services.geo_service import batch_geolocate, is_private_ip
+from app.routers.auth import require_auth, require_admin
+from app.models import User
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/threatmap", tags=["Threat Map"])
@@ -155,6 +157,7 @@ async def get_asset_locations(
 @router.post("/assets", response_model=AssetLocationOut)
 async def upsert_asset_location(
     body: AssetLocationCreate,
+    user: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
     """Create or update an asset location (upsert by customer + asset_name)."""
@@ -192,13 +195,14 @@ async def upsert_asset_location(
 @router.delete("/assets/{asset_id}")
 async def delete_asset_location(
     asset_id: int,
+    user: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
     q = select(AssetLocation).where(AssetLocation.id == asset_id)
     result = await db.execute(q)
     asset = result.scalar_one_or_none()
     if not asset:
-        return {"message": "Not found"}
+        raise HTTPException(status_code=404, detail="Asset location not found")
     await db.delete(asset)
     await db.commit()
     return {"message": "Deleted"}
@@ -223,6 +227,7 @@ async def get_siem_locations(
 @router.post("/siems", response_model=SiemLocationOut)
 async def upsert_siem_location(
     body: SiemLocationCreate,
+    user: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
     siem = SiemLocation(
@@ -241,13 +246,14 @@ async def upsert_siem_location(
 @router.delete("/siems/{siem_id}")
 async def delete_siem_location(
     siem_id: int,
+    user: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
     q = select(SiemLocation).where(SiemLocation.id == siem_id)
     result = await db.execute(q)
     siem = result.scalar_one_or_none()
     if not siem:
-        return {"message": "Not found"}
+        raise HTTPException(status_code=404, detail="SIEM location not found")
     await db.delete(siem)
     await db.commit()
     return {"message": "Deleted"}
@@ -288,7 +294,7 @@ async def get_topology_nodes(db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/topology/nodes", response_model=TopologyNodeOut)
-async def create_topology_node(body: TopologyNodeCreate, db: AsyncSession = Depends(get_db)):
+async def create_topology_node(body: TopologyNodeCreate, user: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
     node = TopologyNode(
         label=body.label, hostname=body.hostname, customer=body.customer,
         node_type=body.node_type, lat=body.lat, lng=body.lng,
@@ -305,7 +311,7 @@ async def create_topology_node(body: TopologyNodeCreate, db: AsyncSession = Depe
 
 
 @router.put("/topology/nodes/{node_id}", response_model=TopologyNodeOut)
-async def update_topology_node(node_id: int, body: TopologyNodeUpdate, db: AsyncSession = Depends(get_db)):
+async def update_topology_node(node_id: int, body: TopologyNodeUpdate, user: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
     q = select(TopologyNode).where(TopologyNode.id == node_id)
     result = await db.execute(q)
     node = result.scalar_one_or_none()
@@ -327,12 +333,12 @@ async def update_topology_node(node_id: int, body: TopologyNodeUpdate, db: Async
 
 
 @router.delete("/topology/nodes/{node_id}")
-async def delete_topology_node(node_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_topology_node(node_id: int, user: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
     q = select(TopologyNode).where(TopologyNode.id == node_id)
     result = await db.execute(q)
     node = result.scalar_one_or_none()
     if not node:
-        return {"message": "Not found"}
+        raise HTTPException(status_code=404, detail="Topology node not found")
     # Also delete links referencing this node
     link_q = select(TopologyLink).where(
         (TopologyLink.source_id == node_id) | (TopologyLink.target_id == node_id)
@@ -362,7 +368,7 @@ async def get_topology_links(db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/topology/links", response_model=TopologyLinkOut)
-async def create_topology_link(body: TopologyLinkCreate, db: AsyncSession = Depends(get_db)):
+async def create_topology_link(body: TopologyLinkCreate, user: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
     link = TopologyLink(
         source_id=body.source_id, target_id=body.target_id,
         link_type=body.link_type, label=body.label,
@@ -379,16 +385,17 @@ async def create_topology_link(body: TopologyLinkCreate, db: AsyncSession = Depe
 
 
 @router.put("/topology/links/{link_id}", response_model=TopologyLinkOut)
-async def update_topology_link(link_id: int, body: TopologyLinkUpdate, db: AsyncSession = Depends(get_db)):
+async def update_topology_link(link_id: int, body: TopologyLinkUpdate, user: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
     q = select(TopologyLink).where(TopologyLink.id == link_id)
     result = await db.execute(q)
     link = result.scalar_one_or_none()
     if not link:
         raise HTTPException(status_code=404, detail="Link not found")
-    for field in ["link_type", "label", "bandwidth", "metadata"]:
-        val = getattr(body, field if field != "metadata" else field, None)
-        if val is not None:
-            setattr(link, "metadata_" if field == "metadata" else field, val)
+    for field, val in body.model_dump(exclude_unset=True).items():
+        if field == "metadata":
+            link.metadata_ = val
+        else:
+            setattr(link, field, val)
     await db.commit()
     await db.refresh(link)
     return TopologyLinkOut(
@@ -399,12 +406,12 @@ async def update_topology_link(link_id: int, body: TopologyLinkUpdate, db: Async
 
 
 @router.delete("/topology/links/{link_id}")
-async def delete_topology_link(link_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_topology_link(link_id: int, user: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
     q = select(TopologyLink).where(TopologyLink.id == link_id)
     result = await db.execute(q)
     link = result.scalar_one_or_none()
     if not link:
-        return {"message": "Not found"}
+        raise HTTPException(status_code=404, detail="Topology link not found")
     await db.delete(link)
     await db.commit()
     return {"message": "Deleted"}
@@ -415,6 +422,7 @@ async def delete_topology_link(link_id: int, db: AsyncSession = Depends(get_db))
 @router.put("/topology/positions")
 async def update_topology_positions(
     positions: list[dict],
+    user: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
     """Bulk update node positions. Input: [{id, pos_x, pos_y}, ...]"""

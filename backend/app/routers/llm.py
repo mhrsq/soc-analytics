@@ -9,7 +9,8 @@ from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.models import LlmProvider
+from app.models import LlmProvider, User
+from app.routers.auth import require_auth, require_admin
 from app.schemas import (
     LlmProviderCreate,
     LlmProviderUpdate,
@@ -45,7 +46,7 @@ def _to_out(row: LlmProvider) -> LlmProviderOut:
 
 
 @router.get("/providers", response_model=list[LlmProviderOut])
-async def list_providers(db: AsyncSession = Depends(get_db)):
+async def list_providers(user: User = Depends(require_auth), db: AsyncSession = Depends(get_db)):
     """List all configured LLM providers."""
     result = await db.execute(
         select(LlmProvider).order_by(LlmProvider.is_default.desc(), LlmProvider.created_at)
@@ -54,7 +55,7 @@ async def list_providers(db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/providers", response_model=LlmProviderOut)
-async def add_provider(body: LlmProviderCreate, db: AsyncSession = Depends(get_db)):
+async def add_provider(body: LlmProviderCreate, user: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
     """Add a new LLM provider configuration."""
     if body.provider not in ("openai", "anthropic", "xai", "google"):
         raise HTTPException(400, f"Unsupported provider: {body.provider}")
@@ -83,7 +84,7 @@ async def add_provider(body: LlmProviderCreate, db: AsyncSession = Depends(get_d
 
 @router.patch("/providers/{provider_id}", response_model=LlmProviderOut)
 async def update_provider(
-    provider_id: int, body: LlmProviderUpdate, db: AsyncSession = Depends(get_db)
+    provider_id: int, body: LlmProviderUpdate, user: User = Depends(require_admin), db: AsyncSession = Depends(get_db)
 ):
     """Update an existing LLM provider."""
     row = await db.get(LlmProvider, provider_id)
@@ -109,7 +110,7 @@ async def update_provider(
 
 
 @router.delete("/providers/{provider_id}")
-async def delete_provider(provider_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_provider(provider_id: int, user: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
     """Delete an LLM provider."""
     row = await db.get(LlmProvider, provider_id)
     if not row:
@@ -120,7 +121,7 @@ async def delete_provider(provider_id: int, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/providers/{provider_id}/test", response_model=LlmTestResult)
-async def test_provider(provider_id: int, db: AsyncSession = Depends(get_db)):
+async def test_provider(provider_id: int, user: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
     """Test an LLM provider by sending a simple prompt."""
     row = await db.get(LlmProvider, provider_id)
     if not row:
@@ -148,9 +149,11 @@ async def test_provider(provider_id: int, db: AsyncSession = Depends(get_db)):
         await db.commit()
 
         logger.warning(f"LLM test failed for provider {provider_id}: {e}")
+        # Sanitize error message — don't leak internal details
+        safe_msg = f"{type(e).__name__}: connection or authentication failed"
         return LlmTestResult(
             success=False,
-            message=str(e)[:300],
+            message=safe_msg,
             latency_ms=latency,
         )
 

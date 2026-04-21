@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     # App
     LOG_LEVEL: str = "INFO"
     APP_TITLE: str = "SOC Analytics Dashboard API"
-    CORS_ORIGINS: str = "http://localhost:3000,http://localhost:3500,http://localhost:5173,http://178.128.222.1:3500,http://178.128.222.1:3000,*"
+    CORS_ORIGINS: str = "http://localhost:3000,http://localhost:3500,http://localhost:5173,http://178.128.222.1:3500,http://178.128.222.1:3000"
 
     class Config:
         env_file = ".env"

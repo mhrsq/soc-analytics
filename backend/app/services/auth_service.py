@@ -24,6 +24,10 @@ def verify_password(plain: str, hashed: str) -> bool:
     return pwd_context.verify(plain, hashed)
 
 
+JWT_ISSUER = "soc-analytics"
+JWT_AUDIENCE = "soc-dashboard"
+
+
 def create_access_token(user_id: int, username: str, role: str, customer: Optional[str] = None) -> str:
     expire = datetime.now(timezone.utc) + timedelta(hours=settings.JWT_EXPIRE_HOURS)
     payload = {
@@ -32,12 +36,17 @@ def create_access_token(user_id: int, username: str, role: str, customer: Option
         "role": role,
         "customer": customer,
         "exp": expire,
+        "iss": JWT_ISSUER,
+        "aud": JWT_AUDIENCE,
     }
     return jwt.encode(payload, settings.JWT_SECRET, algorithm="HS256")
 
 
 def decode_token(token: str) -> dict:
-    return jwt.decode(token, settings.JWT_SECRET, algorithms=["HS256"])
+    return jwt.decode(
+        token, settings.JWT_SECRET, algorithms=["HS256"],
+        issuer=JWT_ISSUER, audience=JWT_AUDIENCE,
+    )
 
 
 async def authenticate_user(db: AsyncSession, username: str, password: str) -> Optional[User]:

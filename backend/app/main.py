@@ -187,7 +187,11 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 return JSONResponse(status_code=401, content={"detail": "Missing or invalid token"})
             token = auth_header.removeprefix("Bearer ").strip()
             try:
-                decode_token(token)
+                payload = decode_token(token)
+                # Attach user context to request state for downstream use
+                request.state.user_id = payload.get("sub")
+                request.state.user_role = payload.get("role")
+                request.state.user_customer = payload.get("customer")
             except Exception:
                 return JSONResponse(status_code=401, content={"detail": "Invalid or expired token"})
         return await call_next(request)
@@ -229,12 +233,19 @@ async def health():
 
 @app.get("/api/filters/options")
 async def get_filter_options(
+    request: Request,
     customer: Optional[str] = None,
 ):
     """Get available filter options for the frontend dropdowns."""
     from sqlalchemy import distinct, select
     from app.database import async_session
     from app.models import Ticket
+
+    # Enforce customer scoping: customer-role users can only see their own data
+    user_role = getattr(request.state, "user_role", None)
+    user_customer = getattr(request.state, "user_customer", None)
+    if user_role == "customer" and user_customer:
+        customer = user_customer  # Override any requested customer
 
     async with async_session() as db:
         # Get unique values for each filter

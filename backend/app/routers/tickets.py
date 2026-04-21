@@ -97,7 +97,9 @@ async def list_tickets(
             else:
                 filters.append(cast(Ticket.created_time, Date) <= val)
     if search:
-        filters.append(Ticket.subject.ilike(f"%{search}%"))
+        # Escape SQL LIKE wildcards to prevent wildcard injection
+        safe_search = search.replace("%", "\\%").replace("_", "\\_")
+        filters.append(Ticket.subject.ilike(f"%{safe_search}%"))
     if has_mttd and has_mttd.lower() == "true":
         filters.append(Ticket.mttd_seconds != None)  # noqa: E711
         filters.append(Ticket.mttd_seconds > 0)
