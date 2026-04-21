@@ -31,7 +31,7 @@ const NODE_CFG: Record<string, { label: string; color: string; icon: typeof Serv
   cloud: { label: "Cloud", color: "#a78bfa", icon: Cloud },
   siem: { label: "SIEM", color: "#ef4444", icon: Radio },
   router: { label: "Router", color: "#8B5CF6", icon: RouterIcon },
-  switch: { label: "Switch", color: "#60a5fa", icon: Cpu },
+  switch: { label: "Switch", color: "#14b8a6", icon: Cpu },
 };
 
 // ── Types ──
@@ -457,7 +457,17 @@ export function ThreatsPage() {
             <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" subdomains="abcd" />
             <FitBounds sites={sites} />
 
-            {/* Site markers */}
+            {/* Pulse rings — rendered BEFORE markers so markers are on top and receive events */}
+            {sites.map(site => {
+              const k = `${site.lat.toFixed(2)}_${site.lng.toFixed(2)}`;
+              if ((siteAttackCounts.get(k) || 0) === 0) return null;
+              return [12, 20].map((r, i) => (
+                <CircleMarker key={`p-${site.id}-${i}`} center={[site.lat, site.lng]} radius={r}
+                  pathOptions={{ color: "#f59e0b", fillColor: "transparent", fillOpacity: 0, weight: 1, opacity: 0.3 - i * 0.1, dashArray: "4 4", interactive: false }} />
+              ));
+            })}
+
+            {/* Site markers — on top so they receive click/hover */}
             {sites.map(site => {
               const k = `${site.lat.toFixed(2)}_${site.lng.toFixed(2)}`;
               const ac = siteAttackCounts.get(k) || 0;
@@ -468,16 +478,6 @@ export function ThreatsPage() {
                   <Tooltip><div className="text-xs"><strong>{site.label}</strong>{site.customer && <span className="opacity-60"> · {site.customer}</span>}<br /><span className="opacity-60">{site.nodeCount} assets</span>{ac > 0 && <span className="text-amber-400"> · {ac} attacks</span>}</div></Tooltip>
                 </CircleMarker>
               );
-            })}
-
-            {/* Pulse rings */}
-            {sites.map(site => {
-              const k = `${site.lat.toFixed(2)}_${site.lng.toFixed(2)}`;
-              if ((siteAttackCounts.get(k) || 0) === 0) return null;
-              return [12, 20].map((r, i) => (
-                <CircleMarker key={`p-${site.id}-${i}`} center={[site.lat, site.lng]} radius={r}
-                  pathOptions={{ color: "#f59e0b", fillColor: "transparent", fillOpacity: 0, weight: 1, opacity: 0.3 - i * 0.1, dashArray: "4 4" }} />
-              ));
             })}
 
             {/* Replay accumulated arcs — these stay visible */}
@@ -503,7 +503,7 @@ export function ThreatsPage() {
           <ReactFlow nodes={rfNodes} edges={rfEdges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect}
             onEdgeClick={onEdgeClick} onNodeDragStop={savePositions} nodeTypes={nodeTypes} fitView style={{ background: "#0a0a0c" }}>
             <Background gap={32} size={1} color="#1d1d23" />
-            <MiniMap style={{ background: "#141418", border: "1px solid #26262e", borderRadius: 8 }} nodeColor={(n) => NODE_CFG[n.data?.nodeType]?.color || "#60a5fa"} />
+            <MiniMap maskColor="rgba(10,10,12,0.8)" style={{ background: "#141418", border: "1px solid #26262e", borderRadius: 8 }} nodeColor={(n) => NODE_CFG[n.data?.nodeType]?.color || "#60a5fa"} />
           </ReactFlow>
         )}
 
@@ -547,9 +547,9 @@ export function ThreatsPage() {
         {mode === "graph" && nodes.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="text-center">
-              <Server className="w-10 h-10 mx-auto mb-3 opacity-20" style={{ color: "#646471" }} />
+              <Network className="w-10 h-10 mx-auto mb-3 opacity-20" style={{ color: "#646471" }} />
               <p className="text-sm" style={{ color: "#646471" }}>No topology nodes yet</p>
-              <p className="text-xs mt-1" style={{ color: "#3e3e48" }}>Click "Add Node" to build your network</p>
+              <p className="text-xs mt-1" style={{ color: "#3e3e48" }}>Click &quot;Add Node&quot; to build your network</p>
             </div>
           </div>
         )}
@@ -645,16 +645,18 @@ export function ThreatsPage() {
           <div className="sticky top-0 z-10 px-4 py-1.5 text-[10px] uppercase tracking-wider font-medium flex items-center gap-2" style={{ backgroundColor: "#0a0a0c", borderBottom: "1px solid #1d1d23", color: "#646471" }}>
             <Clock className="w-3 h-3" />
             {replayPlaying ? `Replay Feed · ${replayIndex}/${replayData.length}` : "Live Attack Feed"}
-            <span className="ml-auto font-mono">{replayPlaying ? replayArcs.length : feed.filter(f => !f.validation || (f.validation !== "True Positive" && f.validation !== "False Positive")).length} events</span>
+            <span className="ml-auto font-mono">{replayPlaying ? replayArcs.length : feed.length} events</span>
           </div>
           <div className="divide-y" style={{ borderColor: "#1d1d23" }}>
-            {(replayPlaying || replayArcs.length > 0 ? [...replayArcs].reverse() : feed.filter(f => !f.validation || (f.validation !== "True Positive" && f.validation !== "False Positive"))).map((f, i) => (
+            {(replayPlaying || replayArcs.length > 0 ? [...replayArcs].reverse() : feed).map((f, i) => (
               <div key={`${f.id}-${i}`} className="flex items-center gap-3 px-4 py-1.5 text-[11px] hover:bg-white/[0.02]">
                 <span className="font-mono w-14 shrink-0" style={{ color: "#3e3e48" }}>
                   {f.time ? new Date(f.time).toLocaleTimeString("id-ID", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "—"}
                 </span>
                 <span className="w-1.5 h-1.5 rounded-sm shrink-0" style={{ backgroundColor: pc(f.priority) }} />
                 <span className="truncate" style={{ color: "#9b9ba8" }}>{f.subject || f.category || "Alert"}</span>
+                {f.validation === "True Positive" && <span className="shrink-0 px-1 rounded text-[8px] font-bold" style={{ backgroundColor: "rgba(239,68,68,0.15)", color: "#ef4444" }}>TP</span>}
+                {f.validation === "False Positive" && <span className="shrink-0 px-1 rounded text-[8px] font-bold" style={{ backgroundColor: "rgba(96,165,250,0.15)", color: "#60a5fa" }}>FP</span>}
                 <span style={{ color: "#3e3e48" }}>→</span>
                 <span className="font-mono truncate" style={{ color: "#e8e8ec" }}>{f.asset || "—"}</span>
                 {f.customer && <span className="shrink-0" style={{ color: "#3e3e48" }}>{f.customer}</span>}
