@@ -118,20 +118,23 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const activeProfile = profiles.find(p => p.id === activeProfileId) ?? profiles[0];
   const widgets = activeProfile?.widgets ?? DEFAULT_WIDGETS;
 
-  // Persist helper
+  // Persist helper — uses ref to avoid dependency on activeProfileId state
+  const activeIdRef = useRef(activeProfileId);
+  activeIdRef.current = activeProfileId;
+
   const persist = useCallback((nextProfiles: DashboardProfile[], nextActiveId?: string) => {
-    const aid = nextActiveId ?? activeProfileId;
+    const aid = nextActiveId ?? activeIdRef.current;
     saveLocalProfiles(nextProfiles, aid);
     syncToAPI(nextProfiles, aid);
     return nextProfiles;
-  }, [activeProfileId]);
+  }, []);
 
   const updateActiveWidgets = useCallback((next: WidgetConfig[]) => {
     setProfiles(prev => {
-      const updated = prev.map(p => p.id === activeProfileId ? { ...p, widgets: next } : p);
+      const updated = prev.map(p => p.id === activeIdRef.current ? { ...p, widgets: next } : p);
       return persist(updated);
     });
-  }, [activeProfileId, persist]);
+  }, [persist]);
 
   const addWidget = useCallback((name: string, chartType: ChartType, dataSource: DataSource) => {
     const maxY = widgets.reduce((m, w) => Math.max(m, w.y + w.h), 0);
@@ -167,10 +170,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
   const setAsDefault = useCallback(() => {
     setProfiles(prev => {
-      const updated = prev.map(p => ({ ...p, isDefault: p.id === activeProfileId }));
+      const updated = prev.map(p => ({ ...p, isDefault: p.id === activeIdRef.current }));
       return persist(updated);
     });
-  }, [activeProfileId, persist]);
+  }, [persist]);
 
   const saveToNewProfile = useCallback((name: string) => {
     const newProfile: DashboardProfile = {
@@ -189,11 +192,12 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       if (prev.length <= 1) return prev;
       let updated = prev.filter(p => p.id !== id);
       if (!updated.some(p => p.isDefault) && updated.length > 0) updated[0].isDefault = true;
-      const newActiveId = id === activeProfileId ? (updated[0]?.id ?? "default") : activeProfileId;
-      if (id === activeProfileId) setActiveProfileId(newActiveId);
+      const curActive = activeIdRef.current;
+      const newActiveId = id === curActive ? (updated[0]?.id ?? "default") : curActive;
+      if (id === curActive) setActiveProfileId(newActiveId);
       return persist(updated, newActiveId);
     });
-  }, [activeProfileId, persist]);
+  }, [persist]);
 
   const renameProfile = useCallback((id: string, name: string) => {
     setProfiles(prev => {
