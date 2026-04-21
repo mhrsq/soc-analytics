@@ -321,52 +321,49 @@ function AppShell() {
               )}
             </div>
           </div>
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <span className="hidden sm:inline"><LiveClock /></span>
             <div className="h-4 w-px hidden sm:block" style={{ backgroundColor: "var(--theme-surface-border)" }} />
             <ConnectionStatus />
-            <SDPStatusIndicator />
             <button
               onClick={() => setSyncOpen(true)}
-              className="p-1 rounded-lg transition-opacity hover:opacity-80"
+              className="p-1.5 rounded transition-colors hover:bg-white/[0.05]"
               style={{ color: "var(--theme-text-muted)" }}
               title="Sync Status"
             >
               <Database className="w-3.5 h-3.5" />
             </button>
-            <div className="h-4 w-px hidden sm:block" style={{ backgroundColor: "var(--theme-surface-border)" }} />
             <NotificationBell />
             <div className="h-4 w-px" style={{ backgroundColor: "var(--theme-surface-border)" }} />
             <button
-              onClick={() => setLlmOpen(true)}
-              className="p-1.5 rounded-lg transition-opacity hover:opacity-80"
+              onClick={() => { setLlmOpen(true); }}
+              className="p-1.5 rounded transition-colors hover:bg-white/[0.05]"
               style={{ color: "var(--theme-text-muted)" }}
-              title="LLM Settings"
+              title="Settings"
             >
-              <Settings2 className="w-4 h-4" />
+              <Settings2 className="w-3.5 h-3.5" />
             </button>
-            <div className="h-4 w-px" style={{ backgroundColor: "var(--theme-surface-border)" }} />
             <button
               onClick={() => setThemeOpen(true)}
-              className="p-1.5 rounded-lg transition-opacity hover:opacity-80"
+              className="p-1.5 rounded transition-colors hover:bg-white/[0.05]"
               style={{ color: "var(--theme-text-muted)" }}
-              title="Theme settings"
+              title="Theme"
             >
-              <Palette className="w-4 h-4" />
+              <Palette className="w-3.5 h-3.5" />
             </button>
             {currentUser && (
               <>
                 <div className="h-4 w-px" style={{ backgroundColor: "var(--theme-surface-border)" }} />
-                <span className="text-[11px] hidden md:inline" style={{ color: "var(--theme-text-muted)" }}>
-                  {currentUser.display_name || currentUser.username}
-                </span>
                 <button
                   onClick={handleLogout}
-                  className="p-1.5 rounded-lg transition-opacity hover:opacity-80"
+                  className="flex items-center gap-1.5 px-2 py-1 rounded transition-colors hover:bg-white/[0.05]"
                   style={{ color: "var(--theme-text-muted)" }}
                   title="Logout"
                 >
-                  <LogOut className="w-4 h-4" />
+                  <span className="text-[11px] hidden md:inline">
+                    {currentUser.display_name || currentUser.username}
+                  </span>
+                  <LogOut className="w-3.5 h-3.5" />
                 </button>
               </>
             )}
@@ -384,13 +381,6 @@ function AppShell() {
           <main className="mx-auto px-3 sm:px-6 pb-6">
             {page === "dashboard" ? <Dashboard /> : page === "manager" ? <ManagerView /> : page === "users" ? <UserManagement /> : <Dashboard />}
           </main>
-          <footer style={{ borderTop: "1px solid var(--theme-surface-border)" }} className="mt-8">
-            <div className="mx-auto px-3 sm:px-6 py-4 flex items-center justify-center">
-              <p className="text-xs" style={{ color: "var(--theme-text-muted)" }}>
-                &copy; {new Date().getFullYear()} MTM MSSP &middot; SOC Analytics Dashboard
-              </p>
-            </div>
-          </footer>
         </>
       )}
 

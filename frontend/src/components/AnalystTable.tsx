@@ -43,14 +43,14 @@ export function AnalystTable({ data, loading, bare }: Props) {
                 <td className="py-3 pr-3 text-right">
                   <div className="inline-flex items-center gap-1.5">
                     <div className="w-10 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "color-mix(in srgb, var(--theme-surface-border) 50%, transparent)" }}>
-                      <div className={`h-full rounded-full transition-all duration-500 ${resolvePct >= 90 ? "bg-cyber-green" : resolvePct >= 70 ? "bg-cyber-yellow" : "bg-cyber-red"}`}
+                      <div className={`h-full rounded-full transition-all duration-500 ${resolvePct >= 90 ? "bg-signal-green" : resolvePct >= 70 ? "bg-signal-amber" : "bg-signal-red"}`}
                         style={{ width: `${Math.min(resolvePct, 100)}%` }} />
                     </div>
                     <span className="font-mono text-xs" style={{ color: "var(--theme-text-secondary)" }}>{row.resolved.toLocaleString()}</span>
                   </div>
                 </td>
-                <td className="py-3 pr-3 text-right font-mono text-cyber-teal text-xs">{row.avg_mttr_display ?? "—"}</td>
-                <td className="py-3 text-right font-mono text-xs text-cyber-blue">{row.tp_found.toLocaleString()}</td>
+                <td className="py-3 pr-3 text-right font-mono text-xs" style={{ color: "var(--theme-text-secondary)" }}>{row.avg_mttr_display ?? "—"}</td>
+                <td className="py-3 text-right font-mono text-xs" style={{ color: "var(--theme-text-primary)" }}>{row.tp_found.toLocaleString()}</td>
               </tr>
             );
           })}

@@ -31,15 +31,15 @@ export function VolumeTrendChart({ data, loading, bare }: Props) {
       <AreaChart data={data}>
         <defs>
           <linearGradient id="volumeGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#00b0ff" stopOpacity={0.3} />
-            <stop offset="95%" stopColor="#00b0ff" stopOpacity={0} />
+            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.15} />
+            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
           </linearGradient>
         </defs>
         <CartesianGrid strokeDasharray="3 3" stroke={cc.grid} opacity={0.3} />
         <XAxis dataKey="date" tick={{ fill: cc.tick, fontSize: 11 }} tickLine={false} axisLine={{ stroke: cc.grid }} />
         <YAxis tick={{ fill: cc.tick, fontSize: 11 }} tickLine={false} axisLine={false} width={40} />
         <Tooltip contentStyle={tooltipStyle} />
-        <Area type="monotone" dataKey="total" stroke="#00b0ff" strokeWidth={2} fill="url(#volumeGrad)" name="Tickets" />
+        <Area type="monotone" dataKey="total" stroke="#3b82f6" strokeWidth={1.5} fill="url(#volumeGrad)" name="Tickets" />
       </AreaChart>
     </ResponsiveContainer>
   );

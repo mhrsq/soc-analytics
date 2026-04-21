@@ -3,14 +3,13 @@ import { v4 as uuidv4 } from "uuid";
 import type { WidgetConfig, ChartType, DataSource, DashboardLayout } from "../types";
 
 const DEFAULT_WIDGETS: WidgetConfig[] = [
-  { id: "kpi",        name: "KPI Cards",            chartType: "gauge",          dataSource: "summary",    builtIn: true,  x: 0, y: 0,  w: 12, h: 3 },
-  { id: "volume",     name: "Ticket Volume Trend",  chartType: "area",           dataSource: "volume",     builtIn: true,  x: 0, y: 3,  w: 8,  h: 5 },
-  { id: "validation", name: "TP vs FP Ratio",       chartType: "donut",          dataSource: "validation", builtIn: true,  x: 8, y: 3,  w: 4,  h: 5 },
-  { id: "mttd",       name: "SLA Achievement",      chartType: "gauge",          dataSource: "summary",    builtIn: true,  x: 0, y: 8,  w: 4,  h: 5 },
-  { id: "priority",   name: "Priority Distribution", chartType: "horizontal-bar", dataSource: "priority",  builtIn: true,  x: 8, y: 8,  w: 4,  h: 5 },
-  { id: "customers",  name: "Tickets by Customer",  chartType: "bar",            dataSource: "customers",  builtIn: true,  x: 0, y: 13, w: 6,  h: 5 },
-  { id: "topalerts",  name: "Top Alert Rules",      chartType: "bar",            dataSource: "top-alerts", builtIn: true,  x: 6, y: 13, w: 6,  h: 5 },
-  { id: "analysts",   name: "Analyst Performance",  chartType: "bar",            dataSource: "analysts",   builtIn: true,  x: 0, y: 18, w: 12, h: 5 },
+  { id: "kpi",        name: "KPI Strip",             chartType: "gauge",          dataSource: "summary",    builtIn: true,  x: 0, y: 0,  w: 12, h: 2 },
+  { id: "volume",     name: "Ticket Volume Trend",   chartType: "area",           dataSource: "volume",     builtIn: true,  x: 0, y: 2,  w: 8,  h: 5 },
+  { id: "validation", name: "TP vs FP Ratio",        chartType: "donut",          dataSource: "validation", builtIn: true,  x: 8, y: 2,  w: 4,  h: 5 },
+  { id: "priority",   name: "Priority Distribution", chartType: "horizontal-bar", dataSource: "priority",   builtIn: true,  x: 0, y: 7,  w: 4,  h: 5 },
+  { id: "customers",  name: "Tickets by Customer",   chartType: "bar",            dataSource: "customers",  builtIn: true,  x: 4, y: 7,  w: 4,  h: 5 },
+  { id: "topalerts",  name: "Top Alert Rules",       chartType: "bar",            dataSource: "top-alerts", builtIn: true,  x: 8, y: 7,  w: 4,  h: 5 },
+  { id: "analysts",   name: "Analyst Performance",   chartType: "bar",            dataSource: "analysts",   builtIn: true,  x: 0, y: 12, w: 12, h: 5 },
 ];
 
 /* ── Profile types ── */

@@ -35,7 +35,7 @@ function drawGauge(canvas: HTMLCanvasElement, value: number) {
   const targetAngle = startAngle + totalArc * (TARGET / 100);
 
   const aboveTarget = value >= TARGET;
-  const color = aboveTarget ? "#00e676" : value >= 70 ? "#ff9100" : "#ff1744";
+  const color = aboveTarget ? "#22c55e" : value >= 70 ? "#f59e0b" : "#ef4444";
 
   ctx.clearRect(0, 0, w, h);
 
@@ -50,7 +50,7 @@ function drawGauge(canvas: HTMLCanvasElement, value: number) {
   // ── Below-target zone tint (subtle red/orange band from 0 → target) ──
   ctx.beginPath();
   ctx.arc(cx, cy, radius, startAngle, targetAngle);
-  ctx.strokeStyle = "rgba(255,23,68,0.06)";
+  ctx.strokeStyle = "rgba(239,68,68,0.06)";
   ctx.lineWidth = lineWidth;
   ctx.lineCap = "round";
   ctx.stroke();
@@ -58,7 +58,7 @@ function drawGauge(canvas: HTMLCanvasElement, value: number) {
   // ── Above-target zone tint (subtle green band from target → 100) ──
   ctx.beginPath();
   ctx.arc(cx, cy, radius, targetAngle, endAngle);
-  ctx.strokeStyle = "rgba(0,230,118,0.06)";
+  ctx.strokeStyle = "rgba(34,197,94,0.06)";
   ctx.lineWidth = lineWidth;
   ctx.lineCap = "round";
   ctx.stroke();
@@ -132,7 +132,7 @@ function drawGauge(canvas: HTMLCanvasElement, value: number) {
 
   // ── Center value ──
   const valFont = Math.max(18, radius * 0.50);
-  ctx.font = `700 ${valFont}px Lato, sans-serif`;
+  ctx.font = `600 ${valFont}px Inter, sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillStyle = color;
@@ -140,8 +140,8 @@ function drawGauge(canvas: HTMLCanvasElement, value: number) {
 
   // ── Status label ──
   const statusFont = Math.max(9, radius * 0.15);
-  ctx.font = `600 ${statusFont}px Lato, sans-serif`;
-  ctx.fillStyle = aboveTarget ? "rgba(0,230,118,0.8)" : "rgba(255,145,0,0.8)";
+  ctx.font = `500 ${statusFont}px Inter, sans-serif`;
+  ctx.fillStyle = aboveTarget ? "rgba(34,197,94,0.8)" : "rgba(245,158,11,0.8)";
   ctx.fillText(
     aboveTarget ? "▲ Above Target" : "▼ Below Target",
     cx,
