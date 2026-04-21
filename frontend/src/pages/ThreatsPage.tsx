@@ -8,7 +8,7 @@ import { MapContainer, TileLayer, CircleMarker, Polyline, Tooltip, useMap } from
 import ReactFlow, { Background, Controls, MiniMap, applyNodeChanges, applyEdgeChanges, addEdge, type Node, type Edge, type OnNodesChange, type OnEdgesChange, type OnConnect } from "reactflow";
 import "reactflow/dist/style.css";
 import "leaflet/dist/leaflet.css";
-import { Shield, RefreshCw, Clock, Globe, Network, Plus, Save, X, Trash2, MapPin, Play, Square, ChevronRight, Server, Monitor, Database, Cloud, Radio, Router as RouterIcon, Cpu } from "lucide-react";
+import { Shield, RefreshCw, Clock, Globe, Network, Plus, Save, X, Trash2, MapPin, Play, Square, ChevronRight, Server, Monitor, Database, Cloud, Radio, Router as RouterIcon, Cpu, Download, Upload, Camera, Search } from "lucide-react";
 import { api } from "../api/client";
 import type { AttackArc, TopologyNode, TopologyLink } from "../types";
 
@@ -120,6 +120,8 @@ export function ThreatsPage() {
   const [showAddNode, setShowAddNode] = useState(false);
   const [form, setForm] = useState({ label: "", node_type: "server", hostname: "", customer: "", lat: "", lng: "" });
   const [assets, setAssets] = useState<{ asset_name: string; count: number }[]>([]);
+  const [hostnameSearch, setHostnameSearch] = useState("");
+  const graphRef = useRef<HTMLDivElement>(null);
 
   const feedRef = useRef<HTMLDivElement>(null);
 
@@ -142,20 +144,8 @@ export function ThreatsPage() {
       setCustomers(filterOpts.customers || []);
       setAssets(assetData);
 
-      // Build ReactFlow nodes/edges
-      setRfNodes(nodeData.map((n: TopologyNode) => ({
-        id: String(n.id), type: "topology",
-        position: { x: n.pos_x || Math.random() * 600, y: n.pos_y || Math.random() * 400 },
-        data: { label: n.label, nodeType: n.node_type, hostname: n.hostname || "", customer: n.customer || "" },
-      })));
-      setRfEdges(linkData.map((l: TopologyLink) => ({
-        id: String(l.id), source: String(l.source_id), target: String(l.target_id),
-        label: l.label || l.link_type,
-        style: { stroke: l.link_type === "fiber" ? "#60a5fa" : l.link_type === "vpn" ? "#a78bfa" : "#3e3e48", strokeWidth: 1.5 },
-        animated: l.link_type === "vpn" || l.link_type === "internet",
-        labelStyle: { fill: "#646471", fontSize: 9 },
-        labelBgStyle: { fill: "#0a0a0c", fillOpacity: 0.8 },
-      })));
+      // Build ReactFlow — will be filtered by customer in useMemo below
+      // (raw data stored in nodes/links state);
     } catch (e) { console.error("Load failed:", e); }
     setLoading(false);
   }, [customer]);
@@ -172,6 +162,27 @@ export function ThreatsPage() {
     }, 30000);
     return () => clearInterval(id);
   }, [customer]);
+
+  // Build filtered ReactFlow nodes/edges based on customer
+  const filteredNodes = useMemo(() => customer ? nodes.filter(n => n.customer === customer || !n.customer) : nodes, [nodes, customer]);
+  const filteredNodeIds = useMemo(() => new Set(filteredNodes.map(n => n.id)), [filteredNodes]);
+  const filteredLinks = useMemo(() => links.filter(l => filteredNodeIds.has(l.source_id) && filteredNodeIds.has(l.target_id)), [links, filteredNodeIds]);
+
+  useEffect(() => {
+    setRfNodes(filteredNodes.map(n => ({
+      id: String(n.id), type: "topology",
+      position: { x: n.pos_x || Math.random() * 600, y: n.pos_y || Math.random() * 400 },
+      data: { label: n.label, nodeType: n.node_type, hostname: n.hostname || "", customer: n.customer || "" },
+    })));
+    setRfEdges(filteredLinks.map(l => ({
+      id: String(l.id), source: String(l.source_id), target: String(l.target_id),
+      label: l.label || l.link_type,
+      style: { stroke: l.link_type === "fiber" ? "#60a5fa" : l.link_type === "vpn" ? "#a78bfa" : "#3e3e48", strokeWidth: 1.5 },
+      animated: l.link_type === "vpn" || l.link_type === "internet",
+      labelStyle: { fill: "#646471", fontSize: 9 },
+      labelBgStyle: { fill: "#0a0a0c", fillOpacity: 0.8 },
+    })));
+  }, [filteredNodes, filteredLinks]);
 
   const sites = useMemo(() => groupToSites(nodes), [nodes]);
   const siteAttackCounts = useMemo(() => {
@@ -260,6 +271,54 @@ export function ThreatsPage() {
     } catch {}
   };
 
+  // ── Export/Import ──
+  const exportTopologyJSON = () => {
+    const data = { nodes: filteredNodes, links: filteredLinks, exportedAt: new Date().toISOString(), customer: customer || "all" };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = `topology-${customer || "all"}-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click(); URL.revokeObjectURL(url);
+  };
+
+  const importTopologyJSON = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      if (!data.nodes || !Array.isArray(data.nodes)) { alert("Invalid topology JSON"); return; }
+      if (!confirm(`Import ${data.nodes.length} nodes? This will create new nodes.`)) return;
+      for (const n of data.nodes) {
+        await api.createTopologyNode({ label: n.label, node_type: n.node_type, hostname: n.hostname || undefined, customer: n.customer || undefined, lat: n.lat || undefined, lng: n.lng || undefined });
+      }
+      alert(`Imported ${data.nodes.length} nodes`);
+      await loadData();
+    } catch (err) { alert("Import failed: " + String(err)); }
+    e.target.value = ""; // Reset input
+  };
+
+  const exportScreenshot = async () => {
+    // Capture the graph container as PNG using canvas
+    const el = document.querySelector(".react-flow") as HTMLElement;
+    if (!el) return;
+    try {
+      // Dynamic import html2canvas
+      const { default: h2c } = await import("html2canvas");
+      const canvas = await h2c(el, { backgroundColor: "#0a0a0c", scale: 2 });
+      const url = canvas.toDataURL("image/png");
+      const a = document.createElement("a"); a.href = url; a.download = `topology-${customer || "all"}-${new Date().toISOString().slice(0, 10)}.png`;
+      a.click();
+    } catch {
+      alert("Screenshot requires html2canvas package. Install with: npm install html2canvas");
+    }
+  };
+
+  const filteredAssets = useMemo(() => {
+    if (!hostnameSearch) return assets;
+    const q = hostnameSearch.toLowerCase();
+    return assets.filter(a => a.asset_name.toLowerCase().includes(q));
+  }, [assets, hostnameSearch]);
+
   return (
     <div className="relative w-full flex flex-col" style={{ height: "calc(100vh - 56px)", background: "#0a0a0c" }}>
       {/* ── Top bar ── */}
@@ -296,6 +355,16 @@ export function ThreatsPage() {
               </button>
               <button onClick={savePositions} className="p-2 rounded-lg" style={{ backgroundColor: "rgba(10,10,12,0.92)", border: "1px solid #26262e", color: "#9b9ba8" }} title="Save positions">
                 <Save className="w-3.5 h-3.5" />
+              </button>
+              <button onClick={exportTopologyJSON} className="p-2 rounded-lg" style={{ backgroundColor: "rgba(10,10,12,0.92)", border: "1px solid #26262e", color: "#9b9ba8" }} title="Export JSON">
+                <Download className="w-3.5 h-3.5" />
+              </button>
+              <label className="p-2 rounded-lg cursor-pointer hover:bg-white/[0.05]" style={{ backgroundColor: "rgba(10,10,12,0.92)", border: "1px solid #26262e", color: "#9b9ba8" }} title="Import JSON">
+                <Upload className="w-3.5 h-3.5" />
+                <input type="file" accept=".json" className="hidden" onChange={importTopologyJSON} />
+              </label>
+              <button onClick={exportScreenshot} className="p-2 rounded-lg" style={{ backgroundColor: "rgba(10,10,12,0.92)", border: "1px solid #26262e", color: "#9b9ba8" }} title="Screenshot PNG">
+                <Camera className="w-3.5 h-3.5" />
               </button>
             </>
           )}
@@ -462,10 +531,28 @@ export function ThreatsPage() {
             </div>
             <div>
               <label className="text-[10px] uppercase tracking-wider font-medium block mb-1" style={{ color: "#646471" }}>Hostname</label>
-              <select value={form.hostname} onChange={e => setForm(f => ({ ...f, hostname: e.target.value }))} className="w-full text-xs px-3 py-2 rounded-lg" style={{ backgroundColor: "#141418", border: "1px solid #26262e", color: "#e8e8ec" }}>
-                <option value="">None (visual only)</option>
-                {assets.map(a => <option key={a.asset_name} value={a.asset_name}>{a.asset_name} ({a.count})</option>)}
-              </select>
+              <div className="relative">
+                <div className="flex items-center rounded-lg" style={{ backgroundColor: "#141418", border: "1px solid #26262e" }}>
+                  <Search className="w-3 h-3 ml-2 shrink-0" style={{ color: "#3e3e48" }} />
+                  <input type="text" value={hostnameSearch || form.hostname} placeholder="Search or type hostname..."
+                    onChange={e => { setHostnameSearch(e.target.value); setForm(f => ({ ...f, hostname: e.target.value })); }}
+                    className="w-full text-xs px-2 py-2 bg-transparent outline-none" style={{ color: "#e8e8ec" }} />
+                  {form.hostname && <button onClick={() => { setForm(f => ({ ...f, hostname: "" })); setHostnameSearch(""); }} className="p-1 mr-1" style={{ color: "#646471" }}><X className="w-3 h-3" /></button>}
+                </div>
+                {hostnameSearch && filteredAssets.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-1 rounded-lg max-h-40 overflow-y-auto z-50" style={{ backgroundColor: "#141418", border: "1px solid #26262e" }}>
+                    <button onClick={() => { setForm(f => ({ ...f, hostname: "" })); setHostnameSearch(""); }} className="w-full text-left px-3 py-1.5 text-xs hover:bg-white/[0.05]" style={{ color: "#646471" }}>
+                      None (visual only)
+                    </button>
+                    {filteredAssets.slice(0, 20).map(a => (
+                      <button key={a.asset_name} onClick={() => { setForm(f => ({ ...f, hostname: a.asset_name })); setHostnameSearch(""); }}
+                        className="w-full text-left px-3 py-1.5 text-xs hover:bg-white/[0.05] truncate" style={{ color: "#e8e8ec" }}>
+                        {a.asset_name} <span style={{ color: "#646471" }}>({a.count})</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
             <div>
               <label className="text-[10px] uppercase tracking-wider font-medium block mb-1" style={{ color: "#646471" }}>Customer</label>

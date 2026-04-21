@@ -14,6 +14,7 @@
     "@types/uuid": "^10.0.0",
     "cssesc": "^3.0.0",
     "date-fns": "^4.1.0",
+    "html2canvas": "^1.4.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.468.0",
     "react": "^19.0.0",
