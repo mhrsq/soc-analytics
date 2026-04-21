@@ -60,6 +60,7 @@ class SyncService:
 
             synced = 0
             errors = 0
+            consecutive_page_errors = 0
             page_size = 100
 
             for start in range(1, total + 1, page_size):
@@ -94,6 +95,7 @@ class SyncService:
                     if records:
                         await self._upsert_tickets(records)
                         synced += len(records)
+                        consecutive_page_errors = 0  # Reset on success
 
                     # Update progress
                     async with async_session() as session:
@@ -107,8 +109,13 @@ class SyncService:
                     logger.info(f"Initial sync progress: {synced}/{total} ({errors} errors)")
 
                 except Exception as e:
-                    logger.error(f"Error syncing page at {start}: {e}")
+                    logger.error(f"Error syncing page at {start}: {type(e).__name__}: {e}")
                     errors += 1
+                    consecutive_page_errors += 1
+                    # Abort if SDP is unreachable (3 consecutive page failures)
+                    if consecutive_page_errors >= 3:
+                        logger.error(f"Aborting initial sync: {consecutive_page_errors} consecutive page failures — SDP likely unreachable")
+                        break
 
             # Finalize
             async with async_session() as session:
