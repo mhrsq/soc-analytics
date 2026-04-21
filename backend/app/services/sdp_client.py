@@ -138,21 +138,12 @@ class SDPClient:
                     return None
         return None
 
-    # Accepted templates for SOC tickets
-    SOC_TEMPLATES = {"CAR - Case Template", "Default Request"}
-
     def parse_ticket(self, raw: dict) -> dict:
         """Parse raw SDP ticket response into our DB schema format.
-        Accepts tickets from CAR - Case Template and Default Request (legacy).
-        list_tickets already filters by account='Cyber Security'.
+        All tickets from account='Cyber Security' are accepted (list_tickets already filters).
+        Templates include: CAR - Case Template, CAR - Shifting Template, Default Request, CI - Pentest.
         """
         udf = raw.get("udf_fields", {})
-
-        # Accept both CAR template and Default Request (legacy SOC tickets)
-        tmpl = raw.get("template", {})
-        tmpl_name = tmpl.get("name", "") if isinstance(tmpl, dict) else ""
-        if tmpl_name and tmpl_name not in self.SOC_TEMPLATES:
-            return {}  # Not a SOC ticket template
 
         # Parse standard fields
         record = {
