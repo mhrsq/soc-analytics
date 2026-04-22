@@ -187,7 +187,7 @@ export function AIChatWidget({ activePage, filters }: Props) {
           }
         `}</style>
         <button onClick={openChat}
-          className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+          className="fixed bottom-6 right-6 z-[9999] w-14 h-14 rounded-full flex items-center justify-center transition-all hover:scale-105 active:scale-95"
           style={{
             background: "linear-gradient(135deg, #1b1b21 0%, #141418 100%)",
             border: `1px solid ${hasUnread ? "#10b981" : "#26262e"}`,
@@ -204,9 +204,9 @@ export function AIChatWidget({ activePage, filters }: Props) {
   }
 
   const panelClass = isFullscreen
-    ? "fixed inset-4 z-50 rounded-xl"
-    : "fixed bottom-4 right-4 z-50 w-[calc(100vw-2rem)] sm:w-[420px] max-w-[420px] rounded-xl";
-  const panelHeight = isFullscreen ? "auto" : "min(640px, calc(100vh - 80px))";
+    ? "fixed inset-2 sm:inset-4 z-[9999] rounded-xl"
+    : "fixed bottom-2 right-2 left-2 sm:left-auto sm:bottom-6 sm:right-6 z-[9999] sm:w-[420px] rounded-xl";
+  const panelHeight = isFullscreen ? "auto" : "max(400px, min(640px, calc(100vh - 80px)))";
 
   // ── Chat Panel ──
   return (
