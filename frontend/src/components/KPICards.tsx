@@ -149,7 +149,7 @@ export function KPICards({ data, loading, onCardClick, volumeData }: Props) {
 function KPIStripSkeleton() {
   return (
     <div className="h-full grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-px rounded-lg overflow-hidden border" style={{ borderColor: "var(--theme-card-border)", backgroundColor: "var(--theme-card-border)" }}>
-      {Array.from({ length: 6 }).map((_, i) => (
+      {Array.from({ length: 7 }).map((_, i) => (
         <div key={i} className="flex flex-col justify-center px-3 py-3 gap-1.5" style={{ backgroundColor: "var(--theme-card-bg)" }}>
           <div className="skeleton h-2.5 w-16 rounded" />
           <div className="skeleton h-5 w-12 rounded" />

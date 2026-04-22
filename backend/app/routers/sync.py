@@ -3,14 +3,16 @@
 import asyncio
 import logging
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+
+from app.routers.auth import require_admin
 
 from app.config import get_settings
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import async_session
-from app.models import SyncLog
+from app.models import SyncLog, User
 from app.schemas import SDPConnectionStatus, SyncDetailedStatus, SyncLogEntry, SyncStatus, SyncTriggerResponse
 from app.services.sdp_client import SDPClient
 from app.services.sync_service import SyncService
@@ -57,7 +59,7 @@ async def get_sync_status_detailed():
 
 
 @router.post("/trigger", response_model=SyncTriggerResponse)
-async def trigger_sync(full: bool = False):
+async def trigger_sync(full: bool = False, user: User = Depends(require_admin)):
     """Manually trigger a sync.
     
     Args:

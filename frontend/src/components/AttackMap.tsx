@@ -152,22 +152,28 @@ export function AttackMap({ customer }: Props) {
     return () => clearInterval(id);
   }, []);
 
-  // ── Animation loop (30ms tick) ──
+  // ── Animation loop (throttled to ~15fps for performance) ──
   useEffect(() => {
-    const tick = () => {
+    let lastFrame = 0;
+    const tick = (timestamp: number) => {
+      // Throttle to ~15fps (66ms between frames)
+      if (timestamp - lastFrame < 66) {
+        animRef.current = requestAnimationFrame(tick);
+        return;
+      }
+      lastFrame = timestamp;
       const now = Date.now();
-      setArcs(prev => prev.map(arc => {
-        const elapsed = now - arc.createdAt;
-        if (elapsed < 0) return arc; // Not yet started (stagger)
-        if (elapsed < 2000) {
-          return { ...arc, phase: "travel", progress: elapsed / 2000, opacity: 1 };
-        } else if (elapsed < 3000) {
-          return { ...arc, phase: "impact", progress: 1, opacity: 1 };
-        } else if (elapsed < 5500) {
-          return { ...arc, phase: "fade", progress: 1, opacity: 1 - (elapsed - 3000) / 2500 };
-        }
-        return { ...arc, opacity: 0 };
-      }).filter(a => a.opacity > 0));
+      setArcs(prev => {
+        const updated = prev.map(arc => {
+          const elapsed = now - arc.createdAt;
+          if (elapsed < 0) return arc;
+          if (elapsed < 2000) return { ...arc, phase: "travel" as const, progress: elapsed / 2000, opacity: 1 };
+          if (elapsed < 3000) return { ...arc, phase: "impact" as const, progress: 1, opacity: 1 };
+          if (elapsed < 5500) return { ...arc, phase: "fade" as const, progress: 1, opacity: 1 - (elapsed - 3000) / 2500 };
+          return { ...arc, opacity: 0 };
+        }).filter(a => a.opacity > 0);
+        return updated;
+      });
       animRef.current = requestAnimationFrame(tick);
     };
     animRef.current = requestAnimationFrame(tick);

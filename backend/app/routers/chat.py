@@ -6,7 +6,7 @@ from datetime import date, datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import select, func, distinct, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -25,7 +25,7 @@ MAX_HISTORY_MESSAGES = 20  # Max messages sent as context to LLM
 # ── Schemas ──
 
 class ChatRequest(BaseModel):
-    message: str
+    message: str = Field(..., min_length=1, max_length=10000)
     conversation_id: Optional[str] = None
     provider_id: Optional[int] = None
     model_override: Optional[str] = None  # Override model for this message

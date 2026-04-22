@@ -170,7 +170,8 @@ async def get_attack_feed(
     if parsed_end:
         filters.append(Ticket.created_time <= parsed_end)
     if asset:
-        filters.append(Ticket.asset_name.ilike(f"%{asset}%"))
+        safe_asset = asset.replace("%", "\\%").replace("_", "\\_")
+        filters.append(Ticket.asset_name.ilike(f"%{safe_asset}%"))
 
     q = select(
         Ticket.id, Ticket.subject, Ticket.ip_address, Ticket.asset_name,
@@ -252,6 +253,8 @@ async def upsert_asset_location(
     )
     db.add(asset)
     await db.commit()
+    await db.refresh(asset)
+    return asset
 
 
 # ═══════════════════════════════════════════════════════════
@@ -279,9 +282,7 @@ async def get_attack_map_data(
     """Get aggregated attack map data (countries, protocols, agents)."""
     from app.services.wazuh_client import WazuhClient
     wazuh = WazuhClient()
-    return await wazuh.get_map_summary(hours=hours) 
-    await db.refresh(asset)
-    return asset
+    return await wazuh.get_map_summary(hours=hours)
 
 
 @router.delete("/assets/{asset_id}")
