@@ -13,6 +13,7 @@ interface Props {
   startDate?: string;
   endDate?: string;
   onClose: () => void;
+  onTicketClick?: (ticketId: number) => void;
 }
 
 const TIER_COLORS: Record<string, string> = {
@@ -50,7 +51,7 @@ function StatItem({ label, value, sub }: { label: string; value: string | number
   );
 }
 
-export function AnalystDetailModal({ analyst, startDate, endDate, onClose }: Props) {
+export function AnalystDetailModal({ analyst, startDate, endDate, onClose, onTicketClick }: Props) {
   const [detail, setDetail] = useState<AnalystDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -219,8 +220,8 @@ export function AnalystDetailModal({ analyst, startDate, endDate, onClose }: Pro
                     </thead>
                     <tbody>
                       {detail.recent_tickets.map((t) => (
-                        <tr key={t.id} style={{ borderBottom: "1px solid var(--theme-surface-border)" }}>
-                          <td className="px-4 py-2 font-mono" style={{ color: "var(--theme-text-muted)" }}>{t.id}</td>
+                        <tr key={t.id} onClick={() => onTicketClick?.(t.id)} className={onTicketClick ? "cursor-pointer hover:bg-white/[0.03]" : ""} style={{ borderBottom: "1px solid var(--theme-surface-border)" }}>
+                          <td className="px-4 py-2 font-mono" style={{ color: onTicketClick ? "var(--theme-accent)" : "var(--theme-text-muted)" }}>#{t.id}</td>
                           <td className="px-4 py-2 max-w-[200px] truncate" style={{ color: "var(--theme-text-secondary)" }}>{t.subject}</td>
                           <td className="px-4 py-2">
                             <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${t.status === "Resolved" || t.status === "Closed" ? "bg-emerald-500/10 text-emerald-400" : "bg-amber-500/10 text-amber-400"}`}>

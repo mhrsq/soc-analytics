@@ -4,6 +4,7 @@ import { useFetch } from "../hooks/useFetch";
 import { Card } from "../components/Card";
 import { Spinner } from "../components/Spinner";
 import { AnalystDetailModal } from "../components/AnalystDetailModal";
+import { TicketDetailModal } from "../components/TicketDetailModal";
 import { TeamTrendChart } from "../components/AnalystTrendChart";
 import type { AnalystScore } from "../types";
 import { Users, ChevronDown, BarChart3, AlertTriangle, Minus } from "lucide-react";
@@ -53,6 +54,7 @@ const FLAG_STYLES: Record<string, { bg: string; text: string; label: string }> =
 export function ManagerView() {
   const [periodMonths, setPeriodMonths] = useState(1);
   const [selectedAnalyst, setSelectedAnalyst] = useState<string | null>(null);
+  const [ticketId, setTicketId] = useState<number | null>(null);
   const [excluded] = useState<Set<string>>(loadExcluded);
 
   const range = useMemo(() => getDateRange(periodMonths), [periodMonths]);
@@ -249,7 +251,9 @@ export function ManagerView() {
         startDate={range.start}
         endDate={range.end}
         onClose={() => setSelectedAnalyst(null)}
+        onTicketClick={(id) => setTicketId(id)}
       />
+      <TicketDetailModal ticketId={ticketId} onClose={() => setTicketId(null)} />
     </div>
   );
 }
