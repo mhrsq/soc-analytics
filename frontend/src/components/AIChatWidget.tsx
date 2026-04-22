@@ -205,7 +205,7 @@ export function AIChatWidget({ activePage, filters }: Props) {
 
   const panelClass = isFullscreen
     ? "fixed inset-4 z-50 rounded-xl"
-    : "fixed bottom-6 right-6 z-50 w-[420px] rounded-xl";
+    : "fixed bottom-4 right-4 z-50 w-[calc(100vw-2rem)] sm:w-[420px] max-w-[420px] rounded-xl";
   const panelHeight = isFullscreen ? "auto" : "min(640px, calc(100vh - 80px))";
 
   // ── Chat Panel ──

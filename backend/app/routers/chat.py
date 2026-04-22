@@ -81,12 +81,31 @@ async def send_message(
 
     # Gather SOC metrics for context
     filters = body.filters or {}
+    # Parse time range from filters, or detect from user message
+    msg_lower = body.message.lower()
     try:
-        start_date = date.fromisoformat(filters.get("start", "")) if filters.get("start") else date.today() - timedelta(days=7)
-        end_date = date.fromisoformat(filters.get("end", "")) if filters.get("end") else date.today()
+        if filters.get("start"):
+            start_date = date.fromisoformat(filters.get("start", ""))
+            end_date = date.fromisoformat(filters.get("end", "")) if filters.get("end") else date.today()
+        elif any(k in msg_lower for k in ["24 jam", "24h", "hari ini", "today"]):
+            start_date = date.today() - timedelta(days=1)
+            end_date = date.today()
+        elif any(k in msg_lower for k in ["seminggu", "7 hari", "minggu ini", "7d", "1 week"]):
+            start_date = date.today() - timedelta(days=7)
+            end_date = date.today()
+        elif any(k in msg_lower for k in ["sebulan", "30 hari", "bulan ini", "30d", "1 month"]):
+            start_date = date.today() - timedelta(days=30)
+            end_date = date.today()
+        elif any(k in msg_lower for k in ["semua", "all time", "all data"]):
+            start_date = date(2020, 1, 1)
+            end_date = date.today()
+        else:
+            # Default: last 24 hours (most relevant for real-time SOC)
+            start_date = date.today() - timedelta(days=1)
+            end_date = date.today()
     except ValueError:
         end_date = date.today()
-        start_date = end_date - timedelta(days=7)
+        start_date = end_date - timedelta(days=1)
 
     customer = filters.get("customer") or None
 
@@ -111,14 +130,28 @@ async def send_message(
     history = list(reversed(history_result.scalars().all()))
 
     # Build messages array for LLM
+    period_days = (end_date - start_date).days
+    period_label = f"{start_date} to {end_date}"
+    if period_days <= 1:
+        period_label += " (last 24 hours)"
+    elif period_days <= 7:
+        period_label += f" (last {period_days} days)"
+    elif period_days <= 30:
+        period_label += f" (last {period_days} days)"
+
     system_prompt = AIService.SYSTEM_PROMPT + f"""
 
 --- CURRENT CONTEXT ---
 Active page: {active_page}
 {page_context}
-Dashboard filters: start={start_date}, end={end_date}, customer={customer or 'all'}
+Data period: {period_label}
+Customer filter: {customer or 'all customers'}
 
---- CURRENT SOC DATA ---
+IMPORTANT: Semua data di bawah ini HANYA untuk periode {period_label}. 
+Saat user bertanya tentang "24 jam terakhir" atau rentang waktu tertentu, pastikan analisis kamu HANYA merujuk ke data di periode tersebut.
+Jangan pernah bilang "minggu ini" kalau data-nya cuma 24 jam, atau sebaliknya.
+
+--- SOC DATA FOR {period_label.upper()} ---
 {data_context}
 
 Kalau user bertanya tentang halaman/menu yang sedang dibuka, jelaskan fungsi dan cara penggunaannya."""
