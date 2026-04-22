@@ -17,7 +17,10 @@ class MetricsSummary(BaseModel):
     fp_rate: float
     avg_mttd_seconds: Optional[float]
     avg_mttd_display: Optional[str]
+    avg_mttr_seconds: Optional[float]
+    avg_mttr_display: Optional[str]
     sla_compliance_pct: Optional[float]
+    mttr_sla_pct: Optional[float]
     si_count: int  # Security Incidents
     period_start: Optional[date]
     period_end: Optional[date]

@@ -1,0 +1,81 @@
+{
+  "template_id": "1802",
+  "template_name": "CAR - Case Template",
+  "aliases": {
+    "udf_pick_1805": {
+      "alias": "initial_validation",
+      "confidence": "high",
+      "note": "Confirmed from SDP metadata as Initial Validation with observed values True Positive / False Positive."
+    },
+    "udf_pick_1806": {
+      "alias": "classification_reason",
+      "confidence": "medium",
+      "note": "Observed values include Other / SIEM Issue."
+    },
+    "udf_pick_1818": {
+      "alias": "asset_impacted",
+      "confidence": "high",
+      "note": "Observed values look like host or asset names."
+    },
+    "udf_pick_1819": {
+      "alias": "case_type",
+      "confidence": "high",
+      "note": "Observed values include Security Event / Non Security."
+    },
+    "udf_pick_1822": {
+      "alias": "billing_flag",
+      "confidence": "high",
+      "note": "Observed values include Billable."
+    },
+    "udf_pick_2704": {
+      "alias": "analyst_pic",
+      "confidence": "high",
+      "note": "Observed values look like analyst names."
+    },
+    "udf_pick_3901": {
+      "alias": "customer_scope",
+      "confidence": "medium",
+      "note": "Observed values include IOS-MTM / CMWI."
+    },
+    "udf_multiselect_2101": {
+      "alias": "analysts_involved",
+      "confidence": "low",
+      "note": "Currently often empty in sampled tickets."
+    },
+    "udf_sline_1816": {
+      "alias": "free_text_1816",
+      "confidence": "low",
+      "note": "Meaning not confirmed from API sample."
+    },
+    "udf_sline_1820": {
+      "alias": "free_text_1820",
+      "confidence": "low",
+      "note": "Meaning not confirmed from API sample."
+    },
+    "udf_sline_1827": {
+      "alias": "source_ip",
+      "confidence": "high",
+      "note": "Observed values look like IP addresses."
+    },
+    "udf_mline_2102": {
+      "alias": "free_text_2102",
+      "confidence": "low",
+      "note": "Meaning not confirmed from API sample."
+    },
+    "udf_date_1807": {
+      "alias": "first_response_time",
+      "confidence": "high",
+      "note": "Confirmed from SDP metadata as 1st Response Time."
+    },
+    "udf_date_1808": {
+      "alias": "workaround_time",
+      "confidence": "high",
+      "note": "Confirmed from SDP metadata as Workaround Time."
+    },
+    "udf_date_2701": {
+      "alias": "time_of_detection",
+      "confidence": "high",
+      "note": "Confirmed from SDP metadata as Time of Detection."
+    }
+  }
+}

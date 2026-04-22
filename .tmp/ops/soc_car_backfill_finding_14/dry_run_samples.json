@@ -1,0 +1,298 @@
+{
+  "subject_insert_pipe_after_prefix_4seg": [
+    {
+      "ticket_id": "22362",
+      "current_subject": "[SE] IOS | Brute Force Attack | Low | Logon failure on - Unknown user or bad password.",
+      "target_subject": "[SE] | IOS | Brute Force Attack | Low | Logon failure on - Unknown user or bad password.",
+      "priority": "P4 - Low",
+      "bucket": "subject_insert_pipe_after_prefix_4seg",
+      "notes": []
+    },
+    {
+      "ticket_id": "23307",
+      "current_subject": "[SE] IOS | Threat Intelligence | High | Many Attempts of Port Scanning to the Same Destination IP Address",
+      "target_subject": "[SE] | IOS | Threat Intelligence | High | Many Attempts of Port Scanning to the Same Destination IP Address",
+      "priority": "P2 - High",
+      "bucket": "subject_insert_pipe_after_prefix_4seg",
+      "notes": []
+    },
+    {
+      "ticket_id": "23308",
+      "current_subject": "[SI] IOS | Malware | Medium | Fortigate attack dropped with the same Source IP Address",
+      "target_subject": "[SI] | IOS | Malware | Medium | Fortigate attack dropped with the same Source IP Address",
+      "priority": "P2 - Medium",
+      "bucket": "subject_insert_pipe_after_prefix_4seg",
+      "notes": []
+    },
+    {
+      "ticket_id": "23316",
+      "current_subject": "[SI] IOS | Proxy  | Low | TCP Split Handsake from 10.20.0.65 to 213.34.163.254 [Netherlands]",
+      "target_subject": "[SI] | IOS | Proxy | Low | TCP Split Handsake from 10.20.0.65 to 213.34.163.254 [Netherlands]",
+      "priority": "P4 - Low",
+      "bucket": "subject_insert_pipe_after_prefix_4seg",
+      "notes": []
+    },
+    {
+      "ticket_id": "23319",
+      "current_subject": "[SE] IOS | Generic | Medium | Port Scanning Detected from 104.152.52.236 / Port Scanning Detected from 151.106.40.195",
+      "target_subject": "[SE] | IOS | Generic | Medium | Port Scanning Detected from 104.152.52.236 / Port Scanning Detected from 151.106.40.195",
+      "priority": "P2 - Medium",
+      "bucket": "subject_insert_pipe_after_prefix_4seg",
+      "notes": []
+    },
+    {
+      "ticket_id": "23324",
+      "current_subject": "[SE] IIS | Generic | Medium |  Port Scanning Detected from 92.63.196.139",
+      "target_subject": "[SE] | IIS | Generic | Medium | Port Scanning Detected from 92.63.196.139",
+      "priority": "P2 - Medium",
+      "bucket": "subject_insert_pipe_after_prefix_4seg",
+      "notes": []
+    },
+    {
+      "ticket_id": "23383",
+      "current_subject": "[SE] IIS | Malware | High | Office 365: Detected malware in file.",
+      "target_subject": "[SE] | IIS | Malware | High | Office 365: Detected malware in file.",
+      "priority": "P2 - High",
+      "bucket": "subject_insert_pipe_after_prefix_4seg",
+      "notes": []
+    },
+    {
+      "ticket_id": "23402",
+      "current_subject": "[SE] IOS | Generic | Medium | Fortigate attack dropped: IKE.Exchange.DoS.Version",
+      "target_subject": "[SE] | IOS | Generic | Medium | Fortigate attack dropped: IKE.Exchange.DoS.Version",
+      "priority": "P2 - Medium",
+      "bucket": "subject_insert_pipe_after_prefix_4seg",
+      "notes": []
+    },
+    {
+      "ticket_id": "23404",
+      "current_subject": "[SI] IOS | Denial-of-Service (DoS) | Medium | Fortigate attack dropped with the same Source IP Address",
+      "target_subject": "[SI] | IOS | Denial-of-Service (DoS) | Medium | Fortigate attack dropped with the same Source IP Address",
+      "priority": "P2 - Medium",
+      "bucket": "subject_insert_pipe_after_prefix_4seg",
+      "notes": []
+    },
+    {
+      "ticket_id": "23407",
+      "current_subject": "[SE] IOS | Threat Intelligence | Medium | Fortigate attack dropped: HTTP.Unknown.Tunnelling",
+      "target_subject": "[SE] | IOS | Threat Intelligence | Medium | Fortigate attack dropped: HTTP.Unknown.Tunnelling",
+      "priority": "P2 - Medium",
+      "bucket": "subject_insert_pipe_after_prefix_4seg",
+      "notes": []
+    }
+  ],
+  "review_subject_insert_pipe_after_prefix_3seg_no_attack_needs_manual_review": [
+    {
+      "ticket_id": "23440",
+      "reason": "subject_insert_pipe_after_prefix_3seg_no_attack_needs_manual_review",
+      "subject": "[SE] IOS  Threat Intelligence | Medium | Fortigate attack detected: udp_flood",
+      "priority": "P2 - Medium",
+      "suggested_normalization": "[SE] | IOS  Threat Intelligence | Medium | Fortigate attack detected: udp_flood"
+    },
+    {
+      "ticket_id": "36644",
+      "reason": "subject_insert_pipe_after_prefix_3seg_no_attack_needs_manual_review",
+      "subject": "[NS] GCP | Medium | 10 Agents at GCP Disconnected.",
+      "priority": "P2 - Medium",
+      "suggested_normalization": "[NS] | GCP | Medium | 10 Agents at GCP Disconnected."
+    }
+  ],
+  "review_unexpected_segment_count_7": [
+    {
+      "ticket_id": "23695",
+      "reason": "unexpected_segment_count_7",
+      "subject": "[SE] IOS | Threat Intelligence | Critical | MTM | IOC-OPMSERVICEDESK | Fortigate attack detected: udp_scan | CRITICAL",
+      "priority": "P1 - Critical"
+    },
+    {
+      "ticket_id": "37015",
+      "reason": "unexpected_segment_count_7",
+      "subject": "[SE] IT IS | MALWARE | MEDIUM | Detection of File Indicated as Malware on MSCO Team Endpoint |||",
+      "priority": "P2 - Medium"
+    }
+  ],
+  "subject_wrap_prefix_5seg": [
+    {
+      "ticket_id": "27638",
+      "current_subject": "NS | MTM-IOS | OTHER | CRITICAL | Wazuh Full Disk",
+      "target_subject": "[NS] | MTM-IOS | OTHER | CRITICAL | Wazuh Full Disk",
+      "priority": "P1 - Critical",
+      "bucket": "subject_wrap_prefix_5seg",
+      "notes": []
+    },
+    {
+      "ticket_id": "27658",
+      "current_subject": "NS | MTM-IT IS | OTHER | CRITICAL | Wazuh Agent Disconnected (IT IS dan SNC)",
+      "target_subject": "[NS] | MTM-IT IS | OTHER | CRITICAL | Wazuh Agent Disconnected (IT IS dan SNC)",
+      "priority": "P1 - Critical",
+      "bucket": "subject_wrap_prefix_5seg",
+      "notes": []
+    }
+  ],
+  "review_priority_critical_mismatch": [
+    {
+      "ticket_id": "42243",
+      "reason": "priority_critical_mismatch",
+      "subject": "[SI] IT IS | Malware Stealer | Critical | Credential Leak of MTM Employee",
+      "priority": "P2 - High",
+      "suggested_priority": "P1 - Critical"
+    },
+    {
+      "ticket_id": "49758",
+      "reason": "priority_critical_mismatch",
+      "subject": "[TH] CMWI | CVE | Critical |  Common Vulnerabilities and Exposures (CVE) detected",
+      "priority": "P2 - Medium",
+      "suggested_priority": "P1 - Critical"
+    }
+  ],
+  "subject_dedupe_customer_after_prefix": [
+    {
+      "ticket_id": "45470",
+      "current_subject": "[SE] MRTJ | MRTJ | Web Attack | Medium | Malicious Web Activity",
+      "target_subject": "[SE] | MRTJ | Web Attack | Medium | Malicious Web Activity",
+      "priority": "P2 - Medium",
+      "bucket": "subject_dedupe_customer_after_prefix",
+      "notes": []
+    }
+  ],
+  "subject_spacing_cleanup_5seg": [
+    {
+      "ticket_id": "61321",
+      "current_subject": "[SE] | mrtj-mtm |  powershell | High | Powershell script used Invoke-command cmdlet to execute sub script",
+      "target_subject": "[SE] | mrtj-mtm | powershell | High | Powershell script used Invoke-command cmdlet to execute sub script",
+      "priority": "P2 - Medium",
+      "bucket": "subject_spacing_cleanup_5seg",
+      "notes": []
+    },
+    {
+      "ticket_id": "61375",
+      "current_subject": "[SE] | mrtj-mtm |  powershell | High | Powershell script used Invoke-command cmdlet to execute sub script",
+      "target_subject": "[SE] | mrtj-mtm | powershell | High | Powershell script used Invoke-command cmdlet to execute sub script",
+      "priority": "P2 - Medium",
+      "bucket": "subject_spacing_cleanup_5seg",
+      "notes": []
+    },
+    {
+      "ticket_id": "61460",
+      "current_subject": "[SE] | mrtj-mtm |  powershell | High | Powershell script used Invoke-command cmdlet to execute sub script",
+      "target_subject": "[SE] | mrtj-mtm | powershell | High | Powershell script used Invoke-command cmdlet to execute sub script",
+      "priority": "P2 - Medium",
+      "bucket": "subject_spacing_cleanup_5seg",
+      "notes": []
+    },
+    {
+      "ticket_id": "61546",
+      "current_subject": "[SE] | mrtj-mtm |  powershell | High | Powershell script used Invoke-command cmdlet to execute sub script",
+      "target_subject": "[SE] | mrtj-mtm | powershell | High | Powershell script used Invoke-command cmdlet to execute sub script",
+      "priority": "P2 - Medium",
+      "bucket": "subject_spacing_cleanup_5seg",
+      "notes": []
+    },
+    {
+      "ticket_id": "61560",
+      "current_subject": "[SE] | mrtj-mtm |  powershell | High | Powershell script used Invoke-command cmdlet to execute sub script",
+      "target_subject": "[SE] | mrtj-mtm | powershell | High | Powershell script used Invoke-command cmdlet to execute sub script",
+      "priority": "P2 - Medium",
+      "bucket": "subject_spacing_cleanup_5seg",
+      "notes": []
+    },
+    {
+      "ticket_id": "61630",
+      "current_subject": "[SE] | mrtj-mtm |  powershell | High | Powershell script used Invoke-command cmdlet to execute sub script",
+      "target_subject": "[SE] | mrtj-mtm | powershell | High | Powershell script used Invoke-command cmdlet to execute sub script",
+      "priority": "P2 - Medium",
+      "bucket": "subject_spacing_cleanup_5seg",
+      "notes": []
+    },
+    {
+      "ticket_id": "61695",
+      "current_subject": "[SE] | mrtj-mtm |  powershell | High | Powershell script used Invoke-command cmdlet to execute sub script",
+      "target_subject": "[SE] | mrtj-mtm | powershell | High | Powershell script used Invoke-command cmdlet to execute sub script",
+      "priority": "P2 - Medium",
+      "bucket": "subject_spacing_cleanup_5seg",
+      "notes": []
+    },
+    {
+      "ticket_id": "61714",
+      "current_subject": "[SE] | mrtj-mtm |  powershell | High | Powershell script used Invoke-command cmdlet to execute sub script",
+      "target_subject": "[SE] | mrtj-mtm | powershell | High | Powershell script used Invoke-command cmdlet to execute sub script",
+      "priority": "P2 - Medium",
+      "bucket": "subject_spacing_cleanup_5seg",
+      "notes": []
+    },
+    {
+      "ticket_id": "61755",
+      "current_subject": "[SE] | mrtj-mtm |  powershell | High | Powershell script used Invoke-command cmdlet to execute sub script",
+      "target_subject": "[SE] | mrtj-mtm | powershell | High | Powershell script used Invoke-command cmdlet to execute sub script",
+      "priority": "P2 - Medium",
+      "bucket": "subject_spacing_cleanup_5seg",
+      "notes": []
+    },
+    {
+      "ticket_id": "61858",
+      "current_subject": "[SE] | mrtj-mtm |  powershell | High | Powershell script used Invoke-command cmdlet to execute sub script",
+      "target_subject": "[SE] | mrtj-mtm | powershell | High | Powershell script used Invoke-command cmdlet to execute sub script",
+      "priority": "P2 - Medium",
+      "bucket": "subject_spacing_cleanup_5seg",
+      "notes": []
+    }
+  ],
+  "subject_spacing_cleanup_4seg": [
+    {
+      "ticket_id": "64273",
+      "current_subject": "[NS] | ios  | High | Disk space is running low: 100",
+      "target_subject": "[NS] | ios | High | Disk space is running low: 100",
+      "priority": "P2 - Medium",
+      "bucket": "subject_spacing_cleanup_4seg",
+      "notes": []
+    },
+    {
+      "ticket_id": "66047",
+      "current_subject": "[SE] | O365  | High | Office 365: Successful login during non-business hours from VIP user: dody.wijaya@mtm.id.",
+      "target_subject": "[SE] | O365 | High | Office 365: Successful login during non-business hours from VIP user: dody.wijaya@mtm.id.",
+      "priority": "P2 - High",
+      "bucket": "subject_spacing_cleanup_4seg",
+      "notes": []
+    },
+    {
+      "ticket_id": "66064",
+      "current_subject": "[SE] | O365  | High | Office 365: Successful login during non-business hours from VIP user: dody.wijaya@mtm.id.",
+      "target_subject": "[SE] | O365 | High | Office 365: Successful login during non-business hours from VIP user: dody.wijaya@mtm.id.",
+      "priority": "P2 - High",
+      "bucket": "subject_spacing_cleanup_4seg",
+      "notes": []
+    },
+    {
+      "ticket_id": "66387",
+      "current_subject": "[SE] | O365  | High | Office 365: User  got FullAccess permissions in Exchange",
+      "target_subject": "[SE] | O365 | High | Office 365: User  got FullAccess permissions in Exchange",
+      "priority": "P2 - High",
+      "bucket": "subject_spacing_cleanup_4seg",
+      "notes": []
+    },
+    {
+      "ticket_id": "67397",
+      "current_subject": "[SE] | O365  | High | Office 365: User  got FullAccess permissions in Exchange",
+      "target_subject": "[SE] | O365 | High | Office 365: User  got FullAccess permissions in Exchange",
+      "priority": "P2 - High",
+      "bucket": "subject_spacing_cleanup_4seg",
+      "notes": []
+    },
+    {
+      "ticket_id": "146601",
+      "current_subject": "[NS]  | Agent Issue | Critical | Wazuh agent disconnected.",
+      "target_subject": "[NS] | Agent Issue | Critical | Wazuh agent disconnected.",
+      "priority": "P1 - Critical",
+      "bucket": "subject_spacing_cleanup_4seg",
+      "notes": []
+    }
+  ],
+  "review_unexpected_segment_count_1": [
+    {
+      "ticket_id": "65635",
+      "reason": "unexpected_segment_count_1",
+      "subject": "TEST",
+      "priority": "P2 - Medium"
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "export": {
+    "started_at": "2026-04-22T08:39:55.814761+00:00",
+    "updated_at": "2026-04-22T08:42:26.571347+00:00",
+    "completed": true,
+    "base_url": "https://10.20.24.9:8050",
+    "template_id": "1802",
+    "template_name": "CAR - Case Template",
+    "page_size": 100,
+    "concurrency": 6,
+    "limit": null,
+    "resume_detected": true
+  },
+  "counts": {
+    "requested_total": 29021,
+    "existing_before_run": 27500,
+    "exported_this_run": 1521,
+    "skipped_existing": 0,
+    "exported_total_after_run": 29021,
+    "failed_ids": [],
+    "http_requests_sent": 4579
+  },
+  "files": {
+    "summary_ndjson": "/mnt/d/sdp-ai/.tmp/exports/soc_car/summary/tickets_summary.ndjson",
+    "summary_csv": "/mnt/d/sdp-ai/.tmp/exports/soc_car/summary/tickets_summary.csv",
+    "latest_summary_json": "/mnt/d/sdp-ai/.tmp/exports/soc_car/summary/latest_100_summary.json",
+    "raw_dir": "/mnt/d/sdp-ai/.tmp/exports/soc_car/raw",
+    "refs_dir": "/mnt/d/sdp-ai/.tmp/exports/soc_car/refs"
+  },
+  "api_capabilities": {
+    "request_detail": true,
+    "tasks": true,
+    "notes": true,
+    "history": false,
+    "conversations": false
+  }
+}

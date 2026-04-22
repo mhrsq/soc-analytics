@@ -1,0 +1,30 @@
+Other	28689
+Agent Issue	59
+Malware	56
+Web Attack	52
+SIEM Issue	51
+Threat Intelligence	37
+Unauthorized Access	13
+Spam	11
+Brute Force Attack	8
+Common Vulnerabilities and Exposures (CVE)	6
+Distributed Denial-of-Service (DDoS)	4
+Credential Stuffing	4
+Cross-Site Scripting (XSS)	4
+Denial-of-Service (DoS)	3
+Phishing	3
+Stealer	3
+Credential Leak	3
+Business Email Compromise (BEC)	2
+Non-Application Layer Protocol (C2 communication)	2
+Proxy	1
+ARP Spoofing	1
+Man-in-the-Middle (MITM)	1
+Command Injection	1
+Pass-the-Hash	1
+Account Manipulation	1
+DNS Tunneling	1
+Application Layer Protocol (C2 over non-standard port)	1
+Reconnaissance	1
+Masquerading	1
+Vulnerabilitiy Scanning	1

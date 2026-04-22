@@ -79,7 +79,7 @@ function MiniSparkline({ data, color, width = 80, height = 24 }: { data: number[
   );
 }
 
-const KPI_KEYS: KPIKey[] = ["total", "open", "tp", "fp", "mttd", "sla"];
+const KPI_KEYS: KPIKey[] = ["total", "open", "tp", "fp", "mttd", "mttr", "sla"];
 
 export function KPICards({ data, loading, onCardClick, volumeData }: Props) {
   if (loading || !data) return <KPIStripSkeleton />;
@@ -116,11 +116,12 @@ export function KPICards({ data, loading, onCardClick, volumeData }: Props) {
     { key: "tp" as KPIKey, label: "TRUE POSITIVE", value: pct(data.tp_rate), sparkData: last7?.tp, sparkColor: "#10b981" },
     { key: "fp" as KPIKey, label: "FALSE POSITIVE", value: pct(data.fp_rate), sparkData: last7?.fp, sparkColor: "#9b9ba8" },
     { key: "mttd" as KPIKey, label: "AVG MTTD", value: fmt(data.avg_mttd_seconds), sparkData: null, sparkColor: "#9b9ba8" },
+    { key: "mttr" as KPIKey, label: "AVG MTTR", value: fmt(data.avg_mttr_seconds), sparkData: null, sparkColor: "#9b9ba8" },
     { key: "sla" as KPIKey, label: "SLA COMPLIANCE", value: pct(data.sla_compliance_pct), sparkData: null, sparkColor: "#9b9ba8" },
   ];
 
   return (
-    <div className="h-full grid grid-cols-3 sm:grid-cols-6 gap-px rounded-lg overflow-hidden border" style={{ borderColor: "var(--theme-card-border)", backgroundColor: "var(--theme-card-border)" }}>
+    <div className="h-full grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-px rounded-lg overflow-hidden border" style={{ borderColor: "var(--theme-card-border)", backgroundColor: "var(--theme-card-border)" }}>
       {metrics.map((m) => (
         <button
           key={m.key}
@@ -147,7 +148,7 @@ export function KPICards({ data, loading, onCardClick, volumeData }: Props) {
 
 function KPIStripSkeleton() {
   return (
-    <div className="h-full grid grid-cols-3 sm:grid-cols-6 gap-px rounded-lg overflow-hidden border" style={{ borderColor: "var(--theme-card-border)", backgroundColor: "var(--theme-card-border)" }}>
+    <div className="h-full grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-px rounded-lg overflow-hidden border" style={{ borderColor: "var(--theme-card-border)", backgroundColor: "var(--theme-card-border)" }}>
       {Array.from({ length: 6 }).map((_, i) => (
         <div key={i} className="flex flex-col justify-center px-3 py-3 gap-1.5" style={{ backgroundColor: "var(--theme-card-bg)" }}>
           <div className="skeleton h-2.5 w-16 rounded" />

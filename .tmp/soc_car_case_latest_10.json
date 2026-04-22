@@ -1,0 +1,3553 @@
+[
+  {
+    "id": "206667",
+    "subject": "[SE] | IOS | fortigate | Medium | Fortigate attack dropped: Apache.HTTP.Server.cgi-bin.Path.Traversal",
+    "description": "<div>Dear IOS Team,<br /></div><div><br /></div><div>Saat ini kami informasikan terdapat [Security Event] dengan detail berikut :<br /></div><ul><li><b>Alert Name</b> : Fortigate attack dropped: Apache.HTTP.Server.cgi-bin.Path.Traversal<br /></li><li>⁠<b>Time of Alert</b> : Apr 22, 2026 @ 14:20:13.183<br /></li><li>⁠<b>Asset&nbsp; Impacted</b> : syslog-its-mtm-icc<br /></li><li><b>Severity</b> : Medium<br /></li><li><b>Description</b> : TIM SOC MTM telah mendeteksi security event Fortigate attack dropped: Apache.HTTP.Server.cgi-bin.Path.Traversal dengan menggunakan teknik fortigate <br /></li><li><b>Action Taken</b> : -</li></ul>",
+    "short_description": null,
+    "created_time": {
+      "display_value": "Apr 22, 2026 02:20 PM",
+      "value": "1776842444982"
+    },
+    "assigned_time": {
+      "display_value": "Apr 22, 2026 02:24 PM",
+      "value": "1776842679993"
+    },
+    "resolved_time": {
+      "display_value": "Apr 22, 2026 02:24 PM",
+      "value": "1776842679997"
+    },
+    "completed_time": {
+      "display_value": "Apr 22, 2026 02:24 PM",
+      "value": "1776842679997"
+    },
+    "last_updated_time": {
+      "display_value": "Apr 22, 2026 02:24 PM",
+      "value": "1776842680000"
+    },
+    "status": {
+      "color": "#006600",
+      "name": "Closed",
+      "id": "3"
+    },
+    "priority": {
+      "color": "#ffff00",
+      "name": "P3 - Medium",
+      "id": "3001"
+    },
+    "request_type": {
+      "name": "Incident Management",
+      "id": "2"
+    },
+    "account": {
+      "country": {
+        "id": "234"
+      },
+      "inactive": false,
+      "name": "Cyber Security",
+      "id": "2704",
+      "ciid": "6314"
+    },
+    "site": {
+      "latitude": null,
+      "name": "CAR - IOS Division",
+      "id": "5108",
+      "longitude": null
+    },
+    "department": {
+      "site": {
+        "id": "7801"
+      },
+      "name": "General",
+      "id": "9301"
+    },
+    "requester": {
+      "email_id": null,
+      "phone": null,
+      "name": "SIEM",
+      "mobile": null,
+      "profile_pic": {
+        "content-url": "/images/default-profile-pic2.svg",
+        "name": "default-profile-pic2.svg"
+      },
+      "is_vipuser": false,
+      "org_user_status": "ACTIVE",
+      "id": "15347",
+      "department": {
+        "site": {
+          "name": "Cyber Security Dept",
+          "id": 7801
+        },
+        "name": "General",
+        "id": 9301
+      },
+      "account": {
+        "name": "Cyber Security",
+        "id": "2704"
+      }
+    },
+    "created_by": {
+      "email_id": "soc@mtm.id",
+      "phone": "0813-9826-7540",
+      "name": "SOC MTM",
+      "mobile": null,
+      "profile_pic": {
+        "content-url": "/images/default-profile-pic2.svg",
+        "name": "default-profile-pic2.svg"
+      },
+      "is_vipuser": false,
+      "org_user_status": "ACTIVE",
+      "id": "19501",
+      "department": {
+        "site": {
+          "name": "Common Site",
+          "id": 2
+        },
+        "name": "Integrated Cybersecurity Center",
+        "id": 7501
+      },
+      "account": {
+        "name": "MTM",
+        "id": "1"
+      }
+    },
+    "technician": {
+      "email_id": null,
+      "phone": null,
+      "name": "Jeffri Wahyu Putra Sitompul",
+      "mobile": null,
+      "profile_pic": {
+        "content-url": "/images/default-profile-pic2.svg",
+        "name": "default-profile-pic2.svg"
+      },
+      "is_vipuser": false,
+      "org_user_status": "ACTIVE",
+      "id": "21302",
+      "department": {
+        "site": {
+          "name": "Common Site",
+          "id": 2
+        },
+        "name": "Integrated Cybersecurity Center",
+        "id": 7501
+      },
+      "account": {
+        "name": "MTM",
+        "id": "1"
+      }
+    },
+    "template": {
+      "is_service_template": false,
+      "service_category": null,
+      "name": "CAR - Case Template",
+      "id": "1802"
+    },
+    "mode": null,
+    "category": null,
+    "subcategory": null,
+    "item": null,
+    "is_billable": true,
+    "is_service_request": false,
+    "has_notes": false,
+    "has_attachments": false,
+    "has_conversation": false,
+    "request_template_task_ids": [
+      {
+        "id": "303"
+      },
+      {
+        "id": "302"
+      },
+      {
+        "id": "308"
+      },
+      {
+        "id": "307"
+      },
+      {
+        "id": "1202"
+      },
+      {
+        "id": "306"
+      },
+      {
+        "id": "1201"
+      },
+      {
+        "id": "305"
+      },
+      {
+        "id": "304"
+      }
+    ],
+    "closure_info": {
+      "requester_ack_comments": null,
+      "closure_code": {
+        "name": "Success",
+        "id": "1"
+      },
+      "closure_comments": null,
+      "signoff": null,
+      "requester_ack_resolution": true
+    },
+    "udf_fields": {
+      "udf_pick_1818": "syslog-its-mtm-icc",
+      "udf_pick_1819": "Security Event",
+      "udf_multiselect_2101": [],
+      "udf_sline_1820": null,
+      "udf_sline_1827": "10.20.80.8",
+      "udf_pick_1822": "Billable",
+      "udf_pick_1805": "False Positive",
+      "udf_pick_1806": "Other",
+      "udf_pick_2704": "Jeffri Wahyu Putra Sitompul",
+      "udf_pick_3901": "IOS-MTM",
+      "udf_date_2701": {
+        "display_value": "Apr 22, 2026 02:20 PM",
+        "value": "1776842413183"
+      },
+      "udf_date_1807": {
+        "display_value": "Apr 22, 2026 02:20 PM",
+        "value": "1776842400000"
+      },
+      "udf_date_1808": {
+        "display_value": "Apr 22, 2026 02:20 PM",
+        "value": "1776842400000"
+      },
+      "udf_mline_2102": null,
+      "udf_sline_1816": null
+    },
+    "tasks": [
+      {
+        "index": "1",
+        "title": "Description of Incident",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 02:20 PM",
+          "value": "1776842446836"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Deskripsikan incident / event yang terjadi seperti apa<br />2. Gunakan English Formal dan istilah umum agar dapat dibaca oleh orang non-teknis<br />3. Berbentuk list, contohnya seperti dibawah :<br /><br /><br />Description of Incident:<br />- SOC Team detected an indication of Bruteforce Attack on Asset IOC-OPMSERVICEDESK from the authentication log.<br />- This Attack is currently stopped, and there is no attempt was successful by an attacker<br />- SOC Team has been coordinating with Asset Owner to configure whitelist access as Workaround Solution<br />- This incident/event will be continuously monitored by SOC",
+        "id": "1034626"
+      },
+      {
+        "index": "2",
+        "title": "Names and Contact Information of Others Involved",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 02:20 PM",
+          "value": "1776842446836"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Mention the full name of the Analyst involved with this case<br />2. If there are external people involved, add the prefix [EXT] at the end of the full name. Example :<br /><br /><br />- Muhamad Mahrus Qusaeri<br />- Aditya Nugraha Syabana<br />- Abu Bakar Umar [EXT]<br />- Irfan Argusman [EXT]",
+        "id": "1034627"
+      },
+      {
+        "index": "3",
+        "title": "Identification Measures",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 02:20 PM",
+          "value": "1776842446836"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Fill out the list below. Choose between this multiple choice<br />2. Add to task log<br /><br />- Targeted Assets are infected: YES / NO<br />- Targeted Assets had been investigated: YES / NO<br />- Is there Malicious/Suspicious activity on the Assets: YES / NO",
+        "id": "1034628"
+      },
+      {
+        "index": "4",
+        "title": "Timeline",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 02:20 PM",
+          "value": "1776842446836"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Gunakan format dibawah ini untuk membuat timeline<br />2. Tambahkan ke task log sesuai urutan timeline kejadian<br />3. Beda Timestamp, beda task log<br /><br /><br /><br />Example Task log 1:<br />- Date : **_Jan 08, 2023_**<br />- Timestamp : **_10:18:00_**<br />- Source : **_SIEM Wazuh_**<br />- Description : **_First log authentication failed has seen_**<br /><br /><br />Example Task log 2:<br />- Date : **_Jan 08, 2023_**<br />- Timestamp : **_10:42:00_**<br />- Source : **_SIEM Wazuh_**<br />- Description: **_First log authentication successful has been seen. Indicate the attacker are successfully Bruteforce the device using Dictionary attack_**<br /><br /><br /><br />Note : yang diperlukan untuk diganti hanya yang bold italic saja",
+        "id": "1034629"
+      },
+      {
+        "index": "5",
+        "title": "Containment",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 02:20 PM",
+          "value": "1776842446836"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "Containment dilakukan apabila terdapat suatu Asset / Device yang sudah terinfeksi oleh Malware atau berhasil dikompromise oleh Attacker. Containment perlu dilakukan agar Asset / Device yang terinfeksi tidak menyebar melalui jaringan.<br /><br />1. Jelaskan action apa saja yang dilakukan untuk melakukan containment pada asset yang terinfeksi<br />2. Apabila tidak ada action containment, atau case nya False Positive, Task ini tidak perlu diisi<br /><br /><br />Example containment :<br />- CSD Team has disallowed the Users to connect to the Network because the device is infected by Malware",
+        "id": "1034630"
+      },
+      {
+        "index": "6",
+        "title": "Eradication",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 02:20 PM",
+          "value": "1776842446836"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "Eradication dilakukan ketika Asset / Device sudah terinfeksi dan atau ter-compromise oleh attacker. Eradication dilakukan untuk menghapus semua IoC (file/proses/network connection/dll.) yang terkait dengan serangan. apabila Asset owner bukan dari tim CSD, maka wajib dikomunikasikan dengan asset owner untuk dilakukan eradication.<br /><br /><br />Example 1:<br /><br />CSD Recommend to SSA to :<br /> - Stop the Malicious process. PID 990, PID 129, PID 2731<br /> - Delete file related to the malicious process on this directory: **/tmp/.malicious/**<br /><br /><br />Example 2:<br />- CSD Had been stopped the process on IOC-OPMSERVICEDESK asset. PID 1234, 9726, 2342<br />- CSD also had been deleted related file on directory : **C:/tmp/**<br /><br />Note : Tambahkan di tasklog, apa saja yang harus dilakukan eradication pada Asset tersebut",
+        "id": "1034631"
+      },
+      {
+        "index": "7",
+        "title": "Mitigation",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 02:20 PM",
+          "value": "1776842446836"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "Mitigation perlu diinformasikan untuk mencegah adanya event/incident yang sama dikemudian hari<br /><br />Example:<br />- Install Antivirus so the device are protected from malware",
+        "id": "1034632"
+      },
+      {
+        "index": "8",
+        "title": "Evidence Collected",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 02:20 PM",
+          "value": "1776842446836"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "<div>Berisi Indicator of Compromise yang ditemukan saat investigasi. Isi IoCs dengan versi yang sudah di Defang (dapat menggunakan CyberChef)<br /></div><div><br /></div><div>Example:<br /></div><div><br /></div><div>1. IP Address: 172[.]168[.]1[.]1<br /></div><div>2. URL: http[.]gggogle[.]com<br /></div><div>3. Payload: echo &quot;hi world&quot;<br /></div><div>4. Hash: a1b2c3d4e5123123123<br /></div><div>5. Filename: malicious.docx, malicious.exe<br /></div><div>6. Path: C:\\User\\Malicious\\<br /></div><div>7. etc</div>",
+        "id": "1034633"
+      },
+      {
+        "index": "9",
+        "title": "Other Mitigation Actions",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 02:20 PM",
+          "value": "1776842446836"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "<div>Berisi rekomendasi mitigasi yang dapat di implementasikan oleh asset owner selain mitigasi utama.<br /></div><div><br /></div><div>Example:<br /></div><div>- Memberikan Cybersecurity Awareness pada employee<br /></div><div>- Mengadakan simulasi phishing<br /></div><div>- Mengganti semua password dari users pada server terdampak<br /></div><div>- Menggunakan skema MFA untuk login email<br /></div>",
+        "id": "1034634"
+      }
+    ],
+    "notes": [],
+    "notes_count": 0
+  },
+  {
+    "id": "206663",
+    "subject": "[SE] | IOS | fortigate | Medium | Fortigate attack dropped: Apache.HTTP.Server.cgi-bin.Path.Traversal",
+    "description": "<div>Dear IOS Team,<br /></div><div><br /></div><div>Saat ini kami informasikan terdapat [Security Event] dengan detail berikut :<br /></div><ul><li><b>Alert Name</b> : Fortigate attack dropped: Apache.HTTP.Server.cgi-bin.Path.Traversal<br /></li><li>⁠<b>Time of Alert</b> : Apr 22, 2026 @ 13:49:00.966<br /></li><li>⁠<b>Asset&nbsp; Impacted</b> : syslog-its-mtm-icc<br /></li><li><b>Severity</b> : Medium<br /></li><li><b>Description</b> : TIM SOC MTM telah mendeteksi security event Fortigate attack dropped: Apache.HTTP.Server.cgi-bin.Path.Traversal dengan menggunakan teknik fortigate <br /></li><li><b>Action Taken</b> : -</li></ul>",
+    "short_description": null,
+    "created_time": {
+      "display_value": "Apr 22, 2026 01:49 PM",
+      "value": "1776840573401"
+    },
+    "assigned_time": {
+      "display_value": "Apr 22, 2026 02:03 PM",
+      "value": "1776841390835"
+    },
+    "resolved_time": {
+      "display_value": "Apr 22, 2026 02:03 PM",
+      "value": "1776841390838"
+    },
+    "completed_time": {
+      "display_value": "Apr 22, 2026 02:03 PM",
+      "value": "1776841390838"
+    },
+    "last_updated_time": {
+      "display_value": "Apr 22, 2026 02:03 PM",
+      "value": "1776841390841"
+    },
+    "status": {
+      "color": "#006600",
+      "name": "Closed",
+      "id": "3"
+    },
+    "priority": {
+      "color": "#ffff00",
+      "name": "P3 - Medium",
+      "id": "3001"
+    },
+    "request_type": {
+      "name": "Incident Management",
+      "id": "2"
+    },
+    "account": {
+      "country": {
+        "id": "234"
+      },
+      "inactive": false,
+      "name": "Cyber Security",
+      "id": "2704",
+      "ciid": "6314"
+    },
+    "site": {
+      "latitude": null,
+      "name": "CAR - IOS Division",
+      "id": "5108",
+      "longitude": null
+    },
+    "department": {
+      "site": {
+        "id": "7801"
+      },
+      "name": "General",
+      "id": "9301"
+    },
+    "requester": {
+      "email_id": null,
+      "phone": null,
+      "name": "SIEM",
+      "mobile": null,
+      "profile_pic": {
+        "content-url": "/images/default-profile-pic2.svg",
+        "name": "default-profile-pic2.svg"
+      },
+      "is_vipuser": false,
+      "org_user_status": "ACTIVE",
+      "id": "15347",
+      "department": {
+        "site": {
+          "name": "Cyber Security Dept",
+          "id": 7801
+        },
+        "name": "General",
+        "id": 9301
+      },
+      "account": {
+        "name": "Cyber Security",
+        "id": "2704"
+      }
+    },
+    "created_by": {
+      "email_id": "soc@mtm.id",
+      "phone": "0813-9826-7540",
+      "name": "SOC MTM",
+      "mobile": null,
+      "profile_pic": {
+        "content-url": "/images/default-profile-pic2.svg",
+        "name": "default-profile-pic2.svg"
+      },
+      "is_vipuser": false,
+      "org_user_status": "ACTIVE",
+      "id": "19501",
+      "department": {
+        "site": {
+          "name": "Common Site",
+          "id": 2
+        },
+        "name": "Integrated Cybersecurity Center",
+        "id": 7501
+      },
+      "account": {
+        "name": "MTM",
+        "id": "1"
+      }
+    },
+    "technician": {
+      "email_id": null,
+      "phone": null,
+      "name": "Jeffri Wahyu Putra Sitompul",
+      "mobile": null,
+      "profile_pic": {
+        "content-url": "/images/default-profile-pic2.svg",
+        "name": "default-profile-pic2.svg"
+      },
+      "is_vipuser": false,
+      "org_user_status": "ACTIVE",
+      "id": "21302",
+      "department": {
+        "site": {
+          "name": "Common Site",
+          "id": 2
+        },
+        "name": "Integrated Cybersecurity Center",
+        "id": 7501
+      },
+      "account": {
+        "name": "MTM",
+        "id": "1"
+      }
+    },
+    "template": {
+      "is_service_template": false,
+      "service_category": null,
+      "name": "CAR - Case Template",
+      "id": "1802"
+    },
+    "mode": null,
+    "category": null,
+    "subcategory": null,
+    "item": null,
+    "is_billable": true,
+    "is_service_request": false,
+    "has_notes": false,
+    "has_attachments": false,
+    "has_conversation": false,
+    "request_template_task_ids": [
+      {
+        "id": "303"
+      },
+      {
+        "id": "302"
+      },
+      {
+        "id": "308"
+      },
+      {
+        "id": "307"
+      },
+      {
+        "id": "1202"
+      },
+      {
+        "id": "306"
+      },
+      {
+        "id": "1201"
+      },
+      {
+        "id": "305"
+      },
+      {
+        "id": "304"
+      }
+    ],
+    "closure_info": {
+      "requester_ack_comments": null,
+      "closure_code": null,
+      "closure_comments": null,
+      "signoff": null,
+      "requester_ack_resolution": false
+    },
+    "udf_fields": {
+      "udf_pick_1818": "syslog-its-mtm-icc",
+      "udf_pick_1819": "Security Event",
+      "udf_multiselect_2101": [],
+      "udf_sline_1820": null,
+      "udf_sline_1827": "10.20.80.8",
+      "udf_pick_1822": "Billable",
+      "udf_pick_1805": "False Positive",
+      "udf_pick_1806": "Other",
+      "udf_pick_2704": "Jeffri Wahyu Putra Sitompul",
+      "udf_pick_3901": "IOS-MTM",
+      "udf_date_2701": {
+        "display_value": "Apr 22, 2026 01:49 PM",
+        "value": "1776840540966"
+      },
+      "udf_date_1807": {
+        "display_value": "Apr 22, 2026 01:49 PM",
+        "value": "1776840540000"
+      },
+      "udf_date_1808": {
+        "display_value": "Apr 22, 2026 01:49 PM",
+        "value": "1776840540000"
+      },
+      "udf_mline_2102": null,
+      "udf_sline_1816": null
+    },
+    "tasks": [
+      {
+        "index": "1",
+        "title": "Description of Incident",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 01:49 PM",
+          "value": "1776840575272"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Deskripsikan incident / event yang terjadi seperti apa<br />2. Gunakan English Formal dan istilah umum agar dapat dibaca oleh orang non-teknis<br />3. Berbentuk list, contohnya seperti dibawah :<br /><br /><br />Description of Incident:<br />- SOC Team detected an indication of Bruteforce Attack on Asset IOC-OPMSERVICEDESK from the authentication log.<br />- This Attack is currently stopped, and there is no attempt was successful by an attacker<br />- SOC Team has been coordinating with Asset Owner to configure whitelist access as Workaround Solution<br />- This incident/event will be continuously monitored by SOC",
+        "id": "1034617"
+      },
+      {
+        "index": "2",
+        "title": "Names and Contact Information of Others Involved",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 01:49 PM",
+          "value": "1776840575272"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Mention the full name of the Analyst involved with this case<br />2. If there are external people involved, add the prefix [EXT] at the end of the full name. Example :<br /><br /><br />- Muhamad Mahrus Qusaeri<br />- Aditya Nugraha Syabana<br />- Abu Bakar Umar [EXT]<br />- Irfan Argusman [EXT]",
+        "id": "1034618"
+      },
+      {
+        "index": "3",
+        "title": "Identification Measures",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 01:49 PM",
+          "value": "1776840575272"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Fill out the list below. Choose between this multiple choice<br />2. Add to task log<br /><br />- Targeted Assets are infected: YES / NO<br />- Targeted Assets had been investigated: YES / NO<br />- Is there Malicious/Suspicious activity on the Assets: YES / NO",
+        "id": "1034619"
+      },
+      {
+        "index": "4",
+        "title": "Timeline",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 01:49 PM",
+          "value": "1776840575272"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Gunakan format dibawah ini untuk membuat timeline<br />2. Tambahkan ke task log sesuai urutan timeline kejadian<br />3. Beda Timestamp, beda task log<br /><br /><br /><br />Example Task log 1:<br />- Date : **_Jan 08, 2023_**<br />- Timestamp : **_10:18:00_**<br />- Source : **_SIEM Wazuh_**<br />- Description : **_First log authentication failed has seen_**<br /><br /><br />Example Task log 2:<br />- Date : **_Jan 08, 2023_**<br />- Timestamp : **_10:42:00_**<br />- Source : **_SIEM Wazuh_**<br />- Description: **_First log authentication successful has been seen. Indicate the attacker are successfully Bruteforce the device using Dictionary attack_**<br /><br /><br /><br />Note : yang diperlukan untuk diganti hanya yang bold italic saja",
+        "id": "1034620"
+      },
+      {
+        "index": "5",
+        "title": "Containment",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 01:49 PM",
+          "value": "1776840575272"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "Containment dilakukan apabila terdapat suatu Asset / Device yang sudah terinfeksi oleh Malware atau berhasil dikompromise oleh Attacker. Containment perlu dilakukan agar Asset / Device yang terinfeksi tidak menyebar melalui jaringan.<br /><br />1. Jelaskan action apa saja yang dilakukan untuk melakukan containment pada asset yang terinfeksi<br />2. Apabila tidak ada action containment, atau case nya False Positive, Task ini tidak perlu diisi<br /><br /><br />Example containment :<br />- CSD Team has disallowed the Users to connect to the Network because the device is infected by Malware",
+        "id": "1034621"
+      },
+      {
+        "index": "6",
+        "title": "Eradication",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 01:49 PM",
+          "value": "1776840575272"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "Eradication dilakukan ketika Asset / Device sudah terinfeksi dan atau ter-compromise oleh attacker. Eradication dilakukan untuk menghapus semua IoC (file/proses/network connection/dll.) yang terkait dengan serangan. apabila Asset owner bukan dari tim CSD, maka wajib dikomunikasikan dengan asset owner untuk dilakukan eradication.<br /><br /><br />Example 1:<br /><br />CSD Recommend to SSA to :<br /> - Stop the Malicious process. PID 990, PID 129, PID 2731<br /> - Delete file related to the malicious process on this directory: **/tmp/.malicious/**<br /><br /><br />Example 2:<br />- CSD Had been stopped the process on IOC-OPMSERVICEDESK asset. PID 1234, 9726, 2342<br />- CSD also had been deleted related file on directory : **C:/tmp/**<br /><br />Note : Tambahkan di tasklog, apa saja yang harus dilakukan eradication pada Asset tersebut",
+        "id": "1034622"
+      },
+      {
+        "index": "7",
+        "title": "Mitigation",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 01:49 PM",
+          "value": "1776840575272"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "Mitigation perlu diinformasikan untuk mencegah adanya event/incident yang sama dikemudian hari<br /><br />Example:<br />- Install Antivirus so the device are protected from malware",
+        "id": "1034623"
+      },
+      {
+        "index": "8",
+        "title": "Evidence Collected",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 01:49 PM",
+          "value": "1776840575272"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "<div>Berisi Indicator of Compromise yang ditemukan saat investigasi. Isi IoCs dengan versi yang sudah di Defang (dapat menggunakan CyberChef)<br /></div><div><br /></div><div>Example:<br /></div><div><br /></div><div>1. IP Address: 172[.]168[.]1[.]1<br /></div><div>2. URL: http[.]gggogle[.]com<br /></div><div>3. Payload: echo &quot;hi world&quot;<br /></div><div>4. Hash: a1b2c3d4e5123123123<br /></div><div>5. Filename: malicious.docx, malicious.exe<br /></div><div>6. Path: C:\\User\\Malicious\\<br /></div><div>7. etc</div>",
+        "id": "1034624"
+      },
+      {
+        "index": "9",
+        "title": "Other Mitigation Actions",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 01:49 PM",
+          "value": "1776840575272"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "<div>Berisi rekomendasi mitigasi yang dapat di implementasikan oleh asset owner selain mitigasi utama.<br /></div><div><br /></div><div>Example:<br /></div><div>- Memberikan Cybersecurity Awareness pada employee<br /></div><div>- Mengadakan simulasi phishing<br /></div><div>- Mengganti semua password dari users pada server terdampak<br /></div><div>- Menggunakan skema MFA untuk login email<br /></div>",
+        "id": "1034625"
+      }
+    ],
+    "notes": [],
+    "notes_count": 0
+  },
+  {
+    "id": "206661",
+    "subject": "[SE] | IOS | fortigate | Medium | Fortigate attack dropped: Apache.HTTP.Server.cgi-bin.Path.Traversal",
+    "description": "<div>Dear IOS Team,<br /></div><div><br /></div><div>Saat ini kami informasikan terdapat [Security Event] dengan detail berikut :<br /></div><ul><li><b>Alert Name</b> : Fortigate attack dropped: Apache.HTTP.Server.cgi-bin.Path.Traversal<br /></li><li>⁠<b>Time of Alert</b> : Apr 22, 2026 @ 12:21:40.900<br /></li><li>⁠<b>Asset&nbsp; Impacted</b> : syslog-its-mtm-icc<br /></li><li><b>Severity</b> : Medium<br /></li><li><b>Description</b> : TIM SOC MTM telah mendeteksi security event Fortigate attack dropped: Apache.HTTP.Server.cgi-bin.Path.Traversal dengan menggunakan teknik fortigate <br /></li><li><b>Action Taken</b> : -</li></ul>",
+    "short_description": null,
+    "created_time": {
+      "display_value": "Apr 22, 2026 12:22 PM",
+      "value": "1776835333970"
+    },
+    "assigned_time": {
+      "display_value": "Apr 22, 2026 12:25 PM",
+      "value": "1776835546297"
+    },
+    "resolved_time": {
+      "display_value": "Apr 22, 2026 02:37 PM",
+      "value": "1776843432594"
+    },
+    "completed_time": {
+      "display_value": "Apr 22, 2026 02:37 PM",
+      "value": "1776843432594"
+    },
+    "last_updated_time": {
+      "display_value": "Apr 22, 2026 02:37 PM",
+      "value": "1776843432597"
+    },
+    "status": {
+      "color": "#006600",
+      "name": "Closed",
+      "id": "3"
+    },
+    "priority": {
+      "color": "#ffff00",
+      "name": "P3 - Medium",
+      "id": "3001"
+    },
+    "request_type": {
+      "name": "Incident Management",
+      "id": "2"
+    },
+    "account": {
+      "country": {
+        "id": "234"
+      },
+      "inactive": false,
+      "name": "Cyber Security",
+      "id": "2704",
+      "ciid": "6314"
+    },
+    "site": {
+      "latitude": null,
+      "name": "CAR - IOS Division",
+      "id": "5108",
+      "longitude": null
+    },
+    "department": {
+      "site": {
+        "id": "7801"
+      },
+      "name": "General",
+      "id": "9301"
+    },
+    "requester": {
+      "email_id": null,
+      "phone": null,
+      "name": "SIEM",
+      "mobile": null,
+      "profile_pic": {
+        "content-url": "/images/default-profile-pic2.svg",
+        "name": "default-profile-pic2.svg"
+      },
+      "is_vipuser": false,
+      "org_user_status": "ACTIVE",
+      "id": "15347",
+      "department": {
+        "site": {
+          "name": "Cyber Security Dept",
+          "id": 7801
+        },
+        "name": "General",
+        "id": 9301
+      },
+      "account": {
+        "name": "Cyber Security",
+        "id": "2704"
+      }
+    },
+    "created_by": {
+      "email_id": "soc@mtm.id",
+      "phone": "0813-9826-7540",
+      "name": "SOC MTM",
+      "mobile": null,
+      "profile_pic": {
+        "content-url": "/images/default-profile-pic2.svg",
+        "name": "default-profile-pic2.svg"
+      },
+      "is_vipuser": false,
+      "org_user_status": "ACTIVE",
+      "id": "19501",
+      "department": {
+        "site": {
+          "name": "Common Site",
+          "id": 2
+        },
+        "name": "Integrated Cybersecurity Center",
+        "id": 7501
+      },
+      "account": {
+        "name": "MTM",
+        "id": "1"
+      }
+    },
+    "technician": {
+      "email_id": null,
+      "phone": null,
+      "name": "Jeffri Wahyu Putra Sitompul",
+      "mobile": null,
+      "profile_pic": {
+        "content-url": "/images/default-profile-pic2.svg",
+        "name": "default-profile-pic2.svg"
+      },
+      "is_vipuser": false,
+      "org_user_status": "ACTIVE",
+      "id": "21302",
+      "department": {
+        "site": {
+          "name": "Common Site",
+          "id": 2
+        },
+        "name": "Integrated Cybersecurity Center",
+        "id": 7501
+      },
+      "account": {
+        "name": "MTM",
+        "id": "1"
+      }
+    },
+    "template": {
+      "is_service_template": false,
+      "service_category": null,
+      "name": "CAR - Case Template",
+      "id": "1802"
+    },
+    "mode": null,
+    "category": null,
+    "subcategory": null,
+    "item": null,
+    "is_billable": true,
+    "is_service_request": false,
+    "has_notes": false,
+    "has_attachments": false,
+    "has_conversation": false,
+    "request_template_task_ids": [
+      {
+        "id": "303"
+      },
+      {
+        "id": "302"
+      },
+      {
+        "id": "308"
+      },
+      {
+        "id": "307"
+      },
+      {
+        "id": "1202"
+      },
+      {
+        "id": "306"
+      },
+      {
+        "id": "1201"
+      },
+      {
+        "id": "305"
+      },
+      {
+        "id": "304"
+      }
+    ],
+    "closure_info": {
+      "requester_ack_comments": "TRUE POSITIVE - BENIGN",
+      "closure_code": null,
+      "closure_comments": null,
+      "signoff": null,
+      "requester_ack_resolution": false
+    },
+    "udf_fields": {
+      "udf_pick_1818": "syslog-its-mtm-icc",
+      "udf_pick_1819": "Security Event",
+      "udf_multiselect_2101": [],
+      "udf_sline_1820": null,
+      "udf_sline_1827": "10.20.80.8",
+      "udf_pick_1822": "Billable",
+      "udf_pick_1805": "False Positive",
+      "udf_pick_1806": "Other",
+      "udf_pick_2704": "Jeffri Wahyu Putra Sitompul",
+      "udf_pick_3901": "IOS-MTM",
+      "udf_date_2701": {
+        "display_value": "Apr 22, 2026 12:21 PM",
+        "value": "1776835300900"
+      },
+      "udf_date_1807": {
+        "display_value": "Apr 22, 2026 12:21 PM",
+        "value": "1776835260000"
+      },
+      "udf_date_1808": {
+        "display_value": "Apr 22, 2026 12:21 PM",
+        "value": "1776835260000"
+      },
+      "udf_mline_2102": null,
+      "udf_sline_1816": null
+    },
+    "tasks": [
+      {
+        "index": "1",
+        "title": "Description of Incident",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 12:22 PM",
+          "value": "1776835335927"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Deskripsikan incident / event yang terjadi seperti apa<br />2. Gunakan English Formal dan istilah umum agar dapat dibaca oleh orang non-teknis<br />3. Berbentuk list, contohnya seperti dibawah :<br /><br /><br />Description of Incident:<br />- SOC Team detected an indication of Bruteforce Attack on Asset IOC-OPMSERVICEDESK from the authentication log.<br />- This Attack is currently stopped, and there is no attempt was successful by an attacker<br />- SOC Team has been coordinating with Asset Owner to configure whitelist access as Workaround Solution<br />- This incident/event will be continuously monitored by SOC",
+        "id": "1034608"
+      },
+      {
+        "index": "2",
+        "title": "Names and Contact Information of Others Involved",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 12:22 PM",
+          "value": "1776835335927"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Mention the full name of the Analyst involved with this case<br />2. If there are external people involved, add the prefix [EXT] at the end of the full name. Example :<br /><br /><br />- Muhamad Mahrus Qusaeri<br />- Aditya Nugraha Syabana<br />- Abu Bakar Umar [EXT]<br />- Irfan Argusman [EXT]",
+        "id": "1034609"
+      },
+      {
+        "index": "3",
+        "title": "Identification Measures",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 12:22 PM",
+          "value": "1776835335927"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Fill out the list below. Choose between this multiple choice<br />2. Add to task log<br /><br />- Targeted Assets are infected: YES / NO<br />- Targeted Assets had been investigated: YES / NO<br />- Is there Malicious/Suspicious activity on the Assets: YES / NO",
+        "id": "1034610"
+      },
+      {
+        "index": "4",
+        "title": "Timeline",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 12:22 PM",
+          "value": "1776835335927"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Gunakan format dibawah ini untuk membuat timeline<br />2. Tambahkan ke task log sesuai urutan timeline kejadian<br />3. Beda Timestamp, beda task log<br /><br /><br /><br />Example Task log 1:<br />- Date : **_Jan 08, 2023_**<br />- Timestamp : **_10:18:00_**<br />- Source : **_SIEM Wazuh_**<br />- Description : **_First log authentication failed has seen_**<br /><br /><br />Example Task log 2:<br />- Date : **_Jan 08, 2023_**<br />- Timestamp : **_10:42:00_**<br />- Source : **_SIEM Wazuh_**<br />- Description: **_First log authentication successful has been seen. Indicate the attacker are successfully Bruteforce the device using Dictionary attack_**<br /><br /><br /><br />Note : yang diperlukan untuk diganti hanya yang bold italic saja",
+        "id": "1034611"
+      },
+      {
+        "index": "5",
+        "title": "Containment",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 12:22 PM",
+          "value": "1776835335927"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "Containment dilakukan apabila terdapat suatu Asset / Device yang sudah terinfeksi oleh Malware atau berhasil dikompromise oleh Attacker. Containment perlu dilakukan agar Asset / Device yang terinfeksi tidak menyebar melalui jaringan.<br /><br />1. Jelaskan action apa saja yang dilakukan untuk melakukan containment pada asset yang terinfeksi<br />2. Apabila tidak ada action containment, atau case nya False Positive, Task ini tidak perlu diisi<br /><br /><br />Example containment :<br />- CSD Team has disallowed the Users to connect to the Network because the device is infected by Malware",
+        "id": "1034612"
+      },
+      {
+        "index": "6",
+        "title": "Eradication",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 12:22 PM",
+          "value": "1776835335927"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "Eradication dilakukan ketika Asset / Device sudah terinfeksi dan atau ter-compromise oleh attacker. Eradication dilakukan untuk menghapus semua IoC (file/proses/network connection/dll.) yang terkait dengan serangan. apabila Asset owner bukan dari tim CSD, maka wajib dikomunikasikan dengan asset owner untuk dilakukan eradication.<br /><br /><br />Example 1:<br /><br />CSD Recommend to SSA to :<br /> - Stop the Malicious process. PID 990, PID 129, PID 2731<br /> - Delete file related to the malicious process on this directory: **/tmp/.malicious/**<br /><br /><br />Example 2:<br />- CSD Had been stopped the process on IOC-OPMSERVICEDESK asset. PID 1234, 9726, 2342<br />- CSD also had been deleted related file on directory : **C:/tmp/**<br /><br />Note : Tambahkan di tasklog, apa saja yang harus dilakukan eradication pada Asset tersebut",
+        "id": "1034613"
+      },
+      {
+        "index": "7",
+        "title": "Mitigation",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 12:22 PM",
+          "value": "1776835335927"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "Mitigation perlu diinformasikan untuk mencegah adanya event/incident yang sama dikemudian hari<br /><br />Example:<br />- Install Antivirus so the device are protected from malware",
+        "id": "1034614"
+      },
+      {
+        "index": "8",
+        "title": "Evidence Collected",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 12:22 PM",
+          "value": "1776835335927"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "<div>Berisi Indicator of Compromise yang ditemukan saat investigasi. Isi IoCs dengan versi yang sudah di Defang (dapat menggunakan CyberChef)<br /></div><div><br /></div><div>Example:<br /></div><div><br /></div><div>1. IP Address: 172[.]168[.]1[.]1<br /></div><div>2. URL: http[.]gggogle[.]com<br /></div><div>3. Payload: echo &quot;hi world&quot;<br /></div><div>4. Hash: a1b2c3d4e5123123123<br /></div><div>5. Filename: malicious.docx, malicious.exe<br /></div><div>6. Path: C:\\User\\Malicious\\<br /></div><div>7. etc</div>",
+        "id": "1034615"
+      },
+      {
+        "index": "9",
+        "title": "Other Mitigation Actions",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 12:22 PM",
+          "value": "1776835335927"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "<div>Berisi rekomendasi mitigasi yang dapat di implementasikan oleh asset owner selain mitigasi utama.<br /></div><div><br /></div><div>Example:<br /></div><div>- Memberikan Cybersecurity Awareness pada employee<br /></div><div>- Mengadakan simulasi phishing<br /></div><div>- Mengganti semua password dari users pada server terdampak<br /></div><div>- Menggunakan skema MFA untuk login email<br /></div>",
+        "id": "1034616"
+      }
+    ],
+    "notes": [],
+    "notes_count": 0
+  },
+  {
+    "id": "206660",
+    "subject": "[SE] | CMWI | windows_security | High | Multiple Windows audit failure events",
+    "description": "<div>Dear CMWI Team,<br /></div><div><br /></div><div>Saat ini kami informasikan terdapat [Security Event] dengan detail berikut :<br /></div><ul><li><b>Alert Name</b> : Multiple Windows audit failure events<br /></li><li>⁠<b>Time of Alert</b> : Apr 22, 2026 @ 11:23:08.192<br /></li><li>⁠<b>Asset&nbsp; Impacted</b> : AD_Server_Primary-Karawang-CMWI<br /></li><li><b>Severity</b> : High<br /></li><li><b>Description</b> : TIM SOC MTM telah mendeteksi security event Multiple Windows audit failure events dengan menggunakan teknik windows_security <br /></li><li><b>Action Taken</b> : -</li></ul>",
+    "short_description": null,
+    "created_time": {
+      "display_value": "Apr 22, 2026 11:23 AM",
+      "value": "1776831822700"
+    },
+    "assigned_time": {
+      "display_value": "Apr 22, 2026 11:29 AM",
+      "value": "1776832189417"
+    },
+    "resolved_time": {
+      "display_value": "Apr 22, 2026 11:29 AM",
+      "value": "1776832189420"
+    },
+    "completed_time": {
+      "display_value": "Apr 22, 2026 11:29 AM",
+      "value": "1776832189420"
+    },
+    "last_updated_time": {
+      "display_value": "Apr 22, 2026 11:29 AM",
+      "value": "1776832189423"
+    },
+    "status": {
+      "color": "#006600",
+      "name": "Closed",
+      "id": "3"
+    },
+    "priority": {
+      "color": "#ef8216",
+      "name": "P2 - High",
+      "id": "4801"
+    },
+    "request_type": {
+      "name": "Incident Management",
+      "id": "2"
+    },
+    "account": {
+      "country": {
+        "id": "234"
+      },
+      "inactive": false,
+      "name": "Cyber Security",
+      "id": "2704",
+      "ciid": "6314"
+    },
+    "site": {
+      "latitude": null,
+      "name": "CAR - CMWI",
+      "id": "6901",
+      "longitude": null
+    },
+    "department": {
+      "site": {
+        "id": "7801"
+      },
+      "name": "General",
+      "id": "9301"
+    },
+    "requester": {
+      "email_id": null,
+      "phone": null,
+      "name": "SIEM",
+      "mobile": null,
+      "profile_pic": {
+        "content-url": "/images/default-profile-pic2.svg",
+        "name": "default-profile-pic2.svg"
+      },
+      "is_vipuser": false,
+      "org_user_status": "ACTIVE",
+      "id": "15347",
+      "department": {
+        "site": {
+          "name": "Cyber Security Dept",
+          "id": 7801
+        },
+        "name": "General",
+        "id": 9301
+      },
+      "account": {
+        "name": "Cyber Security",
+        "id": "2704"
+      }
+    },
+    "created_by": {
+      "email_id": "soc@mtm.id",
+      "phone": "0813-9826-7540",
+      "name": "SOC MTM",
+      "mobile": null,
+      "profile_pic": {
+        "content-url": "/images/default-profile-pic2.svg",
+        "name": "default-profile-pic2.svg"
+      },
+      "is_vipuser": false,
+      "org_user_status": "ACTIVE",
+      "id": "19501",
+      "department": {
+        "site": {
+          "name": "Common Site",
+          "id": 2
+        },
+        "name": "Integrated Cybersecurity Center",
+        "id": 7501
+      },
+      "account": {
+        "name": "MTM",
+        "id": "1"
+      }
+    },
+    "technician": {
+      "email_id": null,
+      "phone": null,
+      "name": "Jeffri Wahyu Putra Sitompul",
+      "mobile": null,
+      "profile_pic": {
+        "content-url": "/images/default-profile-pic2.svg",
+        "name": "default-profile-pic2.svg"
+      },
+      "is_vipuser": false,
+      "org_user_status": "ACTIVE",
+      "id": "21302",
+      "department": {
+        "site": {
+          "name": "Common Site",
+          "id": 2
+        },
+        "name": "Integrated Cybersecurity Center",
+        "id": 7501
+      },
+      "account": {
+        "name": "MTM",
+        "id": "1"
+      }
+    },
+    "template": {
+      "is_service_template": false,
+      "service_category": null,
+      "name": "CAR - Case Template",
+      "id": "1802"
+    },
+    "mode": null,
+    "category": null,
+    "subcategory": null,
+    "item": null,
+    "is_billable": true,
+    "is_service_request": false,
+    "has_notes": false,
+    "has_attachments": false,
+    "has_conversation": false,
+    "request_template_task_ids": [
+      {
+        "id": "303"
+      },
+      {
+        "id": "302"
+      },
+      {
+        "id": "308"
+      },
+      {
+        "id": "307"
+      },
+      {
+        "id": "1202"
+      },
+      {
+        "id": "306"
+      },
+      {
+        "id": "1201"
+      },
+      {
+        "id": "305"
+      },
+      {
+        "id": "304"
+      }
+    ],
+    "closure_info": {
+      "requester_ack_comments": null,
+      "closure_code": {
+        "name": "Success",
+        "id": "1"
+      },
+      "closure_comments": null,
+      "signoff": null,
+      "requester_ack_resolution": true
+    },
+    "udf_fields": {
+      "udf_pick_1818": "AD_Server_Primary-Karawang-CMWI",
+      "udf_pick_1819": "Security Event",
+      "udf_multiselect_2101": [],
+      "udf_sline_1820": null,
+      "udf_sline_1827": "192.168.200.151",
+      "udf_pick_1822": "Billable",
+      "udf_pick_1805": "False Positive",
+      "udf_pick_1806": "Other",
+      "udf_pick_2704": "Jeffri Wahyu Putra Sitompul",
+      "udf_pick_3901": "CMWI",
+      "udf_date_2701": {
+        "display_value": "Apr 22, 2026 11:23 AM",
+        "value": "1776831788192"
+      },
+      "udf_date_1807": {
+        "display_value": "Apr 22, 2026 11:23 AM",
+        "value": "1776831780000"
+      },
+      "udf_date_1808": {
+        "display_value": "Apr 22, 2026 11:23 AM",
+        "value": "1776831780000"
+      },
+      "udf_mline_2102": null,
+      "udf_sline_1816": null
+    },
+    "tasks": [
+      {
+        "index": "1",
+        "title": "Description of Incident",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 11:23 AM",
+          "value": "1776831824600"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Deskripsikan incident / event yang terjadi seperti apa<br />2. Gunakan English Formal dan istilah umum agar dapat dibaca oleh orang non-teknis<br />3. Berbentuk list, contohnya seperti dibawah :<br /><br /><br />Description of Incident:<br />- SOC Team detected an indication of Bruteforce Attack on Asset IOC-OPMSERVICEDESK from the authentication log.<br />- This Attack is currently stopped, and there is no attempt was successful by an attacker<br />- SOC Team has been coordinating with Asset Owner to configure whitelist access as Workaround Solution<br />- This incident/event will be continuously monitored by SOC",
+        "id": "1034599"
+      },
+      {
+        "index": "2",
+        "title": "Names and Contact Information of Others Involved",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 11:23 AM",
+          "value": "1776831824600"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Mention the full name of the Analyst involved with this case<br />2. If there are external people involved, add the prefix [EXT] at the end of the full name. Example :<br /><br /><br />- Muhamad Mahrus Qusaeri<br />- Aditya Nugraha Syabana<br />- Abu Bakar Umar [EXT]<br />- Irfan Argusman [EXT]",
+        "id": "1034600"
+      },
+      {
+        "index": "3",
+        "title": "Identification Measures",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 11:23 AM",
+          "value": "1776831824600"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Fill out the list below. Choose between this multiple choice<br />2. Add to task log<br /><br />- Targeted Assets are infected: YES / NO<br />- Targeted Assets had been investigated: YES / NO<br />- Is there Malicious/Suspicious activity on the Assets: YES / NO",
+        "id": "1034601"
+      },
+      {
+        "index": "4",
+        "title": "Timeline",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 11:23 AM",
+          "value": "1776831824600"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Gunakan format dibawah ini untuk membuat timeline<br />2. Tambahkan ke task log sesuai urutan timeline kejadian<br />3. Beda Timestamp, beda task log<br /><br /><br /><br />Example Task log 1:<br />- Date : **_Jan 08, 2023_**<br />- Timestamp : **_10:18:00_**<br />- Source : **_SIEM Wazuh_**<br />- Description : **_First log authentication failed has seen_**<br /><br /><br />Example Task log 2:<br />- Date : **_Jan 08, 2023_**<br />- Timestamp : **_10:42:00_**<br />- Source : **_SIEM Wazuh_**<br />- Description: **_First log authentication successful has been seen. Indicate the attacker are successfully Bruteforce the device using Dictionary attack_**<br /><br /><br /><br />Note : yang diperlukan untuk diganti hanya yang bold italic saja",
+        "id": "1034602"
+      },
+      {
+        "index": "5",
+        "title": "Containment",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 11:23 AM",
+          "value": "1776831824600"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "Containment dilakukan apabila terdapat suatu Asset / Device yang sudah terinfeksi oleh Malware atau berhasil dikompromise oleh Attacker. Containment perlu dilakukan agar Asset / Device yang terinfeksi tidak menyebar melalui jaringan.<br /><br />1. Jelaskan action apa saja yang dilakukan untuk melakukan containment pada asset yang terinfeksi<br />2. Apabila tidak ada action containment, atau case nya False Positive, Task ini tidak perlu diisi<br /><br /><br />Example containment :<br />- CSD Team has disallowed the Users to connect to the Network because the device is infected by Malware",
+        "id": "1034603"
+      },
+      {
+        "index": "6",
+        "title": "Eradication",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 11:23 AM",
+          "value": "1776831824600"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "Eradication dilakukan ketika Asset / Device sudah terinfeksi dan atau ter-compromise oleh attacker. Eradication dilakukan untuk menghapus semua IoC (file/proses/network connection/dll.) yang terkait dengan serangan. apabila Asset owner bukan dari tim CSD, maka wajib dikomunikasikan dengan asset owner untuk dilakukan eradication.<br /><br /><br />Example 1:<br /><br />CSD Recommend to SSA to :<br /> - Stop the Malicious process. PID 990, PID 129, PID 2731<br /> - Delete file related to the malicious process on this directory: **/tmp/.malicious/**<br /><br /><br />Example 2:<br />- CSD Had been stopped the process on IOC-OPMSERVICEDESK asset. PID 1234, 9726, 2342<br />- CSD also had been deleted related file on directory : **C:/tmp/**<br /><br />Note : Tambahkan di tasklog, apa saja yang harus dilakukan eradication pada Asset tersebut",
+        "id": "1034604"
+      },
+      {
+        "index": "7",
+        "title": "Mitigation",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 11:23 AM",
+          "value": "1776831824600"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "Mitigation perlu diinformasikan untuk mencegah adanya event/incident yang sama dikemudian hari<br /><br />Example:<br />- Install Antivirus so the device are protected from malware",
+        "id": "1034605"
+      },
+      {
+        "index": "8",
+        "title": "Evidence Collected",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 11:23 AM",
+          "value": "1776831824600"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "<div>Berisi Indicator of Compromise yang ditemukan saat investigasi. Isi IoCs dengan versi yang sudah di Defang (dapat menggunakan CyberChef)<br /></div><div><br /></div><div>Example:<br /></div><div><br /></div><div>1. IP Address: 172[.]168[.]1[.]1<br /></div><div>2. URL: http[.]gggogle[.]com<br /></div><div>3. Payload: echo &quot;hi world&quot;<br /></div><div>4. Hash: a1b2c3d4e5123123123<br /></div><div>5. Filename: malicious.docx, malicious.exe<br /></div><div>6. Path: C:\\User\\Malicious\\<br /></div><div>7. etc</div>",
+        "id": "1034606"
+      },
+      {
+        "index": "9",
+        "title": "Other Mitigation Actions",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 11:23 AM",
+          "value": "1776831824600"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "<div>Berisi rekomendasi mitigasi yang dapat di implementasikan oleh asset owner selain mitigasi utama.<br /></div><div><br /></div><div>Example:<br /></div><div>- Memberikan Cybersecurity Awareness pada employee<br /></div><div>- Mengadakan simulasi phishing<br /></div><div>- Mengganti semua password dari users pada server terdampak<br /></div><div>- Menggunakan skema MFA untuk login email<br /></div>",
+        "id": "1034607"
+      }
+    ],
+    "notes": [],
+    "notes_count": 0
+  },
+  {
+    "id": "206653",
+    "subject": "[SE] | O365 CMWI | Medium | Office 365: Successful login from VIP user: dm@cmwi.co.id.",
+    "description": "<div>Dear  CMWI Team,<br /></div><div><br /></div><div>Saat ini kami informasikan terdapat [Security Event] dengan detail berikut :<br /></div><ul><li><b>Alert Name</b> : Office 365: Successful login from VIP user: dm@cmwi.co.id.<br /></li><li>⁠<b>Time of Alert</b> : Apr 22, 2026 @ 10:29:54.821<br /></li><li>⁠<b>Asset&nbsp; Impacted</b> : O365 CMWI<br /></li><li><b>Severity</b> : Medium<br /></li><li><b>Description</b> : TIM SOC MTM telah mendeteksi security event Office 365: Successful login from VIP user: dm@cmwi.co.id. <br /></li><li><b>Action Taken</b> : -</li></ul>",
+    "short_description": null,
+    "created_time": {
+      "display_value": "Apr 22, 2026 10:30 AM",
+      "value": "1776828640869"
+    },
+    "assigned_time": {
+      "display_value": "Apr 22, 2026 10:32 AM",
+      "value": "1776828760544"
+    },
+    "resolved_time": {
+      "display_value": "Apr 22, 2026 10:32 AM",
+      "value": "1776828767570"
+    },
+    "completed_time": {
+      "display_value": "Apr 22, 2026 10:32 AM",
+      "value": "1776828767570"
+    },
+    "last_updated_time": {
+      "display_value": "Apr 22, 2026 10:33 AM",
+      "value": "1776828833529"
+    },
+    "status": {
+      "color": "#006600",
+      "name": "Closed",
+      "id": "3"
+    },
+    "priority": {
+      "color": "#ffff00",
+      "name": "P3 - Medium",
+      "id": "3001"
+    },
+    "request_type": {
+      "name": "Incident Management",
+      "id": "2"
+    },
+    "account": {
+      "country": {
+        "id": "234"
+      },
+      "inactive": false,
+      "name": "Cyber Security",
+      "id": "2704",
+      "ciid": "6314"
+    },
+    "site": {
+      "latitude": null,
+      "name": "CAR - CMWI",
+      "id": "6901",
+      "longitude": null
+    },
+    "department": {
+      "site": {
+        "id": "7801"
+      },
+      "name": "General",
+      "id": "9301"
+    },
+    "requester": {
+      "email_id": null,
+      "phone": null,
+      "name": "SIEM",
+      "mobile": null,
+      "profile_pic": {
+        "content-url": "/images/default-profile-pic2.svg",
+        "name": "default-profile-pic2.svg"
+      },
+      "is_vipuser": false,
+      "org_user_status": "ACTIVE",
+      "id": "15347",
+      "department": {
+        "site": {
+          "name": "Cyber Security Dept",
+          "id": 7801
+        },
+        "name": "General",
+        "id": 9301
+      },
+      "account": {
+        "name": "Cyber Security",
+        "id": "2704"
+      }
+    },
+    "created_by": {
+      "email_id": "soc@mtm.id",
+      "phone": "0813-9826-7540",
+      "name": "SOC MTM",
+      "mobile": null,
+      "profile_pic": {
+        "content-url": "/images/default-profile-pic2.svg",
+        "name": "default-profile-pic2.svg"
+      },
+      "is_vipuser": false,
+      "org_user_status": "ACTIVE",
+      "id": "19501",
+      "department": {
+        "site": {
+          "name": "Common Site",
+          "id": 2
+        },
+        "name": "Integrated Cybersecurity Center",
+        "id": 7501
+      },
+      "account": {
+        "name": "MTM",
+        "id": "1"
+      }
+    },
+    "technician": {
+      "email_id": null,
+      "phone": null,
+      "name": "Jeffri Wahyu Putra Sitompul",
+      "mobile": null,
+      "profile_pic": {
+        "content-url": "/images/default-profile-pic2.svg",
+        "name": "default-profile-pic2.svg"
+      },
+      "is_vipuser": false,
+      "org_user_status": "ACTIVE",
+      "id": "21302",
+      "department": {
+        "site": {
+          "name": "Common Site",
+          "id": 2
+        },
+        "name": "Integrated Cybersecurity Center",
+        "id": 7501
+      },
+      "account": {
+        "name": "MTM",
+        "id": "1"
+      }
+    },
+    "template": {
+      "is_service_template": false,
+      "service_category": null,
+      "name": "CAR - Case Template",
+      "id": "1802"
+    },
+    "mode": null,
+    "category": null,
+    "subcategory": null,
+    "item": null,
+    "is_billable": true,
+    "is_service_request": false,
+    "has_notes": false,
+    "has_attachments": false,
+    "has_conversation": false,
+    "request_template_task_ids": [
+      {
+        "id": "303"
+      },
+      {
+        "id": "302"
+      },
+      {
+        "id": "308"
+      },
+      {
+        "id": "307"
+      },
+      {
+        "id": "1202"
+      },
+      {
+        "id": "306"
+      },
+      {
+        "id": "1201"
+      },
+      {
+        "id": "305"
+      },
+      {
+        "id": "304"
+      }
+    ],
+    "closure_info": {
+      "requester_ack_comments": null,
+      "closure_code": {
+        "name": "Success",
+        "id": "1"
+      },
+      "closure_comments": null,
+      "signoff": null,
+      "requester_ack_resolution": true
+    },
+    "udf_fields": {
+      "udf_pick_1818": "wazuh-manager1-gcp-mtm-icc",
+      "udf_pick_1819": "Security Event",
+      "udf_multiselect_2101": [],
+      "udf_sline_1820": null,
+      "udf_sline_1827": "192.168.116.44",
+      "udf_pick_1822": "Billable",
+      "udf_pick_1805": "False Positive",
+      "udf_pick_1806": "Other",
+      "udf_pick_2704": "Jeffri Wahyu Putra Sitompul",
+      "udf_pick_3901": "CMWI",
+      "udf_date_2701": {
+        "display_value": "Apr 22, 2026 10:29 AM",
+        "value": "1776828594821"
+      },
+      "udf_date_1807": {
+        "display_value": "Apr 22, 2026 10:29 AM",
+        "value": "1776828540000"
+      },
+      "udf_date_1808": {
+        "display_value": "Apr 22, 2026 10:29 AM",
+        "value": "1776828540000"
+      },
+      "udf_mline_2102": null,
+      "udf_sline_1816": null
+    },
+    "tasks": [
+      {
+        "index": "1",
+        "title": "Description of Incident",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:30 AM",
+          "value": "1776828642926"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Deskripsikan incident / event yang terjadi seperti apa<br />2. Gunakan English Formal dan istilah umum agar dapat dibaca oleh orang non-teknis<br />3. Berbentuk list, contohnya seperti dibawah :<br /><br /><br />Description of Incident:<br />- SOC Team detected an indication of Bruteforce Attack on Asset IOC-OPMSERVICEDESK from the authentication log.<br />- This Attack is currently stopped, and there is no attempt was successful by an attacker<br />- SOC Team has been coordinating with Asset Owner to configure whitelist access as Workaround Solution<br />- This incident/event will be continuously monitored by SOC",
+        "id": "1034586"
+      },
+      {
+        "index": "2",
+        "title": "Names and Contact Information of Others Involved",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:30 AM",
+          "value": "1776828642926"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Mention the full name of the Analyst involved with this case<br />2. If there are external people involved, add the prefix [EXT] at the end of the full name. Example :<br /><br /><br />- Muhamad Mahrus Qusaeri<br />- Aditya Nugraha Syabana<br />- Abu Bakar Umar [EXT]<br />- Irfan Argusman [EXT]",
+        "id": "1034588"
+      },
+      {
+        "index": "3",
+        "title": "Identification Measures",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:30 AM",
+          "value": "1776828642926"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Fill out the list below. Choose between this multiple choice<br />2. Add to task log<br /><br />- Targeted Assets are infected: YES / NO<br />- Targeted Assets had been investigated: YES / NO<br />- Is there Malicious/Suspicious activity on the Assets: YES / NO",
+        "id": "1034590"
+      },
+      {
+        "index": "4",
+        "title": "Timeline",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:30 AM",
+          "value": "1776828642926"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Gunakan format dibawah ini untuk membuat timeline<br />2. Tambahkan ke task log sesuai urutan timeline kejadian<br />3. Beda Timestamp, beda task log<br /><br /><br /><br />Example Task log 1:<br />- Date : **_Jan 08, 2023_**<br />- Timestamp : **_10:18:00_**<br />- Source : **_SIEM Wazuh_**<br />- Description : **_First log authentication failed has seen_**<br /><br /><br />Example Task log 2:<br />- Date : **_Jan 08, 2023_**<br />- Timestamp : **_10:42:00_**<br />- Source : **_SIEM Wazuh_**<br />- Description: **_First log authentication successful has been seen. Indicate the attacker are successfully Bruteforce the device using Dictionary attack_**<br /><br /><br /><br />Note : yang diperlukan untuk diganti hanya yang bold italic saja",
+        "id": "1034592"
+      },
+      {
+        "index": "5",
+        "title": "Containment",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:30 AM",
+          "value": "1776828642926"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "Containment dilakukan apabila terdapat suatu Asset / Device yang sudah terinfeksi oleh Malware atau berhasil dikompromise oleh Attacker. Containment perlu dilakukan agar Asset / Device yang terinfeksi tidak menyebar melalui jaringan.<br /><br />1. Jelaskan action apa saja yang dilakukan untuk melakukan containment pada asset yang terinfeksi<br />2. Apabila tidak ada action containment, atau case nya False Positive, Task ini tidak perlu diisi<br /><br /><br />Example containment :<br />- CSD Team has disallowed the Users to connect to the Network because the device is infected by Malware",
+        "id": "1034594"
+      },
+      {
+        "index": "6",
+        "title": "Eradication",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:30 AM",
+          "value": "1776828642926"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "Eradication dilakukan ketika Asset / Device sudah terinfeksi dan atau ter-compromise oleh attacker. Eradication dilakukan untuk menghapus semua IoC (file/proses/network connection/dll.) yang terkait dengan serangan. apabila Asset owner bukan dari tim CSD, maka wajib dikomunikasikan dengan asset owner untuk dilakukan eradication.<br /><br /><br />Example 1:<br /><br />CSD Recommend to SSA to :<br /> - Stop the Malicious process. PID 990, PID 129, PID 2731<br /> - Delete file related to the malicious process on this directory: **/tmp/.malicious/**<br /><br /><br />Example 2:<br />- CSD Had been stopped the process on IOC-OPMSERVICEDESK asset. PID 1234, 9726, 2342<br />- CSD also had been deleted related file on directory : **C:/tmp/**<br /><br />Note : Tambahkan di tasklog, apa saja yang harus dilakukan eradication pada Asset tersebut",
+        "id": "1034595"
+      },
+      {
+        "index": "7",
+        "title": "Mitigation",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:30 AM",
+          "value": "1776828642926"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "Mitigation perlu diinformasikan untuk mencegah adanya event/incident yang sama dikemudian hari<br /><br />Example:<br />- Install Antivirus so the device are protected from malware",
+        "id": "1034596"
+      },
+      {
+        "index": "8",
+        "title": "Evidence Collected",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:30 AM",
+          "value": "1776828642926"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "<div>Berisi Indicator of Compromise yang ditemukan saat investigasi. Isi IoCs dengan versi yang sudah di Defang (dapat menggunakan CyberChef)<br /></div><div><br /></div><div>Example:<br /></div><div><br /></div><div>1. IP Address: 172[.]168[.]1[.]1<br /></div><div>2. URL: http[.]gggogle[.]com<br /></div><div>3. Payload: echo &quot;hi world&quot;<br /></div><div>4. Hash: a1b2c3d4e5123123123<br /></div><div>5. Filename: malicious.docx, malicious.exe<br /></div><div>6. Path: C:\\User\\Malicious\\<br /></div><div>7. etc</div>",
+        "id": "1034597"
+      },
+      {
+        "index": "9",
+        "title": "Other Mitigation Actions",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:30 AM",
+          "value": "1776828642926"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "<div>Berisi rekomendasi mitigasi yang dapat di implementasikan oleh asset owner selain mitigasi utama.<br /></div><div><br /></div><div>Example:<br /></div><div>- Memberikan Cybersecurity Awareness pada employee<br /></div><div>- Mengadakan simulasi phishing<br /></div><div>- Mengganti semua password dari users pada server terdampak<br /></div><div>- Menggunakan skema MFA untuk login email<br /></div>",
+        "id": "1034598"
+      }
+    ],
+    "notes": [],
+    "notes_count": 0
+  },
+  {
+    "id": "206652",
+    "subject": "[SE] | O365 CMWI | Medium | Office 365: Successful login from VIP user: dm@cmwi.co.id.",
+    "description": "<div>Dear  CMWI Team,<br /></div><div><br /></div><div>Saat ini kami informasikan terdapat [Security Event] dengan detail berikut :<br /></div><ul><li><b>Alert Name</b> : Office 365: Successful login from VIP user: dm@cmwi.co.id.<br /></li><li>⁠<b>Time of Alert</b> : Apr 22, 2026 @ 10:29:54.841<br /></li><li>⁠<b>Asset&nbsp; Impacted</b> : O365 CMWI<br /></li><li><b>Severity</b> : Medium<br /></li><li><b>Description</b> : TIM SOC MTM telah mendeteksi security event Office 365: Successful login from VIP user: dm@cmwi.co.id. <br /></li><li><b>Action Taken</b> : -</li></ul>",
+    "short_description": null,
+    "created_time": {
+      "display_value": "Apr 22, 2026 10:30 AM",
+      "value": "1776828640036"
+    },
+    "assigned_time": {
+      "display_value": "Apr 22, 2026 10:32 AM",
+      "value": "1776828759725"
+    },
+    "resolved_time": {
+      "display_value": "Apr 22, 2026 10:32 AM",
+      "value": "1776828766850"
+    },
+    "completed_time": {
+      "display_value": "Apr 22, 2026 10:32 AM",
+      "value": "1776828766850"
+    },
+    "last_updated_time": {
+      "display_value": "Apr 22, 2026 10:33 AM",
+      "value": "1776828795953"
+    },
+    "status": {
+      "color": "#006600",
+      "name": "Closed",
+      "id": "3"
+    },
+    "priority": {
+      "color": "#ffff00",
+      "name": "P3 - Medium",
+      "id": "3001"
+    },
+    "request_type": {
+      "name": "Incident Management",
+      "id": "2"
+    },
+    "account": {
+      "country": {
+        "id": "234"
+      },
+      "inactive": false,
+      "name": "Cyber Security",
+      "id": "2704",
+      "ciid": "6314"
+    },
+    "site": {
+      "latitude": null,
+      "name": "CAR - CMWI",
+      "id": "6901",
+      "longitude": null
+    },
+    "department": {
+      "site": {
+        "id": "7801"
+      },
+      "name": "General",
+      "id": "9301"
+    },
+    "requester": {
+      "email_id": null,
+      "phone": null,
+      "name": "SIEM",
+      "mobile": null,
+      "profile_pic": {
+        "content-url": "/images/default-profile-pic2.svg",
+        "name": "default-profile-pic2.svg"
+      },
+      "is_vipuser": false,
+      "org_user_status": "ACTIVE",
+      "id": "15347",
+      "department": {
+        "site": {
+          "name": "Cyber Security Dept",
+          "id": 7801
+        },
+        "name": "General",
+        "id": 9301
+      },
+      "account": {
+        "name": "Cyber Security",
+        "id": "2704"
+      }
+    },
+    "created_by": {
+      "email_id": "soc@mtm.id",
+      "phone": "0813-9826-7540",
+      "name": "SOC MTM",
+      "mobile": null,
+      "profile_pic": {
+        "content-url": "/images/default-profile-pic2.svg",
+        "name": "default-profile-pic2.svg"
+      },
+      "is_vipuser": false,
+      "org_user_status": "ACTIVE",
+      "id": "19501",
+      "department": {
+        "site": {
+          "name": "Common Site",
+          "id": 2
+        },
+        "name": "Integrated Cybersecurity Center",
+        "id": 7501
+      },
+      "account": {
+        "name": "MTM",
+        "id": "1"
+      }
+    },
+    "technician": {
+      "email_id": null,
+      "phone": null,
+      "name": "Jeffri Wahyu Putra Sitompul",
+      "mobile": null,
+      "profile_pic": {
+        "content-url": "/images/default-profile-pic2.svg",
+        "name": "default-profile-pic2.svg"
+      },
+      "is_vipuser": false,
+      "org_user_status": "ACTIVE",
+      "id": "21302",
+      "department": {
+        "site": {
+          "name": "Common Site",
+          "id": 2
+        },
+        "name": "Integrated Cybersecurity Center",
+        "id": 7501
+      },
+      "account": {
+        "name": "MTM",
+        "id": "1"
+      }
+    },
+    "template": {
+      "is_service_template": false,
+      "service_category": null,
+      "name": "CAR - Case Template",
+      "id": "1802"
+    },
+    "mode": null,
+    "category": null,
+    "subcategory": null,
+    "item": null,
+    "is_billable": true,
+    "is_service_request": false,
+    "has_notes": false,
+    "has_attachments": false,
+    "has_conversation": false,
+    "request_template_task_ids": [
+      {
+        "id": "303"
+      },
+      {
+        "id": "302"
+      },
+      {
+        "id": "308"
+      },
+      {
+        "id": "307"
+      },
+      {
+        "id": "1202"
+      },
+      {
+        "id": "306"
+      },
+      {
+        "id": "1201"
+      },
+      {
+        "id": "305"
+      },
+      {
+        "id": "304"
+      }
+    ],
+    "closure_info": {
+      "requester_ack_comments": null,
+      "closure_code": {
+        "name": "Success",
+        "id": "1"
+      },
+      "closure_comments": null,
+      "signoff": null,
+      "requester_ack_resolution": true
+    },
+    "udf_fields": {
+      "udf_pick_1818": "wazuh-manager1-gcp-mtm-icc",
+      "udf_pick_1819": "Security Event",
+      "udf_multiselect_2101": [],
+      "udf_sline_1820": null,
+      "udf_sline_1827": "192.168.116.44",
+      "udf_pick_1822": "Billable",
+      "udf_pick_1805": "False Positive",
+      "udf_pick_1806": "Other",
+      "udf_pick_2704": "Jeffri Wahyu Putra Sitompul",
+      "udf_pick_3901": "CMWI",
+      "udf_date_2701": {
+        "display_value": "Apr 22, 2026 10:29 AM",
+        "value": "1776828594841"
+      },
+      "udf_date_1807": {
+        "display_value": "Apr 22, 2026 10:29 AM",
+        "value": "1776828540000"
+      },
+      "udf_date_1808": {
+        "display_value": "Apr 22, 2026 10:29 AM",
+        "value": "1776828540000"
+      },
+      "udf_mline_2102": null,
+      "udf_sline_1816": null
+    },
+    "tasks": [
+      {
+        "index": "1",
+        "title": "Description of Incident",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:30 AM",
+          "value": "1776828642348"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Deskripsikan incident / event yang terjadi seperti apa<br />2. Gunakan English Formal dan istilah umum agar dapat dibaca oleh orang non-teknis<br />3. Berbentuk list, contohnya seperti dibawah :<br /><br /><br />Description of Incident:<br />- SOC Team detected an indication of Bruteforce Attack on Asset IOC-OPMSERVICEDESK from the authentication log.<br />- This Attack is currently stopped, and there is no attempt was successful by an attacker<br />- SOC Team has been coordinating with Asset Owner to configure whitelist access as Workaround Solution<br />- This incident/event will be continuously monitored by SOC",
+        "id": "1034581"
+      },
+      {
+        "index": "2",
+        "title": "Names and Contact Information of Others Involved",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:30 AM",
+          "value": "1776828642348"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Mention the full name of the Analyst involved with this case<br />2. If there are external people involved, add the prefix [EXT] at the end of the full name. Example :<br /><br /><br />- Muhamad Mahrus Qusaeri<br />- Aditya Nugraha Syabana<br />- Abu Bakar Umar [EXT]<br />- Irfan Argusman [EXT]",
+        "id": "1034582"
+      },
+      {
+        "index": "3",
+        "title": "Identification Measures",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:30 AM",
+          "value": "1776828642348"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Fill out the list below. Choose between this multiple choice<br />2. Add to task log<br /><br />- Targeted Assets are infected: YES / NO<br />- Targeted Assets had been investigated: YES / NO<br />- Is there Malicious/Suspicious activity on the Assets: YES / NO",
+        "id": "1034583"
+      },
+      {
+        "index": "4",
+        "title": "Timeline",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:30 AM",
+          "value": "1776828642348"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Gunakan format dibawah ini untuk membuat timeline<br />2. Tambahkan ke task log sesuai urutan timeline kejadian<br />3. Beda Timestamp, beda task log<br /><br /><br /><br />Example Task log 1:<br />- Date : **_Jan 08, 2023_**<br />- Timestamp : **_10:18:00_**<br />- Source : **_SIEM Wazuh_**<br />- Description : **_First log authentication failed has seen_**<br /><br /><br />Example Task log 2:<br />- Date : **_Jan 08, 2023_**<br />- Timestamp : **_10:42:00_**<br />- Source : **_SIEM Wazuh_**<br />- Description: **_First log authentication successful has been seen. Indicate the attacker are successfully Bruteforce the device using Dictionary attack_**<br /><br /><br /><br />Note : yang diperlukan untuk diganti hanya yang bold italic saja",
+        "id": "1034584"
+      },
+      {
+        "index": "5",
+        "title": "Containment",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:30 AM",
+          "value": "1776828642348"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "Containment dilakukan apabila terdapat suatu Asset / Device yang sudah terinfeksi oleh Malware atau berhasil dikompromise oleh Attacker. Containment perlu dilakukan agar Asset / Device yang terinfeksi tidak menyebar melalui jaringan.<br /><br />1. Jelaskan action apa saja yang dilakukan untuk melakukan containment pada asset yang terinfeksi<br />2. Apabila tidak ada action containment, atau case nya False Positive, Task ini tidak perlu diisi<br /><br /><br />Example containment :<br />- CSD Team has disallowed the Users to connect to the Network because the device is infected by Malware",
+        "id": "1034585"
+      },
+      {
+        "index": "6",
+        "title": "Eradication",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:30 AM",
+          "value": "1776828642348"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "Eradication dilakukan ketika Asset / Device sudah terinfeksi dan atau ter-compromise oleh attacker. Eradication dilakukan untuk menghapus semua IoC (file/proses/network connection/dll.) yang terkait dengan serangan. apabila Asset owner bukan dari tim CSD, maka wajib dikomunikasikan dengan asset owner untuk dilakukan eradication.<br /><br /><br />Example 1:<br /><br />CSD Recommend to SSA to :<br /> - Stop the Malicious process. PID 990, PID 129, PID 2731<br /> - Delete file related to the malicious process on this directory: **/tmp/.malicious/**<br /><br /><br />Example 2:<br />- CSD Had been stopped the process on IOC-OPMSERVICEDESK asset. PID 1234, 9726, 2342<br />- CSD also had been deleted related file on directory : **C:/tmp/**<br /><br />Note : Tambahkan di tasklog, apa saja yang harus dilakukan eradication pada Asset tersebut",
+        "id": "1034587"
+      },
+      {
+        "index": "7",
+        "title": "Mitigation",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:30 AM",
+          "value": "1776828642348"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "Mitigation perlu diinformasikan untuk mencegah adanya event/incident yang sama dikemudian hari<br /><br />Example:<br />- Install Antivirus so the device are protected from malware",
+        "id": "1034589"
+      },
+      {
+        "index": "8",
+        "title": "Evidence Collected",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:30 AM",
+          "value": "1776828642348"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "<div>Berisi Indicator of Compromise yang ditemukan saat investigasi. Isi IoCs dengan versi yang sudah di Defang (dapat menggunakan CyberChef)<br /></div><div><br /></div><div>Example:<br /></div><div><br /></div><div>1. IP Address: 172[.]168[.]1[.]1<br /></div><div>2. URL: http[.]gggogle[.]com<br /></div><div>3. Payload: echo &quot;hi world&quot;<br /></div><div>4. Hash: a1b2c3d4e5123123123<br /></div><div>5. Filename: malicious.docx, malicious.exe<br /></div><div>6. Path: C:\\User\\Malicious\\<br /></div><div>7. etc</div>",
+        "id": "1034591"
+      },
+      {
+        "index": "9",
+        "title": "Other Mitigation Actions",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:30 AM",
+          "value": "1776828642348"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "<div>Berisi rekomendasi mitigasi yang dapat di implementasikan oleh asset owner selain mitigasi utama.<br /></div><div><br /></div><div>Example:<br /></div><div>- Memberikan Cybersecurity Awareness pada employee<br /></div><div>- Mengadakan simulasi phishing<br /></div><div>- Mengganti semua password dari users pada server terdampak<br /></div><div>- Menggunakan skema MFA untuk login email<br /></div>",
+        "id": "1034593"
+      }
+    ],
+    "notes": [],
+    "notes_count": 0
+  },
+  {
+    "id": "206651",
+    "subject": "[SE] | IOS | Exploit Public-Facing Application | Medium | SQL injection attempt.",
+    "description": "<div>Dear IOS Team,<br /></div><div><br /></div><div>Saat ini kami informasikan terdapat [Security Event] dengan detail berikut :<br /></div><ul><li><b>Alert Name</b> : SQL injection attempt.<br /></li><li>⁠<b>Time of Alert</b> : Apr 22, 2026 @ 10:23:11.168<br /></li><li>⁠<b>Asset&nbsp; Impacted</b> : esensi-apps-gcp-mtm-icc<br /></li><li><b>Severity</b> : Medium<br /></li><li><b>Description</b> : TIM SOC MTM telah mendeteksi security event SQL injection attempt. dengan menggunakan teknik Exploit Public-Facing Application <br /></li><li><b>Action Taken</b> : -</li></ul>",
+    "short_description": null,
+    "created_time": {
+      "display_value": "Apr 22, 2026 10:23 AM",
+      "value": "1776828223202"
+    },
+    "assigned_time": {
+      "display_value": "Apr 22, 2026 10:24 AM",
+      "value": "1776828281197"
+    },
+    "resolved_time": {
+      "display_value": "Apr 22, 2026 10:24 AM",
+      "value": "1776828293264"
+    },
+    "completed_time": {
+      "display_value": "Apr 22, 2026 10:24 AM",
+      "value": "1776828293264"
+    },
+    "last_updated_time": {
+      "display_value": "Apr 22, 2026 10:25 AM",
+      "value": "1776828350252"
+    },
+    "status": {
+      "color": "#006600",
+      "name": "Closed",
+      "id": "3"
+    },
+    "priority": {
+      "color": "#ffff00",
+      "name": "P3 - Medium",
+      "id": "3001"
+    },
+    "request_type": {
+      "name": "Incident Management",
+      "id": "2"
+    },
+    "account": {
+      "country": {
+        "id": "234"
+      },
+      "inactive": false,
+      "name": "Cyber Security",
+      "id": "2704",
+      "ciid": "6314"
+    },
+    "site": {
+      "latitude": null,
+      "name": "CAR - IOS Division",
+      "id": "5108",
+      "longitude": null
+    },
+    "department": {
+      "site": {
+        "id": "7801"
+      },
+      "name": "General",
+      "id": "9301"
+    },
+    "requester": {
+      "email_id": null,
+      "phone": null,
+      "name": "SIEM",
+      "mobile": null,
+      "profile_pic": {
+        "content-url": "/images/default-profile-pic2.svg",
+        "name": "default-profile-pic2.svg"
+      },
+      "is_vipuser": false,
+      "org_user_status": "ACTIVE",
+      "id": "15347",
+      "department": {
+        "site": {
+          "name": "Cyber Security Dept",
+          "id": 7801
+        },
+        "name": "General",
+        "id": 9301
+      },
+      "account": {
+        "name": "Cyber Security",
+        "id": "2704"
+      }
+    },
+    "created_by": {
+      "email_id": "soc@mtm.id",
+      "phone": "0813-9826-7540",
+      "name": "SOC MTM",
+      "mobile": null,
+      "profile_pic": {
+        "content-url": "/images/default-profile-pic2.svg",
+        "name": "default-profile-pic2.svg"
+      },
+      "is_vipuser": false,
+      "org_user_status": "ACTIVE",
+      "id": "19501",
+      "department": {
+        "site": {
+          "name": "Common Site",
+          "id": 2
+        },
+        "name": "Integrated Cybersecurity Center",
+        "id": 7501
+      },
+      "account": {
+        "name": "MTM",
+        "id": "1"
+      }
+    },
+    "technician": {
+      "email_id": null,
+      "phone": null,
+      "name": "Jeffri Wahyu Putra Sitompul",
+      "mobile": null,
+      "profile_pic": {
+        "content-url": "/images/default-profile-pic2.svg",
+        "name": "default-profile-pic2.svg"
+      },
+      "is_vipuser": false,
+      "org_user_status": "ACTIVE",
+      "id": "21302",
+      "department": {
+        "site": {
+          "name": "Common Site",
+          "id": 2
+        },
+        "name": "Integrated Cybersecurity Center",
+        "id": 7501
+      },
+      "account": {
+        "name": "MTM",
+        "id": "1"
+      }
+    },
+    "template": {
+      "is_service_template": false,
+      "service_category": null,
+      "name": "CAR - Case Template",
+      "id": "1802"
+    },
+    "mode": null,
+    "category": null,
+    "subcategory": null,
+    "item": null,
+    "is_billable": true,
+    "is_service_request": false,
+    "has_notes": false,
+    "has_attachments": false,
+    "has_conversation": false,
+    "request_template_task_ids": [
+      {
+        "id": "303"
+      },
+      {
+        "id": "302"
+      },
+      {
+        "id": "308"
+      },
+      {
+        "id": "307"
+      },
+      {
+        "id": "1202"
+      },
+      {
+        "id": "306"
+      },
+      {
+        "id": "1201"
+      },
+      {
+        "id": "305"
+      },
+      {
+        "id": "304"
+      }
+    ],
+    "closure_info": {
+      "requester_ack_comments": null,
+      "closure_code": {
+        "name": "Success",
+        "id": "1"
+      },
+      "closure_comments": null,
+      "signoff": null,
+      "requester_ack_resolution": true
+    },
+    "udf_fields": {
+      "udf_pick_1818": "esensi-apps-gcp-mtm-icc",
+      "udf_pick_1819": "Security Event",
+      "udf_multiselect_2101": [],
+      "udf_sline_1820": null,
+      "udf_sline_1827": "172.31.0.14",
+      "udf_pick_1822": "Billable",
+      "udf_pick_1805": "False Positive",
+      "udf_pick_1806": "Other",
+      "udf_pick_2704": "Jeffri Wahyu Putra Sitompul",
+      "udf_pick_3901": "IOS-MTM",
+      "udf_date_2701": {
+        "display_value": "Apr 22, 2026 10:23 AM",
+        "value": "1776828191168"
+      },
+      "udf_date_1807": {
+        "display_value": "Apr 22, 2026 10:23 AM",
+        "value": "1776828180000"
+      },
+      "udf_date_1808": {
+        "display_value": "Apr 22, 2026 10:23 AM",
+        "value": "1776828180000"
+      },
+      "udf_mline_2102": null,
+      "udf_sline_1816": null
+    },
+    "tasks": [
+      {
+        "index": "1",
+        "title": "Description of Incident",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:23 AM",
+          "value": "1776828225473"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Deskripsikan incident / event yang terjadi seperti apa<br />2. Gunakan English Formal dan istilah umum agar dapat dibaca oleh orang non-teknis<br />3. Berbentuk list, contohnya seperti dibawah :<br /><br /><br />Description of Incident:<br />- SOC Team detected an indication of Bruteforce Attack on Asset IOC-OPMSERVICEDESK from the authentication log.<br />- This Attack is currently stopped, and there is no attempt was successful by an attacker<br />- SOC Team has been coordinating with Asset Owner to configure whitelist access as Workaround Solution<br />- This incident/event will be continuously monitored by SOC",
+        "id": "1034572"
+      },
+      {
+        "index": "2",
+        "title": "Names and Contact Information of Others Involved",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:23 AM",
+          "value": "1776828225473"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Mention the full name of the Analyst involved with this case<br />2. If there are external people involved, add the prefix [EXT] at the end of the full name. Example :<br /><br /><br />- Muhamad Mahrus Qusaeri<br />- Aditya Nugraha Syabana<br />- Abu Bakar Umar [EXT]<br />- Irfan Argusman [EXT]",
+        "id": "1034573"
+      },
+      {
+        "index": "3",
+        "title": "Identification Measures",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:23 AM",
+          "value": "1776828225473"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Fill out the list below. Choose between this multiple choice<br />2. Add to task log<br /><br />- Targeted Assets are infected: YES / NO<br />- Targeted Assets had been investigated: YES / NO<br />- Is there Malicious/Suspicious activity on the Assets: YES / NO",
+        "id": "1034574"
+      },
+      {
+        "index": "4",
+        "title": "Timeline",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:23 AM",
+          "value": "1776828225473"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Gunakan format dibawah ini untuk membuat timeline<br />2. Tambahkan ke task log sesuai urutan timeline kejadian<br />3. Beda Timestamp, beda task log<br /><br /><br /><br />Example Task log 1:<br />- Date : **_Jan 08, 2023_**<br />- Timestamp : **_10:18:00_**<br />- Source : **_SIEM Wazuh_**<br />- Description : **_First log authentication failed has seen_**<br /><br /><br />Example Task log 2:<br />- Date : **_Jan 08, 2023_**<br />- Timestamp : **_10:42:00_**<br />- Source : **_SIEM Wazuh_**<br />- Description: **_First log authentication successful has been seen. Indicate the attacker are successfully Bruteforce the device using Dictionary attack_**<br /><br /><br /><br />Note : yang diperlukan untuk diganti hanya yang bold italic saja",
+        "id": "1034575"
+      },
+      {
+        "index": "5",
+        "title": "Containment",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:23 AM",
+          "value": "1776828225473"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "Containment dilakukan apabila terdapat suatu Asset / Device yang sudah terinfeksi oleh Malware atau berhasil dikompromise oleh Attacker. Containment perlu dilakukan agar Asset / Device yang terinfeksi tidak menyebar melalui jaringan.<br /><br />1. Jelaskan action apa saja yang dilakukan untuk melakukan containment pada asset yang terinfeksi<br />2. Apabila tidak ada action containment, atau case nya False Positive, Task ini tidak perlu diisi<br /><br /><br />Example containment :<br />- CSD Team has disallowed the Users to connect to the Network because the device is infected by Malware",
+        "id": "1034576"
+      },
+      {
+        "index": "6",
+        "title": "Eradication",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:23 AM",
+          "value": "1776828225473"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "Eradication dilakukan ketika Asset / Device sudah terinfeksi dan atau ter-compromise oleh attacker. Eradication dilakukan untuk menghapus semua IoC (file/proses/network connection/dll.) yang terkait dengan serangan. apabila Asset owner bukan dari tim CSD, maka wajib dikomunikasikan dengan asset owner untuk dilakukan eradication.<br /><br /><br />Example 1:<br /><br />CSD Recommend to SSA to :<br /> - Stop the Malicious process. PID 990, PID 129, PID 2731<br /> - Delete file related to the malicious process on this directory: **/tmp/.malicious/**<br /><br /><br />Example 2:<br />- CSD Had been stopped the process on IOC-OPMSERVICEDESK asset. PID 1234, 9726, 2342<br />- CSD also had been deleted related file on directory : **C:/tmp/**<br /><br />Note : Tambahkan di tasklog, apa saja yang harus dilakukan eradication pada Asset tersebut",
+        "id": "1034577"
+      },
+      {
+        "index": "7",
+        "title": "Mitigation",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:23 AM",
+          "value": "1776828225473"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "Mitigation perlu diinformasikan untuk mencegah adanya event/incident yang sama dikemudian hari<br /><br />Example:<br />- Install Antivirus so the device are protected from malware",
+        "id": "1034578"
+      },
+      {
+        "index": "8",
+        "title": "Evidence Collected",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:23 AM",
+          "value": "1776828225473"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "<div>Berisi Indicator of Compromise yang ditemukan saat investigasi. Isi IoCs dengan versi yang sudah di Defang (dapat menggunakan CyberChef)<br /></div><div><br /></div><div>Example:<br /></div><div><br /></div><div>1. IP Address: 172[.]168[.]1[.]1<br /></div><div>2. URL: http[.]gggogle[.]com<br /></div><div>3. Payload: echo &quot;hi world&quot;<br /></div><div>4. Hash: a1b2c3d4e5123123123<br /></div><div>5. Filename: malicious.docx, malicious.exe<br /></div><div>6. Path: C:\\User\\Malicious\\<br /></div><div>7. etc</div>",
+        "id": "1034579"
+      },
+      {
+        "index": "9",
+        "title": "Other Mitigation Actions",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:23 AM",
+          "value": "1776828225473"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "<div>Berisi rekomendasi mitigasi yang dapat di implementasikan oleh asset owner selain mitigasi utama.<br /></div><div><br /></div><div>Example:<br /></div><div>- Memberikan Cybersecurity Awareness pada employee<br /></div><div>- Mengadakan simulasi phishing<br /></div><div>- Mengganti semua password dari users pada server terdampak<br /></div><div>- Menggunakan skema MFA untuk login email<br /></div>",
+        "id": "1034580"
+      }
+    ],
+    "notes": [],
+    "notes_count": 0
+  },
+  {
+    "id": "206649",
+    "subject": "[SE] | IOS | fortigate | Medium | Fortigate attack dropped: AndroxGh0st.Malware",
+    "description": "<div>Dear IOS Team,<br /></div><div><br /></div><div>Saat ini kami informasikan terdapat [Security Event] dengan detail berikut :<br /></div><ul><li><b>Alert Name</b> : Fortigate attack dropped: AndroxGh0st.Malware<br /></li><li>⁠<b>Time of Alert</b> : Apr 22, 2026 @ 10:17:32.051<br /></li><li>⁠<b>Asset&nbsp; Impacted</b> : syslog-its-mtm-icc<br /></li><li><b>Severity</b> : Medium<br /></li><li><b>Description</b> : TIM SOC MTM telah mendeteksi security event Fortigate attack dropped: AndroxGh0st.Malware dengan menggunakan teknik fortigate <br /></li><li><b>Action Taken</b> : -</li></ul>",
+    "short_description": null,
+    "created_time": {
+      "display_value": "Apr 22, 2026 10:17 AM",
+      "value": "1776827874690"
+    },
+    "assigned_time": {
+      "display_value": "Apr 22, 2026 10:23 AM",
+      "value": "1776828237745"
+    },
+    "resolved_time": {
+      "display_value": "Apr 22, 2026 10:24 AM",
+      "value": "1776828292580"
+    },
+    "completed_time": {
+      "display_value": "Apr 22, 2026 10:24 AM",
+      "value": "1776828292580"
+    },
+    "last_updated_time": {
+      "display_value": "Apr 22, 2026 10:25 AM",
+      "value": "1776828337263"
+    },
+    "status": {
+      "color": "#006600",
+      "name": "Closed",
+      "id": "3"
+    },
+    "priority": {
+      "color": "#ffff00",
+      "name": "P3 - Medium",
+      "id": "3001"
+    },
+    "request_type": {
+      "name": "Incident Management",
+      "id": "2"
+    },
+    "account": {
+      "country": {
+        "id": "234"
+      },
+      "inactive": false,
+      "name": "Cyber Security",
+      "id": "2704",
+      "ciid": "6314"
+    },
+    "site": {
+      "latitude": null,
+      "name": "CAR - IOS Division",
+      "id": "5108",
+      "longitude": null
+    },
+    "department": {
+      "site": {
+        "id": "7801"
+      },
+      "name": "General",
+      "id": "9301"
+    },
+    "requester": {
+      "email_id": null,
+      "phone": null,
+      "name": "SIEM",
+      "mobile": null,
+      "profile_pic": {
+        "content-url": "/images/default-profile-pic2.svg",
+        "name": "default-profile-pic2.svg"
+      },
+      "is_vipuser": false,
+      "org_user_status": "ACTIVE",
+      "id": "15347",
+      "department": {
+        "site": {
+          "name": "Cyber Security Dept",
+          "id": 7801
+        },
+        "name": "General",
+        "id": 9301
+      },
+      "account": {
+        "name": "Cyber Security",
+        "id": "2704"
+      }
+    },
+    "created_by": {
+      "email_id": "soc@mtm.id",
+      "phone": "0813-9826-7540",
+      "name": "SOC MTM",
+      "mobile": null,
+      "profile_pic": {
+        "content-url": "/images/default-profile-pic2.svg",
+        "name": "default-profile-pic2.svg"
+      },
+      "is_vipuser": false,
+      "org_user_status": "ACTIVE",
+      "id": "19501",
+      "department": {
+        "site": {
+          "name": "Common Site",
+          "id": 2
+        },
+        "name": "Integrated Cybersecurity Center",
+        "id": 7501
+      },
+      "account": {
+        "name": "MTM",
+        "id": "1"
+      }
+    },
+    "technician": {
+      "email_id": null,
+      "phone": null,
+      "name": "Jeffri Wahyu Putra Sitompul",
+      "mobile": null,
+      "profile_pic": {
+        "content-url": "/images/default-profile-pic2.svg",
+        "name": "default-profile-pic2.svg"
+      },
+      "is_vipuser": false,
+      "org_user_status": "ACTIVE",
+      "id": "21302",
+      "department": {
+        "site": {
+          "name": "Common Site",
+          "id": 2
+        },
+        "name": "Integrated Cybersecurity Center",
+        "id": 7501
+      },
+      "account": {
+        "name": "MTM",
+        "id": "1"
+      }
+    },
+    "template": {
+      "is_service_template": false,
+      "service_category": null,
+      "name": "CAR - Case Template",
+      "id": "1802"
+    },
+    "mode": null,
+    "category": null,
+    "subcategory": null,
+    "item": null,
+    "is_billable": true,
+    "is_service_request": false,
+    "has_notes": false,
+    "has_attachments": false,
+    "has_conversation": false,
+    "request_template_task_ids": [
+      {
+        "id": "303"
+      },
+      {
+        "id": "302"
+      },
+      {
+        "id": "308"
+      },
+      {
+        "id": "307"
+      },
+      {
+        "id": "1202"
+      },
+      {
+        "id": "306"
+      },
+      {
+        "id": "1201"
+      },
+      {
+        "id": "305"
+      },
+      {
+        "id": "304"
+      }
+    ],
+    "closure_info": {
+      "requester_ack_comments": null,
+      "closure_code": {
+        "name": "Success",
+        "id": "1"
+      },
+      "closure_comments": null,
+      "signoff": null,
+      "requester_ack_resolution": true
+    },
+    "udf_fields": {
+      "udf_pick_1818": "syslog-its-mtm-icc",
+      "udf_pick_1819": "Security Event",
+      "udf_multiselect_2101": [],
+      "udf_sline_1820": null,
+      "udf_sline_1827": "10.20.80.8",
+      "udf_pick_1822": "Billable",
+      "udf_pick_1805": "False Positive",
+      "udf_pick_1806": "Other",
+      "udf_pick_2704": "Jeffri Wahyu Putra Sitompul",
+      "udf_pick_3901": "IOS-MTM",
+      "udf_date_2701": {
+        "display_value": "Apr 22, 2026 10:17 AM",
+        "value": "1776827852051"
+      },
+      "udf_date_1807": {
+        "display_value": "Apr 22, 2026 10:17 AM",
+        "value": "1776827820000"
+      },
+      "udf_date_1808": {
+        "display_value": "Apr 22, 2026 10:17 AM",
+        "value": "1776827820000"
+      },
+      "udf_mline_2102": null,
+      "udf_sline_1816": null
+    },
+    "tasks": [
+      {
+        "index": "1",
+        "title": "Description of Incident",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:17 AM",
+          "value": "1776827876662"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Deskripsikan incident / event yang terjadi seperti apa<br />2. Gunakan English Formal dan istilah umum agar dapat dibaca oleh orang non-teknis<br />3. Berbentuk list, contohnya seperti dibawah :<br /><br /><br />Description of Incident:<br />- SOC Team detected an indication of Bruteforce Attack on Asset IOC-OPMSERVICEDESK from the authentication log.<br />- This Attack is currently stopped, and there is no attempt was successful by an attacker<br />- SOC Team has been coordinating with Asset Owner to configure whitelist access as Workaround Solution<br />- This incident/event will be continuously monitored by SOC",
+        "id": "1034563"
+      },
+      {
+        "index": "2",
+        "title": "Names and Contact Information of Others Involved",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:17 AM",
+          "value": "1776827876662"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Mention the full name of the Analyst involved with this case<br />2. If there are external people involved, add the prefix [EXT] at the end of the full name. Example :<br /><br /><br />- Muhamad Mahrus Qusaeri<br />- Aditya Nugraha Syabana<br />- Abu Bakar Umar [EXT]<br />- Irfan Argusman [EXT]",
+        "id": "1034564"
+      },
+      {
+        "index": "3",
+        "title": "Identification Measures",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:17 AM",
+          "value": "1776827876662"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Fill out the list below. Choose between this multiple choice<br />2. Add to task log<br /><br />- Targeted Assets are infected: YES / NO<br />- Targeted Assets had been investigated: YES / NO<br />- Is there Malicious/Suspicious activity on the Assets: YES / NO",
+        "id": "1034565"
+      },
+      {
+        "index": "4",
+        "title": "Timeline",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:17 AM",
+          "value": "1776827876662"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Gunakan format dibawah ini untuk membuat timeline<br />2. Tambahkan ke task log sesuai urutan timeline kejadian<br />3. Beda Timestamp, beda task log<br /><br /><br /><br />Example Task log 1:<br />- Date : **_Jan 08, 2023_**<br />- Timestamp : **_10:18:00_**<br />- Source : **_SIEM Wazuh_**<br />- Description : **_First log authentication failed has seen_**<br /><br /><br />Example Task log 2:<br />- Date : **_Jan 08, 2023_**<br />- Timestamp : **_10:42:00_**<br />- Source : **_SIEM Wazuh_**<br />- Description: **_First log authentication successful has been seen. Indicate the attacker are successfully Bruteforce the device using Dictionary attack_**<br /><br /><br /><br />Note : yang diperlukan untuk diganti hanya yang bold italic saja",
+        "id": "1034566"
+      },
+      {
+        "index": "5",
+        "title": "Containment",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:17 AM",
+          "value": "1776827876662"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "Containment dilakukan apabila terdapat suatu Asset / Device yang sudah terinfeksi oleh Malware atau berhasil dikompromise oleh Attacker. Containment perlu dilakukan agar Asset / Device yang terinfeksi tidak menyebar melalui jaringan.<br /><br />1. Jelaskan action apa saja yang dilakukan untuk melakukan containment pada asset yang terinfeksi<br />2. Apabila tidak ada action containment, atau case nya False Positive, Task ini tidak perlu diisi<br /><br /><br />Example containment :<br />- CSD Team has disallowed the Users to connect to the Network because the device is infected by Malware",
+        "id": "1034567"
+      },
+      {
+        "index": "6",
+        "title": "Eradication",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:17 AM",
+          "value": "1776827876662"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "Eradication dilakukan ketika Asset / Device sudah terinfeksi dan atau ter-compromise oleh attacker. Eradication dilakukan untuk menghapus semua IoC (file/proses/network connection/dll.) yang terkait dengan serangan. apabila Asset owner bukan dari tim CSD, maka wajib dikomunikasikan dengan asset owner untuk dilakukan eradication.<br /><br /><br />Example 1:<br /><br />CSD Recommend to SSA to :<br /> - Stop the Malicious process. PID 990, PID 129, PID 2731<br /> - Delete file related to the malicious process on this directory: **/tmp/.malicious/**<br /><br /><br />Example 2:<br />- CSD Had been stopped the process on IOC-OPMSERVICEDESK asset. PID 1234, 9726, 2342<br />- CSD also had been deleted related file on directory : **C:/tmp/**<br /><br />Note : Tambahkan di tasklog, apa saja yang harus dilakukan eradication pada Asset tersebut",
+        "id": "1034568"
+      },
+      {
+        "index": "7",
+        "title": "Mitigation",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:17 AM",
+          "value": "1776827876662"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "Mitigation perlu diinformasikan untuk mencegah adanya event/incident yang sama dikemudian hari<br /><br />Example:<br />- Install Antivirus so the device are protected from malware",
+        "id": "1034569"
+      },
+      {
+        "index": "8",
+        "title": "Evidence Collected",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:17 AM",
+          "value": "1776827876662"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "<div>Berisi Indicator of Compromise yang ditemukan saat investigasi. Isi IoCs dengan versi yang sudah di Defang (dapat menggunakan CyberChef)<br /></div><div><br /></div><div>Example:<br /></div><div><br /></div><div>1. IP Address: 172[.]168[.]1[.]1<br /></div><div>2. URL: http[.]gggogle[.]com<br /></div><div>3. Payload: echo &quot;hi world&quot;<br /></div><div>4. Hash: a1b2c3d4e5123123123<br /></div><div>5. Filename: malicious.docx, malicious.exe<br /></div><div>6. Path: C:\\User\\Malicious\\<br /></div><div>7. etc</div>",
+        "id": "1034570"
+      },
+      {
+        "index": "9",
+        "title": "Other Mitigation Actions",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:17 AM",
+          "value": "1776827876662"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "<div>Berisi rekomendasi mitigasi yang dapat di implementasikan oleh asset owner selain mitigasi utama.<br /></div><div><br /></div><div>Example:<br /></div><div>- Memberikan Cybersecurity Awareness pada employee<br /></div><div>- Mengadakan simulasi phishing<br /></div><div>- Mengganti semua password dari users pada server terdampak<br /></div><div>- Menggunakan skema MFA untuk login email<br /></div>",
+        "id": "1034571"
+      }
+    ],
+    "notes": [],
+    "notes_count": 0
+  },
+  {
+    "id": "206648",
+    "subject": "[NS] IOS | Other | Medium | disk space is running low: 100%",
+    "description": "<div><img src=\"/inlineimages/WorkOrder/206648/943c8003a2124d348c742b424a404f97.png\" orig_width=\"1523\" orig_height=\"856\" width=\"400\" height=\"224\" size_option=\"bestfit\" /><br /><br /><img src=\"/inlineimages/WorkOrder/206648/f0e8ad25349d49a88e331386e99e5d72.png\" orig_width=\"1036\" orig_height=\"342\" width=\"400\" height=\"132\" size_option=\"bestfit\" /><br /></div><div><span style=\"color: rgb(226, 226, 226); font-family: Roboto, Arial; font-size: 13px; font-style: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; white-space: normal; background-color: rgb(18, 18, 18); display: inline !important; float: none\"><span style=\"color: rgb(226, 226, 226); font-family: Roboto, Arial; font-size: 13px; font-style: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; white-space: normal; background-color: rgb(18, 18, 18); display: inline !important; float: none\">Terdapat alert disk space is running low: 100% pada asset wazuh-manager-1-gcp-mtm-icc</span> </span><br /><br /></div>",
+    "short_description": null,
+    "created_time": {
+      "display_value": "Apr 22, 2026 10:17 AM",
+      "value": "1776827859447"
+    },
+    "assigned_time": {
+      "display_value": "Apr 22, 2026 10:17 AM",
+      "value": "1776827859639"
+    },
+    "resolved_time": {
+      "display_value": "Apr 22, 2026 10:23 AM",
+      "value": "1776828189955"
+    },
+    "completed_time": {
+      "display_value": "Apr 22, 2026 10:23 AM",
+      "value": "1776828189955"
+    },
+    "last_updated_time": {
+      "display_value": "Apr 22, 2026 10:23 AM",
+      "value": "1776828189961"
+    },
+    "status": {
+      "color": "#006600",
+      "name": "Closed",
+      "id": "3"
+    },
+    "priority": {
+      "color": "#ffff00",
+      "name": "P2 - Medium",
+      "id": "4803"
+    },
+    "request_type": null,
+    "account": {
+      "country": {
+        "id": "234"
+      },
+      "inactive": false,
+      "name": "Cyber Security",
+      "id": "2704",
+      "ciid": "6314"
+    },
+    "site": {
+      "latitude": null,
+      "name": "CAR - IOS Division",
+      "id": "5108",
+      "longitude": null
+    },
+    "department": {
+      "site": {
+        "id": "2"
+      },
+      "name": "Integrated Cybersecurity Center",
+      "id": "7501"
+    },
+    "requester": {
+      "email_id": null,
+      "phone": null,
+      "name": "Jeffri Wahyu Putra Sitompul",
+      "mobile": null,
+      "profile_pic": {
+        "content-url": "/images/default-profile-pic2.svg",
+        "name": "default-profile-pic2.svg"
+      },
+      "is_vipuser": false,
+      "org_user_status": "ACTIVE",
+      "id": "21302",
+      "department": {
+        "site": {
+          "name": "Common Site",
+          "id": 2
+        },
+        "name": "Integrated Cybersecurity Center",
+        "id": 7501
+      },
+      "account": {
+        "name": "MTM",
+        "id": "1"
+      }
+    },
+    "created_by": {
+      "email_id": null,
+      "phone": null,
+      "name": "Jeffri Wahyu Putra Sitompul",
+      "mobile": null,
+      "profile_pic": {
+        "content-url": "/images/default-profile-pic2.svg",
+        "name": "default-profile-pic2.svg"
+      },
+      "is_vipuser": false,
+      "org_user_status": "ACTIVE",
+      "id": "21302",
+      "department": {
+        "site": {
+          "name": "Common Site",
+          "id": 2
+        },
+        "name": "Integrated Cybersecurity Center",
+        "id": 7501
+      },
+      "account": {
+        "name": "MTM",
+        "id": "1"
+      }
+    },
+    "technician": {
+      "email_id": null,
+      "phone": null,
+      "name": "Jeffri Wahyu Putra Sitompul",
+      "mobile": null,
+      "profile_pic": {
+        "content-url": "/images/default-profile-pic2.svg",
+        "name": "default-profile-pic2.svg"
+      },
+      "is_vipuser": false,
+      "org_user_status": "ACTIVE",
+      "id": "21302",
+      "department": {
+        "site": {
+          "name": "Common Site",
+          "id": 2
+        },
+        "name": "Integrated Cybersecurity Center",
+        "id": 7501
+      },
+      "account": {
+        "name": "MTM",
+        "id": "1"
+      }
+    },
+    "template": {
+      "is_service_template": false,
+      "service_category": null,
+      "name": "CAR - Case Template",
+      "id": "1802"
+    },
+    "mode": null,
+    "category": null,
+    "subcategory": null,
+    "item": null,
+    "is_billable": true,
+    "is_service_request": false,
+    "has_notes": false,
+    "has_attachments": false,
+    "has_conversation": false,
+    "request_template_task_ids": [
+      {
+        "id": "303"
+      },
+      {
+        "id": "302"
+      },
+      {
+        "id": "308"
+      },
+      {
+        "id": "307"
+      },
+      {
+        "id": "1202"
+      },
+      {
+        "id": "306"
+      },
+      {
+        "id": "1201"
+      },
+      {
+        "id": "305"
+      },
+      {
+        "id": "304"
+      }
+    ],
+    "closure_info": {
+      "requester_ack_comments": null,
+      "closure_code": {
+        "name": "Success",
+        "id": "1"
+      },
+      "closure_comments": null,
+      "signoff": null,
+      "requester_ack_resolution": true
+    },
+    "udf_fields": {
+      "udf_pick_1818": "wazuh-manager1-gcp-mtm-icc",
+      "udf_pick_1819": "Non Security",
+      "udf_multiselect_2101": [],
+      "udf_sline_1820": null,
+      "udf_sline_1827": null,
+      "udf_pick_1822": "Billable",
+      "udf_pick_1805": "True Positive",
+      "udf_pick_1806": "SIEM Issue",
+      "udf_pick_2704": "Jeffri Wahyu Putra Sitompul",
+      "udf_pick_3901": "IOS-MTM",
+      "udf_date_2701": {
+        "display_value": "Apr 22, 2026 08:55 AM",
+        "value": "1776822900000"
+      },
+      "udf_date_1807": {
+        "display_value": "Apr 22, 2026 08:55 AM",
+        "value": "1776822900000"
+      },
+      "udf_date_1808": {
+        "display_value": "Apr 22, 2026 08:55 AM",
+        "value": "1776822900000"
+      },
+      "udf_mline_2102": null,
+      "udf_sline_1816": null
+    },
+    "tasks": [
+      {
+        "index": "1",
+        "title": "Description of Incident",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:17 AM",
+          "value": "1776827861449"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Deskripsikan incident / event yang terjadi seperti apa<br />2. Gunakan English Formal dan istilah umum agar dapat dibaca oleh orang non-teknis<br />3. Berbentuk list, contohnya seperti dibawah :<br /><br /><br />Description of Incident:<br />- SOC Team detected an indication of Bruteforce Attack on Asset IOC-OPMSERVICEDESK from the authentication log.<br />- This Attack is currently stopped, and there is no attempt was successful by an attacker<br />- SOC Team has been coordinating with Asset Owner to configure whitelist access as Workaround Solution<br />- This incident/event will be continuously monitored by SOC",
+        "id": "1034554"
+      },
+      {
+        "index": "2",
+        "title": "Names and Contact Information of Others Involved",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:17 AM",
+          "value": "1776827861449"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Mention the full name of the Analyst involved with this case<br />2. If there are external people involved, add the prefix [EXT] at the end of the full name. Example :<br /><br /><br />- Muhamad Mahrus Qusaeri<br />- Aditya Nugraha Syabana<br />- Abu Bakar Umar [EXT]<br />- Irfan Argusman [EXT]",
+        "id": "1034555"
+      },
+      {
+        "index": "3",
+        "title": "Identification Measures",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:17 AM",
+          "value": "1776827861449"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Fill out the list below. Choose between this multiple choice<br />2. Add to task log<br /><br />- Targeted Assets are infected: YES / NO<br />- Targeted Assets had been investigated: YES / NO<br />- Is there Malicious/Suspicious activity on the Assets: YES / NO",
+        "id": "1034556"
+      },
+      {
+        "index": "4",
+        "title": "Timeline",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:17 AM",
+          "value": "1776827861449"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Gunakan format dibawah ini untuk membuat timeline<br />2. Tambahkan ke task log sesuai urutan timeline kejadian<br />3. Beda Timestamp, beda task log<br /><br /><br /><br />Example Task log 1:<br />- Date : **_Jan 08, 2023_**<br />- Timestamp : **_10:18:00_**<br />- Source : **_SIEM Wazuh_**<br />- Description : **_First log authentication failed has seen_**<br /><br /><br />Example Task log 2:<br />- Date : **_Jan 08, 2023_**<br />- Timestamp : **_10:42:00_**<br />- Source : **_SIEM Wazuh_**<br />- Description: **_First log authentication successful has been seen. Indicate the attacker are successfully Bruteforce the device using Dictionary attack_**<br /><br /><br /><br />Note : yang diperlukan untuk diganti hanya yang bold italic saja",
+        "id": "1034557"
+      },
+      {
+        "index": "5",
+        "title": "Containment",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:17 AM",
+          "value": "1776827861449"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "Containment dilakukan apabila terdapat suatu Asset / Device yang sudah terinfeksi oleh Malware atau berhasil dikompromise oleh Attacker. Containment perlu dilakukan agar Asset / Device yang terinfeksi tidak menyebar melalui jaringan.<br /><br />1. Jelaskan action apa saja yang dilakukan untuk melakukan containment pada asset yang terinfeksi<br />2. Apabila tidak ada action containment, atau case nya False Positive, Task ini tidak perlu diisi<br /><br /><br />Example containment :<br />- CSD Team has disallowed the Users to connect to the Network because the device is infected by Malware",
+        "id": "1034558"
+      },
+      {
+        "index": "6",
+        "title": "Eradication",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:17 AM",
+          "value": "1776827861449"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "Eradication dilakukan ketika Asset / Device sudah terinfeksi dan atau ter-compromise oleh attacker. Eradication dilakukan untuk menghapus semua IoC (file/proses/network connection/dll.) yang terkait dengan serangan. apabila Asset owner bukan dari tim CSD, maka wajib dikomunikasikan dengan asset owner untuk dilakukan eradication.<br /><br /><br />Example 1:<br /><br />CSD Recommend to SSA to :<br /> - Stop the Malicious process. PID 990, PID 129, PID 2731<br /> - Delete file related to the malicious process on this directory: **/tmp/.malicious/**<br /><br /><br />Example 2:<br />- CSD Had been stopped the process on IOC-OPMSERVICEDESK asset. PID 1234, 9726, 2342<br />- CSD also had been deleted related file on directory : **C:/tmp/**<br /><br />Note : Tambahkan di tasklog, apa saja yang harus dilakukan eradication pada Asset tersebut",
+        "id": "1034559"
+      },
+      {
+        "index": "7",
+        "title": "Mitigation",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:17 AM",
+          "value": "1776827861449"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "Mitigation perlu diinformasikan untuk mencegah adanya event/incident yang sama dikemudian hari<br /><br />Example:<br />- Install Antivirus so the device are protected from malware",
+        "id": "1034560"
+      },
+      {
+        "index": "8",
+        "title": "Evidence Collected",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:17 AM",
+          "value": "1776827861449"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "<div>Berisi Indicator of Compromise yang ditemukan saat investigasi. Isi IoCs dengan versi yang sudah di Defang (dapat menggunakan CyberChef)<br /></div><div><br /></div><div>Example:<br /></div><div><br /></div><div>1. IP Address: 172[.]168[.]1[.]1<br /></div><div>2. URL: http[.]gggogle[.]com<br /></div><div>3. Payload: echo &quot;hi world&quot;<br /></div><div>4. Hash: a1b2c3d4e5123123123<br /></div><div>5. Filename: malicious.docx, malicious.exe<br /></div><div>6. Path: C:\\User\\Malicious\\<br /></div><div>7. etc</div>",
+        "id": "1034561"
+      },
+      {
+        "index": "9",
+        "title": "Other Mitigation Actions",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:17 AM",
+          "value": "1776827861449"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "<div>Berisi rekomendasi mitigasi yang dapat di implementasikan oleh asset owner selain mitigasi utama.<br /></div><div><br /></div><div>Example:<br /></div><div>- Memberikan Cybersecurity Awareness pada employee<br /></div><div>- Mengadakan simulasi phishing<br /></div><div>- Mengganti semua password dari users pada server terdampak<br /></div><div>- Menggunakan skema MFA untuk login email<br /></div>",
+        "id": "1034562"
+      }
+    ],
+    "notes": [],
+    "notes_count": 0
+  },
+  {
+    "id": "206647",
+    "subject": "[SE] | O365 CMWI | Medium | Office 365: Successful login from VIP user: dm@cmwi.co.id.",
+    "description": "<div>Dear  CMWI Team,<br /></div><div><br /></div><div>Saat ini kami informasikan terdapat [Security Event] dengan detail berikut :<br /></div><ul><li><b>Alert Name</b> : Office 365: Successful login from VIP user: dm@cmwi.co.id.<br /></li><li>⁠<b>Time of Alert</b> : Apr 22, 2026 @ 10:12:51.878<br /></li><li>⁠<b>Asset&nbsp; Impacted</b> : O365 CMWI<br /></li><li><b>Severity</b> : Medium<br /></li><li><b>Description</b> : TIM SOC MTM telah mendeteksi security event Office 365: Successful login from VIP user: dm@cmwi.co.id. <br /></li><li><b>Action Taken</b> : -</li></ul>",
+    "short_description": null,
+    "created_time": {
+      "display_value": "Apr 22, 2026 10:13 AM",
+      "value": "1776827620361"
+    },
+    "assigned_time": {
+      "display_value": "Apr 22, 2026 10:23 AM",
+      "value": "1776828236972"
+    },
+    "resolved_time": {
+      "display_value": "Apr 22, 2026 10:24 AM",
+      "value": "1776828291779"
+    },
+    "completed_time": {
+      "display_value": "Apr 22, 2026 10:24 AM",
+      "value": "1776828291779"
+    },
+    "last_updated_time": {
+      "display_value": "Apr 22, 2026 10:25 AM",
+      "value": "1776828318575"
+    },
+    "status": {
+      "color": "#006600",
+      "name": "Closed",
+      "id": "3"
+    },
+    "priority": {
+      "color": "#ffff00",
+      "name": "P3 - Medium",
+      "id": "3001"
+    },
+    "request_type": {
+      "name": "Incident Management",
+      "id": "2"
+    },
+    "account": {
+      "country": {
+        "id": "234"
+      },
+      "inactive": false,
+      "name": "Cyber Security",
+      "id": "2704",
+      "ciid": "6314"
+    },
+    "site": {
+      "latitude": null,
+      "name": "CAR - CMWI",
+      "id": "6901",
+      "longitude": null
+    },
+    "department": {
+      "site": {
+        "id": "7801"
+      },
+      "name": "General",
+      "id": "9301"
+    },
+    "requester": {
+      "email_id": null,
+      "phone": null,
+      "name": "SIEM",
+      "mobile": null,
+      "profile_pic": {
+        "content-url": "/images/default-profile-pic2.svg",
+        "name": "default-profile-pic2.svg"
+      },
+      "is_vipuser": false,
+      "org_user_status": "ACTIVE",
+      "id": "15347",
+      "department": {
+        "site": {
+          "name": "Cyber Security Dept",
+          "id": 7801
+        },
+        "name": "General",
+        "id": 9301
+      },
+      "account": {
+        "name": "Cyber Security",
+        "id": "2704"
+      }
+    },
+    "created_by": {
+      "email_id": "soc@mtm.id",
+      "phone": "0813-9826-7540",
+      "name": "SOC MTM",
+      "mobile": null,
+      "profile_pic": {
+        "content-url": "/images/default-profile-pic2.svg",
+        "name": "default-profile-pic2.svg"
+      },
+      "is_vipuser": false,
+      "org_user_status": "ACTIVE",
+      "id": "19501",
+      "department": {
+        "site": {
+          "name": "Common Site",
+          "id": 2
+        },
+        "name": "Integrated Cybersecurity Center",
+        "id": 7501
+      },
+      "account": {
+        "name": "MTM",
+        "id": "1"
+      }
+    },
+    "technician": {
+      "email_id": null,
+      "phone": null,
+      "name": "Jeffri Wahyu Putra Sitompul",
+      "mobile": null,
+      "profile_pic": {
+        "content-url": "/images/default-profile-pic2.svg",
+        "name": "default-profile-pic2.svg"
+      },
+      "is_vipuser": false,
+      "org_user_status": "ACTIVE",
+      "id": "21302",
+      "department": {
+        "site": {
+          "name": "Common Site",
+          "id": 2
+        },
+        "name": "Integrated Cybersecurity Center",
+        "id": 7501
+      },
+      "account": {
+        "name": "MTM",
+        "id": "1"
+      }
+    },
+    "template": {
+      "is_service_template": false,
+      "service_category": null,
+      "name": "CAR - Case Template",
+      "id": "1802"
+    },
+    "mode": null,
+    "category": null,
+    "subcategory": null,
+    "item": null,
+    "is_billable": true,
+    "is_service_request": false,
+    "has_notes": false,
+    "has_attachments": false,
+    "has_conversation": false,
+    "request_template_task_ids": [
+      {
+        "id": "303"
+      },
+      {
+        "id": "302"
+      },
+      {
+        "id": "308"
+      },
+      {
+        "id": "307"
+      },
+      {
+        "id": "1202"
+      },
+      {
+        "id": "306"
+      },
+      {
+        "id": "1201"
+      },
+      {
+        "id": "305"
+      },
+      {
+        "id": "304"
+      }
+    ],
+    "closure_info": {
+      "requester_ack_comments": null,
+      "closure_code": {
+        "name": "Success",
+        "id": "1"
+      },
+      "closure_comments": null,
+      "signoff": null,
+      "requester_ack_resolution": true
+    },
+    "udf_fields": {
+      "udf_pick_1818": "wazuh-manager1-gcp-mtm-icc",
+      "udf_pick_1819": "Security Event",
+      "udf_multiselect_2101": [],
+      "udf_sline_1820": null,
+      "udf_sline_1827": "192.168.116.44",
+      "udf_pick_1822": "Billable",
+      "udf_pick_1805": "False Positive",
+      "udf_pick_1806": "Other",
+      "udf_pick_2704": "Jeffri Wahyu Putra Sitompul",
+      "udf_pick_3901": "CMWI",
+      "udf_date_2701": {
+        "display_value": "Apr 22, 2026 10:12 AM",
+        "value": "1776827571878"
+      },
+      "udf_date_1807": {
+        "display_value": "Apr 22, 2026 10:12 AM",
+        "value": "1776827520000"
+      },
+      "udf_date_1808": {
+        "display_value": "Apr 22, 2026 10:12 AM",
+        "value": "1776827520000"
+      },
+      "udf_mline_2102": null,
+      "udf_sline_1816": null
+    },
+    "tasks": [
+      {
+        "index": "1",
+        "title": "Description of Incident",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:13 AM",
+          "value": "1776827622365"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Deskripsikan incident / event yang terjadi seperti apa<br />2. Gunakan English Formal dan istilah umum agar dapat dibaca oleh orang non-teknis<br />3. Berbentuk list, contohnya seperti dibawah :<br /><br /><br />Description of Incident:<br />- SOC Team detected an indication of Bruteforce Attack on Asset IOC-OPMSERVICEDESK from the authentication log.<br />- This Attack is currently stopped, and there is no attempt was successful by an attacker<br />- SOC Team has been coordinating with Asset Owner to configure whitelist access as Workaround Solution<br />- This incident/event will be continuously monitored by SOC",
+        "id": "1034545"
+      },
+      {
+        "index": "2",
+        "title": "Names and Contact Information of Others Involved",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:13 AM",
+          "value": "1776827622365"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Mention the full name of the Analyst involved with this case<br />2. If there are external people involved, add the prefix [EXT] at the end of the full name. Example :<br /><br /><br />- Muhamad Mahrus Qusaeri<br />- Aditya Nugraha Syabana<br />- Abu Bakar Umar [EXT]<br />- Irfan Argusman [EXT]",
+        "id": "1034546"
+      },
+      {
+        "index": "3",
+        "title": "Identification Measures",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:13 AM",
+          "value": "1776827622365"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Fill out the list below. Choose between this multiple choice<br />2. Add to task log<br /><br />- Targeted Assets are infected: YES / NO<br />- Targeted Assets had been investigated: YES / NO<br />- Is there Malicious/Suspicious activity on the Assets: YES / NO",
+        "id": "1034547"
+      },
+      {
+        "index": "4",
+        "title": "Timeline",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:13 AM",
+          "value": "1776827622365"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "1. Gunakan format dibawah ini untuk membuat timeline<br />2. Tambahkan ke task log sesuai urutan timeline kejadian<br />3. Beda Timestamp, beda task log<br /><br /><br /><br />Example Task log 1:<br />- Date : **_Jan 08, 2023_**<br />- Timestamp : **_10:18:00_**<br />- Source : **_SIEM Wazuh_**<br />- Description : **_First log authentication failed has seen_**<br /><br /><br />Example Task log 2:<br />- Date : **_Jan 08, 2023_**<br />- Timestamp : **_10:42:00_**<br />- Source : **_SIEM Wazuh_**<br />- Description: **_First log authentication successful has been seen. Indicate the attacker are successfully Bruteforce the device using Dictionary attack_**<br /><br /><br /><br />Note : yang diperlukan untuk diganti hanya yang bold italic saja",
+        "id": "1034548"
+      },
+      {
+        "index": "5",
+        "title": "Containment",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:13 AM",
+          "value": "1776827622365"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "Containment dilakukan apabila terdapat suatu Asset / Device yang sudah terinfeksi oleh Malware atau berhasil dikompromise oleh Attacker. Containment perlu dilakukan agar Asset / Device yang terinfeksi tidak menyebar melalui jaringan.<br /><br />1. Jelaskan action apa saja yang dilakukan untuk melakukan containment pada asset yang terinfeksi<br />2. Apabila tidak ada action containment, atau case nya False Positive, Task ini tidak perlu diisi<br /><br /><br />Example containment :<br />- CSD Team has disallowed the Users to connect to the Network because the device is infected by Malware",
+        "id": "1034549"
+      },
+      {
+        "index": "6",
+        "title": "Eradication",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:13 AM",
+          "value": "1776827622365"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "Eradication dilakukan ketika Asset / Device sudah terinfeksi dan atau ter-compromise oleh attacker. Eradication dilakukan untuk menghapus semua IoC (file/proses/network connection/dll.) yang terkait dengan serangan. apabila Asset owner bukan dari tim CSD, maka wajib dikomunikasikan dengan asset owner untuk dilakukan eradication.<br /><br /><br />Example 1:<br /><br />CSD Recommend to SSA to :<br /> - Stop the Malicious process. PID 990, PID 129, PID 2731<br /> - Delete file related to the malicious process on this directory: **/tmp/.malicious/**<br /><br /><br />Example 2:<br />- CSD Had been stopped the process on IOC-OPMSERVICEDESK asset. PID 1234, 9726, 2342<br />- CSD also had been deleted related file on directory : **C:/tmp/**<br /><br />Note : Tambahkan di tasklog, apa saja yang harus dilakukan eradication pada Asset tersebut",
+        "id": "1034550"
+      },
+      {
+        "index": "7",
+        "title": "Mitigation",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:13 AM",
+          "value": "1776827622365"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "Mitigation perlu diinformasikan untuk mencegah adanya event/incident yang sama dikemudian hari<br /><br />Example:<br />- Install Antivirus so the device are protected from malware",
+        "id": "1034551"
+      },
+      {
+        "index": "8",
+        "title": "Evidence Collected",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:13 AM",
+          "value": "1776827622365"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "<div>Berisi Indicator of Compromise yang ditemukan saat investigasi. Isi IoCs dengan versi yang sudah di Defang (dapat menggunakan CyberChef)<br /></div><div><br /></div><div>Example:<br /></div><div><br /></div><div>1. IP Address: 172[.]168[.]1[.]1<br /></div><div>2. URL: http[.]gggogle[.]com<br /></div><div>3. Payload: echo &quot;hi world&quot;<br /></div><div>4. Hash: a1b2c3d4e5123123123<br /></div><div>5. Filename: malicious.docx, malicious.exe<br /></div><div>6. Path: C:\\User\\Malicious\\<br /></div><div>7. etc</div>",
+        "id": "1034552"
+      },
+      {
+        "index": "9",
+        "title": "Other Mitigation Actions",
+        "status": "Open",
+        "owner": null,
+        "group": null,
+        "scheduled_start_time": {
+          "display_value": "Apr 22, 2026 10:13 AM",
+          "value": "1776827622365"
+        },
+        "actual_start_time": null,
+        "actual_end_time": null,
+        "description": "<div>Berisi rekomendasi mitigasi yang dapat di implementasikan oleh asset owner selain mitigasi utama.<br /></div><div><br /></div><div>Example:<br /></div><div>- Memberikan Cybersecurity Awareness pada employee<br /></div><div>- Mengadakan simulasi phishing<br /></div><div>- Mengganti semua password dari users pada server terdampak<br /></div><div>- Menggunakan skema MFA untuk login email<br /></div>",
+        "id": "1034553"
+      }
+    ],
+    "notes": [],
+    "notes_count": 0
+  }
+]

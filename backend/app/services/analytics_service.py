@@ -73,7 +73,15 @@ class AnalyticsService:
         )
         avg_mttd = (await self.session.execute(q)).scalar()
 
-        # SLA compliance
+        # Avg MTTR
+        q = select(func.avg(Ticket.mttr_seconds)).where(
+            *filters,
+            Ticket.mttr_seconds != None,
+            Ticket.mttr_seconds > 0,
+        )
+        avg_mttr = (await self.session.execute(q)).scalar()
+
+        # SLA compliance (MTTD-based)
         q = select(
             func.count(Ticket.id).filter(Ticket.sla_met == True).label("met"),
             func.count(Ticket.id).filter(Ticket.sla_met != None).label("total"),
@@ -82,7 +90,19 @@ class AnalyticsService:
         sla_pct = (
             round(sla_row.met / sla_row.total * 100, 1)
             if sla_row.total > 0
-            else None
+            else 0.0
+        )
+
+        # MTTR SLA compliance (priority-based)
+        q = select(
+            func.count(Ticket.id).filter(Ticket.mttr_sla_met == True).label("met"),
+            func.count(Ticket.id).filter(Ticket.mttr_sla_met != None).label("total"),
+        ).where(*filters)
+        mttr_sla_row = (await self.session.execute(q)).one()
+        mttr_sla_pct = (
+            round(mttr_sla_row.met / mttr_sla_row.total * 100, 1)
+            if mttr_sla_row.total > 0
+            else 0.0
         )
 
         return {
@@ -95,7 +115,10 @@ class AnalyticsService:
             "fp_rate": round(fp / total * 100, 2) if total > 0 else 0.0,
             "avg_mttd_seconds": round(avg_mttd, 1) if avg_mttd else None,
             "avg_mttd_display": _format_duration(avg_mttd),
+            "avg_mttr_seconds": round(avg_mttr, 1) if avg_mttr else None,
+            "avg_mttr_display": _format_duration(avg_mttr),
             "sla_compliance_pct": sla_pct,
+            "mttr_sla_pct": mttr_sla_pct,
             "si_count": si,
             "period_start": start_date.date() if isinstance(start_date, datetime) else start_date,
             "period_end": end_date.date() if isinstance(end_date, datetime) else end_date,

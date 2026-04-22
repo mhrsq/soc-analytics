@@ -1,0 +1,29 @@
+{
+  "ticket_id": "34527",
+  "timestamp": "2026-04-22T13:32:00Z",
+  "reason": "Initial subject-only update failed because SDP required mandatory field 'technician' for this ticket.",
+  "initial_error": {
+    "status_code": 4000,
+    "messages": [
+      {
+        "status_code": 4012,
+        "type": "failed",
+        "message": "Please fill the mandatory fields",
+        "fields": [
+          "technician"
+        ]
+      }
+    ],
+    "status": "failed"
+  },
+  "manual_retry_payload": {
+    "request": {
+      "subject": "[SI] | CONTOSO | WEB ATTACK | LOW | A web attack returned code 200 (success).",
+      "technician": {
+        "name": "SOC MTM"
+      }
+    }
+  },
+  "result": "success",
+  "notes": "Operationally the subject normalization for ticket 34527 is now applied in SDP, even though the original execute_results.ndjson still contains the first failed attempt."
+}

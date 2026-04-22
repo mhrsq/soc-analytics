@@ -8,7 +8,7 @@ import {
   ChevronRight, ChevronLeft,
 } from "lucide-react";
 
-export type KPIKey = "total" | "open" | "tp" | "fp" | "mttd" | "sla";
+export type KPIKey = "total" | "open" | "tp" | "fp" | "mttd" | "mttr" | "sla";
 
 interface Props {
   kpiKey: KPIKey | null;
@@ -24,7 +24,8 @@ const KPI_META: Record<KPIKey, { title: string; icon: typeof Activity; color: st
   tp: { title: "True Positive", icon: Target, color: "text-cyber-red", description: "Alerts confirmed as real security threats." },
   fp: { title: "False Positive", icon: ShieldCheck, color: "text-cyber-green", description: "Alerts identified as non-threats after validation." },
   mttd: { title: "Avg MTTD", icon: Clock, color: "text-cyber-teal", description: "Mean Time to Detect — from alert creation to first analyst acknowledgment." },
-  sla: { title: "SLA Compliance", icon: TrendingUp, color: "text-cyber-green", description: "Percentage of tickets resolved within the SLA timeframe." },
+  mttr: { title: "Avg MTTR", icon: Clock, color: "text-cyber-orange", description: "Mean Time to Resolve — from alert time to workaround completion. SLA: Critical=2h, High=5h, Medium=8h, Low=24h." },
+  sla: { title: "SLA Compliance", icon: TrendingUp, color: "text-cyber-green", description: "Percentage of tickets detected within the MTTD SLA timeframe (15 minutes)." },
 };
 
 function fmtTime(seconds: number | null): string {

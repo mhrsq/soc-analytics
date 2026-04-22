@@ -25,11 +25,13 @@ CREATE TABLE IF NOT EXISTS tickets (
     ip_address      VARCHAR(100),
     alert_time      TIMESTAMP WITH TIME ZONE,
     first_notif     TIMESTAMP WITH TIME ZONE,
+    workaround_time TIMESTAMP WITH TIME ZONE,
 
     -- Computed
     mttd_seconds    INTEGER,
     mttr_seconds    INTEGER,
     sla_met         BOOLEAN,
+    mttr_sla_met    BOOLEAN,
 
     -- Parsed from subject
     wazuh_rule_id   VARCHAR(20),

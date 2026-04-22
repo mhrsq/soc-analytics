@@ -1,0 +1,15 @@
+{
+  "updated_at": "2026-04-22T12:43:43Z",
+  "base_url": "https://10.20.24.9:8050",
+  "mode": "execute",
+  "limit": null,
+  "workers": 10,
+  "sleep_seconds": 0.02,
+  "selected_total": 26808,
+  "stats": {
+    "existing_done_ids": 2110,
+    "skipped_already_done": 2110,
+    "updated_ok": 26808,
+    "processed": 26808
+  }
+}

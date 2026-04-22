@@ -1,0 +1,7 @@
+{"ticket_id":"23440","reason":"subject_insert_pipe_after_prefix_3seg_no_attack_needs_manual_review","subject":"[SE] IOS  Threat Intelligence | Medium | Fortigate attack detected: udp_flood","priority":"P2 - Medium","suggested_normalization":"[SE] | IOS  Threat Intelligence | Medium | Fortigate attack detected: udp_flood"}
+{"ticket_id":"23695","reason":"unexpected_segment_count_7","subject":"[SE] IOS | Threat Intelligence | Critical | MTM | IOC-OPMSERVICEDESK | Fortigate attack detected: udp_scan | CRITICAL","priority":"P1 - Critical"}
+{"ticket_id":"36644","reason":"subject_insert_pipe_after_prefix_3seg_no_attack_needs_manual_review","subject":"[NS] GCP | Medium | 10 Agents at GCP Disconnected.","priority":"P2 - Medium","suggested_normalization":"[NS] | GCP | Medium | 10 Agents at GCP Disconnected."}
+{"ticket_id":"37015","reason":"unexpected_segment_count_7","subject":"[SE] IT IS | MALWARE | MEDIUM | Detection of File Indicated as Malware on MSCO Team Endpoint |||","priority":"P2 - Medium"}
+{"ticket_id":"42243","reason":"priority_critical_mismatch","subject":"[SI] IT IS | Malware Stealer | Critical | Credential Leak of MTM Employee","priority":"P2 - High","suggested_priority":"P1 - Critical"}
+{"ticket_id":"49758","reason":"priority_critical_mismatch","subject":"[TH] CMWI | CVE | Critical |  Common Vulnerabilities and Exposures (CVE) detected","priority":"P2 - Medium","suggested_priority":"P1 - Critical"}
+{"ticket_id":"65635","reason":"unexpected_segment_count_1","subject":"TEST","priority":"P2 - Medium"}

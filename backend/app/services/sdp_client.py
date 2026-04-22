@@ -33,6 +33,7 @@ class SDPClient:
         "udf_sline_1827": "ip_address",
         "udf_date_2701": "alert_time",
         "udf_date_1807": "first_notif",
+        "udf_date_1808": "workaround_time",
     }
 
     # Regex to parse Wazuh info from ticket subject
@@ -186,12 +187,28 @@ class SDPClient:
             record["mttd_seconds"] = None
             record["sla_met"] = None
 
-        # Compute MTTR
-        if record.get("completed_time") and record.get("created_time"):
+        # Compute MTTR = workaround_time - alert_time
+        if record.get("workaround_time") and record.get("alert_time"):
+            delta = record["workaround_time"] - record["alert_time"]
+            record["mttr_seconds"] = max(0, int(delta.total_seconds()))
+        elif record.get("completed_time") and record.get("created_time"):
+            # Fallback: completed - created (if workaround_time not set)
             delta = record["completed_time"] - record["created_time"]
             record["mttr_seconds"] = max(0, int(delta.total_seconds()))
         else:
             record["mttr_seconds"] = None
+
+        # MTTR SLA based on priority: Critical=2h, High=5h, Medium=8h, Low=24h
+        MTTR_SLA = {"P1 - Critical": 7200, "P1-Critical": 7200, "Critical": 7200,
+                    "P2 - High": 18000, "P2-High": 18000, "High": 18000,
+                    "P3 - Medium": 28800, "P3-Medium": 28800, "Medium": 28800,
+                    "P2 - Medium": 28800,
+                    "P4 - Low": 86400, "P4-Low": 86400, "Low": 86400}
+        if record.get("mttr_seconds") is not None and record.get("priority"):
+            sla_limit = MTTR_SLA.get(record["priority"], 28800)  # default 8h
+            record["mttr_sla_met"] = record["mttr_seconds"] <= sla_limit
+        else:
+            record["mttr_sla_met"] = None
 
         # Parse Wazuh rule from subject
         rule_id, rule_name = self._parse_wazuh_rule(record.get("subject", ""))

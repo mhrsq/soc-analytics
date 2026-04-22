@@ -38,11 +38,13 @@ class Ticket(Base):
     ip_address = Column(String(100))       # udf_sline_1827
     alert_time = Column(DateTime(timezone=True))    # udf_date_2701
     first_notif = Column(DateTime(timezone=True))   # udf_date_1807
+    workaround_time = Column(DateTime(timezone=True))  # udf_date_1808
 
     # Computed
     mttd_seconds = Column(Integer)
     mttr_seconds = Column(Integer)
-    sla_met = Column(Boolean)
+    sla_met = Column(Boolean)       # MTTD SLA
+    mttr_sla_met = Column(Boolean)  # MTTR SLA (priority-based)
 
     # Parsed from subject
     wazuh_rule_id = Column(String(20))
