@@ -109,23 +109,42 @@ class AnalyticsService:
         customer: Optional[str] = None,
         asset_names: Optional[list[str]] = None,
     ) -> list[dict]:
-        """Get ticket volume over time."""
+        """Get ticket volume over time. Supports 'daily' and 'hourly' granularity."""
         filters = self._build_filters(start_date, end_date, customer, asset_names)
 
-        q = (
-            select(
-                cast(Ticket.created_time, Date).label("date"),
-                func.count(Ticket.id).label("total"),
-                func.count(Ticket.id).filter(Ticket.validation == "True Positive").label("tp_count"),
-                func.count(Ticket.id).filter(Ticket.validation == "False Positive").label("fp_count"),
-                func.count(Ticket.id).filter(
-                    (Ticket.validation == None) | (Ticket.validation == "Not Specified")
-                ).label("ns_count"),
+        if period == "hourly":
+            # Hourly: group by date + hour using date_trunc
+            hour_expr = func.date_trunc("hour", Ticket.created_time)
+            q = (
+                select(
+                    hour_expr.label("date"),
+                    func.count(Ticket.id).label("total"),
+                    func.count(Ticket.id).filter(Ticket.validation == "True Positive").label("tp_count"),
+                    func.count(Ticket.id).filter(Ticket.validation == "False Positive").label("fp_count"),
+                    func.count(Ticket.id).filter(
+                        (Ticket.validation == None) | (Ticket.validation == "Not Specified")
+                    ).label("ns_count"),
+                )
+                .where(*filters, Ticket.created_time != None)
+                .group_by(hour_expr)
+                .order_by(hour_expr)
             )
-            .where(*filters, Ticket.created_time != None)
-            .group_by(cast(Ticket.created_time, Date))
-            .order_by(cast(Ticket.created_time, Date))
-        )
+        else:
+            # Daily: group by date
+            q = (
+                select(
+                    cast(Ticket.created_time, Date).label("date"),
+                    func.count(Ticket.id).label("total"),
+                    func.count(Ticket.id).filter(Ticket.validation == "True Positive").label("tp_count"),
+                    func.count(Ticket.id).filter(Ticket.validation == "False Positive").label("fp_count"),
+                    func.count(Ticket.id).filter(
+                        (Ticket.validation == None) | (Ticket.validation == "Not Specified")
+                    ).label("ns_count"),
+                )
+                .where(*filters, Ticket.created_time != None)
+                .group_by(cast(Ticket.created_time, Date))
+                .order_by(cast(Ticket.created_time, Date))
+            )
 
         result = await self.session.execute(q)
         return [

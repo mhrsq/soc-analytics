@@ -1,7 +1,7 @@
 """Pydantic schemas for API request/response."""
 
 from datetime import date, datetime
-from typing import Optional
+from typing import Optional, Union
 from pydantic import BaseModel
 
 
@@ -24,7 +24,7 @@ class MetricsSummary(BaseModel):
 
 
 class VolumePoint(BaseModel):
-    date: date
+    date: Union[datetime, date]  # date for daily, datetime for hourly
     total: int
     tp_count: int
     fp_count: int

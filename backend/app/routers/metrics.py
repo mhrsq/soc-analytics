@@ -73,9 +73,21 @@ async def get_volume_trend(
     asset_name: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
-    """Get ticket volume trend over time (daily)."""
+    """Get ticket volume trend over time. Auto-detects granularity:
+    - ≤2 days → hourly aggregation
+    - >2 days → daily aggregation
+    """
+    parsed_start = _parse_time(start)
+    parsed_end = _parse_time(end)
+    # Auto-detect granularity based on range
+    period = "daily"
+    if parsed_start and parsed_end:
+        start_d = parsed_start if isinstance(parsed_start, date) and not isinstance(parsed_start, datetime) else (parsed_start.date() if isinstance(parsed_start, datetime) else parsed_start)
+        end_d = parsed_end if isinstance(parsed_end, date) and not isinstance(parsed_end, datetime) else (parsed_end.date() if isinstance(parsed_end, datetime) else parsed_end)
+        if (end_d - start_d).days <= 2:
+            period = "hourly"
     svc = AnalyticsService(db)
-    return await svc.get_volume_trend("daily", _parse_time(start), _parse_time(end), customer, _parse_asset_names(asset_name))
+    return await svc.get_volume_trend(period, parsed_start, parsed_end, customer, _parse_asset_names(asset_name))
 
 
 @router.get("/validation", response_model=ValidationBreakdown)
