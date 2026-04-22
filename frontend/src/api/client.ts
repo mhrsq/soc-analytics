@@ -263,10 +263,10 @@ export const api = {
 
   // ── Attack Map (Wazuh) ──
   getAttackMapEvents: (minutes = 5, size = 20) =>
-    request<{ items: AttackMapEvent[] }>(`/threatmap/attack-map/events?minutes=${minutes}&size=${size}`),
+    request<{ items: any[] }>(`/threatmap/attack-map/events?minutes=${minutes}&size=${size}`),
 
   getAttackMapData: (hours = 24) =>
-    request<AttackMapData>(`/threatmap/attack-map/data?hours=${hours}`),
+    request<any>(`/threatmap/attack-map/data?hours=${hours}`),
 
   // ── Topology ──
   getTopologyNodes: () =>
