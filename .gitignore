@@ -15,6 +15,9 @@ dist/
 # Docker
 pgdata/
 
+# Temp data
+.tmp/
+
 # IDE
 .vscode/
 .idea/
