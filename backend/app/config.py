@@ -15,6 +15,11 @@ class Settings(BaseSettings):
     SDP_BASE_URL: str = "https://sdp-ioc.mtm.id:8050"
     SDP_API_KEY: str = ""
 
+    # Wazuh
+    WAZUH_INDEXER_URL: str = "https://10.20.80.27:9200"
+    WAZUH_INDEXER_USER: str = "admin"
+    WAZUH_INDEXER_PASS: str = ""
+
     # AI
     CLAUDE_API_KEY: str = ""
 

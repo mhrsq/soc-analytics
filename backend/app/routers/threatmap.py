@@ -252,6 +252,34 @@ async def upsert_asset_location(
     )
     db.add(asset)
     await db.commit()
+
+
+# ═══════════════════════════════════════════════════════════
+# Attack Map — Live Wazuh Data
+# ═══════════════════════════════════════════════════════════
+
+@router.get("/attack-map/events")
+async def get_attack_map_events(
+    minutes: int = Query(5, ge=1, le=60),
+    size: int = Query(20, ge=1, le=100),
+    user: User = Depends(require_auth),
+):
+    """Get recent attack events from Wazuh with GeoIP for map visualization."""
+    from app.services.wazuh_client import WazuhClient
+    wazuh = WazuhClient()
+    events = await wazuh.get_recent_events(minutes=minutes, size=size)
+    return {"items": events}
+
+
+@router.get("/attack-map/data")
+async def get_attack_map_data(
+    hours: int = Query(24, ge=1, le=168),
+    user: User = Depends(require_auth),
+):
+    """Get aggregated attack map data (countries, protocols, agents)."""
+    from app.services.wazuh_client import WazuhClient
+    wazuh = WazuhClient()
+    return await wazuh.get_map_summary(hours=hours) 
     await db.refresh(asset)
     return asset
 

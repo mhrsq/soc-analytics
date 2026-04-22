@@ -8,9 +8,10 @@ import { MapContainer, TileLayer, CircleMarker, Polyline, Tooltip, useMap } from
 import ReactFlow, { Background, MiniMap, Handle, Position, applyNodeChanges, applyEdgeChanges, addEdge, type Node, type Edge, type OnNodesChange, type OnEdgesChange, type OnConnect } from "reactflow";
 import "reactflow/dist/style.css";
 import "leaflet/dist/leaflet.css";
-import { Shield, RefreshCw, Clock, Globe, Network, Plus, Save, X, Trash2, MapPin, Play, Square, ChevronRight, Server, Monitor, Database, Cloud, Radio, Router as RouterIcon, Cpu, Download, Upload, Camera, Search, Palette } from "lucide-react";
+import { Shield, RefreshCw, Clock, Globe, Network, Plus, Save, X, Trash2, MapPin, Play, Square, ChevronRight, Server, Monitor, Database, Cloud, Radio, Router as RouterIcon, Cpu, Download, Upload, Camera, Search, Palette, Zap } from "lucide-react";
 import { api } from "../api/client";
 import type { AttackArc, TopologyNode, TopologyLink } from "../types";
+import { AttackMap } from "../components/AttackMap";
 
 
 // ── Design guide colors ──
@@ -38,7 +39,7 @@ const NODE_CFG: Record<string, { label: string; color: string; icon: typeof Serv
 interface FeedItem { id: number; ip: string; asset: string | null; customer: string | null; priority: string | null; category: string | null; validation: string | null; status: string | null; time: string | null; rule_name: string | null; subject: string | null; is_private: boolean; }
 interface Site { id: number; label: string; customer: string | null; lat: number; lng: number; nodeCount: number; }
 
-type Mode = "map" | "graph";
+type Mode = "attack" | "map" | "graph";
 
 // ── Helpers ──
 function groupToSites(nodes: TopologyNode[]): Site[] {
@@ -97,7 +98,7 @@ const nodeTypes = { topology: TopoNode };
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════
 export function ThreatsPage() {
-  const [mode, setMode] = useState<Mode>("map");
+  const [mode, setMode] = useState<Mode>("attack");
   const [attacks, setAttacks] = useState<AttackArc[]>([]);
   const [nodes, setNodes] = useState<TopologyNode[]>([]);
   const [links, setLinks] = useState<TopologyLink[]>([]);
@@ -379,11 +380,14 @@ export function ThreatsPage() {
           <div className="h-4 w-px" style={{ backgroundColor: "#26262e" }} />
           {/* Mode toggle */}
           <div className="flex rounded-md overflow-hidden" style={{ border: "1px solid #26262e" }}>
+            <button onClick={() => setMode("attack")} className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium" style={{ backgroundColor: mode === "attack" ? "#1b1b21" : "transparent", color: mode === "attack" ? "#ef4444" : "#646471" }}>
+              <Zap className="w-3 h-3" /> Attack Map
+            </button>
             <button onClick={() => setMode("map")} className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium" style={{ backgroundColor: mode === "map" ? "#1b1b21" : "transparent", color: mode === "map" ? "#e8e8ec" : "#646471" }}>
-              <Globe className="w-3 h-3" /> Map
+              <Globe className="w-3 h-3" /> Sites
             </button>
             <button onClick={() => setMode("graph")} className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium" style={{ backgroundColor: mode === "graph" ? "#1b1b21" : "transparent", color: mode === "graph" ? "#e8e8ec" : "#646471" }}>
-              <Network className="w-3 h-3" /> Graph
+              <Network className="w-3 h-3" /> Topology
             </button>
           </div>
           <div className="h-4 w-px" style={{ backgroundColor: "#26262e" }} />
@@ -449,8 +453,13 @@ export function ThreatsPage() {
         </div>
       )}
 
-      {/* ── Main content area ── */}
-      <div className="flex-1 relative">
+      {/* ── Attack Map Mode (full-screen, replaces everything) ── */}
+      {mode === "attack" && (
+        <AttackMap customer={customer} />
+      )}
+
+      {/* ── Main content area (Sites + Topology modes) ── */}
+      {mode !== "attack" && <div className="flex-1 relative">
         {/* MAP MODE */}
         {mode === "map" && (
           <MapContainer center={[-2, 118]} zoom={5} minZoom={3} maxZoom={14} zoomControl={false} attributionControl={false} style={{ width: "100%", height: "100%", background: "#0a0a0c" }}>
@@ -638,6 +647,8 @@ export function ThreatsPage() {
           </div>
         </div>
       )}
+
+      </div>}
 
       {/* ── Attack Feed (bottom, Map mode only) ── */}
       {mode === "map" && (

@@ -261,6 +261,13 @@ export const api = {
   getTicketAssets: (customer?: string) =>
     request<TicketAsset[]>(`/threatmap/ticket-assets${qs({ customer })}`),
 
+  // ── Attack Map (Wazuh) ──
+  getAttackMapEvents: (minutes = 5, size = 20) =>
+    request<{ items: AttackMapEvent[] }>(`/threatmap/attack-map/events?minutes=${minutes}&size=${size}`),
+
+  getAttackMapData: (hours = 24) =>
+    request<AttackMapData>(`/threatmap/attack-map/data?hours=${hours}`),
+
   // ── Topology ──
   getTopologyNodes: () =>
     request<TopologyNode[]>("/threatmap/topology/nodes"),

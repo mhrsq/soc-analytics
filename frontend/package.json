@@ -22,9 +22,11 @@
     "react-grid-layout": "^2.2.2",
     "react-leaflet": "^5.0.0",
     "react-markdown": "^10.1.0",
+    "react-simple-maps": "^3.0.0",
     "reactflow": "^11.11.4",
     "recharts": "^2.15.0",
     "remark-gfm": "^4.0.1",
+    "topojson-client": "^3.1.0",
     "uuid": "^13.0.0"
   },
   "devDependencies": {

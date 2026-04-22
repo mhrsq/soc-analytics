@@ -10,7 +10,10 @@ export interface MetricsSummary {
   fp_rate: number;
   avg_mttd_seconds: number | null;
   avg_mttd_display: string | null;
+  avg_mttr_seconds: number | null;
+  avg_mttr_display: string | null;
   sla_compliance_pct: number | null;
+  mttr_sla_pct: number | null;
   si_count: number;
   period_start: string | null;
   period_end: string | null;
@@ -514,4 +517,38 @@ export interface TopologyLinkCreate {
   label?: string;
   bandwidth?: string;
   metadata?: Record<string, unknown>;
+}
+
+// ── Attack Map (Wazuh) ──
+export interface AttackMapEvent {
+  id: string;
+  time: string;
+  source_ip: string;
+  source_country: string;
+  source_lat: number;
+  source_lng: number;
+  port: string;
+  protocol: string;
+  rule_id: string;
+  rule_desc: string;
+  rule_level: number;
+  agent_name: string;
+  agent_ip: string;
+}
+
+export interface AttackMapCountry {
+  country: string;
+  count: number;
+  lat: number;
+  lng: number;
+}
+
+export interface AttackMapData {
+  total_events: number;
+  unique_ips: number;
+  active_countries: number;
+  top_source: string;
+  countries: AttackMapCountry[];
+  protocols: { port: string; protocol: string; count: number }[];
+  agents: { name: string; count: number }[];
 }
