@@ -459,7 +459,7 @@ export function ThreatsPage() {
       )}
 
       {/* ── Main content area (Sites + Topology modes) ── */}
-      {mode !== "attack" && <div className="flex-1 relative">
+      {mode !== "attack" && (<div className="flex-1 relative">
         {/* MAP MODE */}
         {mode === "map" && (
           <MapContainer center={[-2, 118]} zoom={5} minZoom={3} maxZoom={14} zoomControl={false} attributionControl={false} style={{ width: "100%", height: "100%", background: "#0a0a0c" }}>
@@ -648,7 +648,7 @@ export function ThreatsPage() {
         </div>
       )}
 
-      </div>}
+      </div>)}
 
       {/* ── Attack Feed (bottom, Map mode only) ── */}
       {mode === "map" && (
