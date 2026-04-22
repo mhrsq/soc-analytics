@@ -61,6 +61,8 @@ export function Dashboard() {
 
   const handleApplyFilters = useCallback((next: { start: string; end: string; customer: string; asset_name: string }) => {
     setFilters(next);
+    // Store filters for AI Chat widget to read
+    try { localStorage.setItem("soc_active_filters", JSON.stringify({ start: next.start, end: next.end, customer: next.customer })); } catch {}
   }, []);
 
   // Data fetching — all re-trigger when filters change or refreshTick bumps

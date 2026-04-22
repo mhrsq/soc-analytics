@@ -42,7 +42,14 @@ const INITIAL_CHIPS = [
   { label: "Explain this page", prompt: "Jelaskan menu/halaman yang sedang saya buka sekarang. Apa fungsinya, cara menggunakannya, dan informasi apa yang bisa saya dapatkan dari sini?" },
 ];
 
-export function AIChatWidget({ activePage, filters }: Props) {
+export function AIChatWidget({ activePage, filters: filtersProp }: Props) {
+  // Read dashboard filters from localStorage (set by Dashboard.tsx when filters change)
+  const filters = filtersProp || (() => {
+    try {
+      const stored = localStorage.getItem("soc_active_filters");
+      return stored ? JSON.parse(stored) : undefined;
+    } catch { return undefined; }
+  })();
   const [isOpen, setIsOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [messages, setMessages] = useState<ChatMsg[]>([]);
@@ -206,12 +213,14 @@ export function AIChatWidget({ activePage, filters }: Props) {
   const panelClass = isFullscreen
     ? "fixed inset-2 sm:inset-4 z-[9999] rounded-xl"
     : "fixed bottom-2 right-2 left-2 sm:left-auto sm:bottom-6 sm:right-6 z-[9999] sm:w-[420px] rounded-xl";
-  const panelHeight = isFullscreen ? "auto" : "max(400px, min(640px, calc(100vh - 80px)))";
+  const panelStyle: React.CSSProperties = isFullscreen
+    ? { top: 8, bottom: 8, left: 8, right: 8, height: "auto", backgroundColor: "#0a0a0c", border: "1px solid #26262e", boxShadow: "0 8px 48px rgba(0,0,0,0.8)" }
+    : { height: "max(400px, min(640px, calc(100vh - 80px)))", backgroundColor: "#0a0a0c", border: "1px solid #26262e", boxShadow: "0 8px 48px rgba(0,0,0,0.6)" };
 
   // ── Chat Panel ──
   return (
     <div className={`${panelClass} overflow-hidden shadow-2xl flex flex-col`}
-      style={{ height: panelHeight, backgroundColor: "#0a0a0c", border: "1px solid #26262e", boxShadow: "0 8px 48px rgba(0,0,0,0.6)" }}>
+      style={panelStyle}>
 
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 shrink-0" style={{ borderBottom: "1px solid #1d1d23" }}>
