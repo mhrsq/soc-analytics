@@ -1,10 +1,11 @@
 """AI insights API endpoints."""
 
+from datetime import datetime
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.schemas import AIInsight, AIInsightRequest, WidgetInsightsRequest, WidgetInsightsResponse
+from app.schemas import AIInsight, AIInsightRequest, ExecSummaryRequest, ExecSummaryResponse, WidgetInsightsRequest, WidgetInsightsResponse
 from app.services.ai_service import AIService
 from app.services.analytics_service import AnalyticsService
 
@@ -84,3 +85,17 @@ async def get_widget_insights(
         insights=result.get("insights", {}),
         model_used=result.get("model_used", "unknown"),
     )
+
+
+@router.post("/executive-summary", response_model=ExecSummaryResponse)
+async def get_executive_summary(
+    req: ExecSummaryRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """Generate an AI-powered executive summary of SOC metrics."""
+    from datetime import date as date_type
+
+    ai = AIService(db)
+    start = datetime.strptime(req.start_date, "%Y-%m-%d").date() if req.start_date else None
+    end = datetime.strptime(req.end_date, "%Y-%m-%d").date() if req.end_date else None
+    return await ai.generate_executive_summary(start, end, req.customer, req.provider_id)

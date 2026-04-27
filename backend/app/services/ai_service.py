@@ -418,6 +418,64 @@ Jawab HANYA dengan JSON valid, tanpa markdown atau teks lain."""
             logger.error(f"Widget insights failed: {e}")
             return {"insights": {}, "model_used": "error", "error": str(e)}
 
+    async def generate_executive_summary(
+        self, start_date=None, end_date=None, customer=None, provider_id=None
+    ) -> dict:
+        """Generate an executive summary paragraph from SOC metrics."""
+        from app.services.analytics_service import AnalyticsService
+
+        provider = await self._get_provider(provider_id)
+        if not provider:
+            return {
+                "summary": "No LLM provider configured.",
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "model_used": "none",
+            }
+
+        svc = AnalyticsService(self.db)
+        metrics = await svc.get_summary(start_date, end_date, customer)
+        top_alerts = await svc.get_top_alerts(5, start_date, end_date, customer)
+
+        prompt = f"""Kamu adalah SOC Manager senior. Buat Executive Summary singkat (3-5 paragraf)
+dalam Bahasa Indonesia berdasarkan data berikut:
+
+Period: {start_date or "all time"} to {end_date or "now"}
+{f"Customer: {customer}" if customer else "All customers"}
+
+Metrics:
+- Total tickets: {metrics['total_tickets']}
+- Open: {metrics['open_tickets']}
+- True Positive: {metrics['tp_count']} ({metrics['tp_rate']}%)
+- False Positive: {metrics['fp_count']} ({metrics['fp_rate']}%)
+- MTTD SLA: {metrics['sla_compliance_pct']}%
+- MTTR SLA: {metrics['mttr_sla_pct']}%
+- Avg MTTD: {metrics['avg_mttd_display']}
+- Avg MTTR: {metrics['avg_mttr_display']}
+- Security Incidents: {metrics['si_count']}
+
+Top Alerts: {', '.join([f"{a['rule_name']} ({a['count']})" for a in top_alerts[:5]])}
+
+Instruksi:
+- Gunakan Bahasa Indonesia natural, profesional tapi santai
+- Highlight anomali dan action items
+- Beri rekomendasi konkret
+- Format sebagai paragraf (bukan bullet points)"""
+
+        try:
+            text = await self._call_llm(provider, prompt)
+            return {
+                "summary": text,
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "model_used": f"{provider.label} ({provider.model})",
+            }
+        except Exception as e:
+            logger.error(f"Executive summary generation failed: {e}")
+            return {
+                "summary": f"Failed to generate: {e}",
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "model_used": "error",
+            }
+
     def _fallback_insights(self, metrics: dict, period: str) -> dict:
         """Generate basic insights without AI when no LLM is available."""
         total = metrics.get("total_tickets", 0)

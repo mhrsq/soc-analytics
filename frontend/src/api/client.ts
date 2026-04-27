@@ -85,6 +85,7 @@ import type {
   ClassifierRunResult,
   WidgetInsightsRequest,
   WidgetInsightsResponse,
+  ExecSummaryResponse,
 } from "../types";
 
 interface Filters {
@@ -226,6 +227,12 @@ export const api = {
 
   getWidgetInsights: (req: WidgetInsightsRequest) =>
     request<WidgetInsightsResponse>("/ai/widget-insights", {
+      method: "POST",
+      body: JSON.stringify(req),
+    }),
+
+  getExecSummary: (req: { start_date?: string; end_date?: string; customer?: string }) =>
+    request<ExecSummaryResponse>("/ai/executive-summary", {
       method: "POST",
       body: JSON.stringify(req),
     }),

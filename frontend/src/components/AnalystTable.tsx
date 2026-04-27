@@ -18,7 +18,7 @@ export function AnalystTable({ data, loading, bare }: Props) {
       <table className="w-full text-sm">
         <thead>
           <tr style={{ borderBottom: "1px solid var(--theme-surface-border)" }}>
-            {["Analyst", "Assigned", "Resolved", "Avg MTTR", "TP Found"].map((h) => (
+            {["Analyst", "Assigned", "Resolved", "Avg MTTD", "TP Found"].map((h) => (
               <th key={h} className={`text-xs font-medium pb-2.5 pr-3 ${h === "Analyst" ? "text-left" : "text-right"}`} style={{ color: "var(--theme-text-muted)" }}>{h}</th>
             ))}
           </tr>
@@ -44,7 +44,7 @@ export function AnalystTable({ data, loading, bare }: Props) {
                   {(() => {
                     const openCount = row.assigned - row.resolved;
                     return (
-                      <div className="inline-flex items-center gap-2">
+                      <div className="inline-flex items-center gap-2" title="Green = resolved, Amber = open">
                         <div className="w-16 h-2 rounded-full overflow-hidden flex" style={{ backgroundColor: "color-mix(in srgb, var(--theme-surface-border) 50%, transparent)" }}>
                           <div className="h-full rounded-l-full transition-all duration-500 bg-signal-green"
                             style={{ width: `${Math.min(resolvePct, 100)}%` }} />
@@ -63,7 +63,7 @@ export function AnalystTable({ data, loading, bare }: Props) {
                     );
                   })()}
                 </td>
-                <td className="py-3 pr-3 text-right font-mono text-xs" style={{ color: "var(--theme-text-secondary)" }}>{row.avg_mttr_display ?? "—"}</td>
+                <td className="py-3 pr-3 text-right font-mono text-xs" style={{ color: "var(--theme-text-secondary)" }}>{row.avg_mttd_display ?? "—"}</td>
                 <td className="py-3 text-right font-mono text-xs" style={{ color: "var(--theme-text-primary)" }}>{row.tp_found.toLocaleString()}</td>
               </tr>
             );

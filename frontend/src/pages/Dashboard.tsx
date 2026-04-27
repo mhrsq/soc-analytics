@@ -5,7 +5,9 @@ import "react-resizable/css/styles.css";
 import { api } from "../api/client";
 import { useFetch } from "../hooks/useFetch";
 import { useDashboard } from "../contexts/DashboardContext";
-import type { WidgetConfig, DataSource, ChartType, ValidationBreakdown } from "../types";
+import type { WidgetConfig, DataSource, ChartType, ValidationBreakdown, WidgetInsightsRequest } from "../types";
+import { AiInsightButton } from "../components/AiInsightButton";
+import { Sparkles } from "lucide-react";
 
 import { FilterBar } from "../components/FilterBar";
 import { SyncBanner } from "../components/SyncBanner";
@@ -22,6 +24,7 @@ import { ChartRenderer } from "../components/ChartRenderer";
 import { WidgetWrapper } from "../components/WidgetWrapper";
 import { LiveTicketFeed } from "../components/LiveTicketFeed";
 
+import { ExecSummaryCard } from "../components/ExecSummaryCard";
 import { AddWidgetModal } from "../components/AddWidgetModal";
 import { EditWidgetModal } from "../components/EditWidgetModal";
 import { TicketDetailModal } from "../components/TicketDetailModal";
@@ -81,6 +84,26 @@ export function Dashboard() {
     [filters.customer, filters.start, filters.end]
   );
   const syncStatus = useFetch(() => api.getSyncStatus(), [syncing]);
+
+  const [widgetInsights, setWidgetInsights] = useState<Record<string, string>>({});
+  const [insightsLoading, setInsightsLoading] = useState(false);
+
+  const generateInsights = useCallback(async () => {
+    setInsightsLoading(true);
+    try {
+      const req: WidgetInsightsRequest = {
+        start_date: filters.start,
+        end_date: filters.end,
+        customer: filters.customer || undefined,
+      };
+      const result = await api.getWidgetInsights(req);
+      setWidgetInsights(result.insights);
+    } catch (e) {
+      console.error("Widget insights failed", e);
+    } finally {
+      setInsightsLoading(false);
+    }
+  }, [filters]);
 
   const firstError = summary.error || volume.error || validation.error || priority.error || customers.error || topAlerts.error || mttd.error || analysts.error || null;
 
@@ -172,6 +195,13 @@ export function Dashboard() {
     const lg = allLayouts.lg;
     if (lg) updateLayout(lg);
   }, [editMode, updateLayout]);
+
+  // Insight key map — maps widget.id → backend insight key
+  const insightKeyMap: Record<string, string> = {
+    kpi: "overview", volume: "volume", validation: "validation",
+    priority: "priority", customers: "customers", topalerts: "top_alerts",
+    mttd: "mttd", analysts: "analysts",
+  };
 
   // Default chart types for built-in widgets (to detect if user changed type via edit)
   const BUILTIN_CHART_TYPES: Record<string, ChartType> = {
@@ -275,6 +305,26 @@ export function Dashboard() {
 
 
 
+      {/* AI Analysis button — before grid */}
+      <div className="flex justify-end px-1 mb-2">
+        <button
+          onClick={generateInsights}
+          disabled={insightsLoading}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all disabled:opacity-50"
+          style={{
+            background: "color-mix(in srgb, var(--theme-accent) 12%, transparent)",
+            color: "var(--theme-accent)",
+            border: "1px solid color-mix(in srgb, var(--theme-accent) 25%, transparent)",
+          }}
+        >
+          <Sparkles className={`w-3.5 h-3.5 ${insightsLoading ? "animate-pulse" : ""}`} />
+          {insightsLoading ? "Generating..." : "AI Analysis"}
+        </button>
+      </div>
+
+      {/* Executive Summary — above the grid */}
+      <ExecSummaryCard start={filters.start} end={filters.end} customer={filters.customer} />
+
       {/* Widget Grid */}
       <div ref={containerRef as React.Ref<HTMLDivElement>}>
         <ResponsiveGridLayout
@@ -291,19 +341,29 @@ export function Dashboard() {
           compactor={getCompactor("vertical")}
           margin={[16, 16]}
         >
-          {widgets.map(widget => (
-            <div key={widget.id} className="h-full">
-              <WidgetWrapper
-                widget={widget}
-                editMode={editMode}
-                onEdit={() => setEditWidget(widget)}
-                onRemove={() => removeWidget(widget.id)}
-                tooltip={WIDGET_TOOLTIPS[widget.id]}
-              >
-                {renderWidgetContent(widget)}
-              </WidgetWrapper>
-            </div>
-          ))}
+          {widgets.map(widget => {
+            const insightKey = insightKeyMap[widget.id] || widget.id;
+            return (
+              <div key={widget.id} className="h-full">
+                <WidgetWrapper
+                  widget={widget}
+                  editMode={editMode}
+                  onEdit={() => setEditWidget(widget)}
+                  onRemove={() => removeWidget(widget.id)}
+                  tooltip={WIDGET_TOOLTIPS[widget.id]}
+                >
+                  <div className="relative h-full">
+                    {renderWidgetContent(widget)}
+                    {(widgetInsights[insightKey] || insightsLoading) && (
+                      <div className="absolute top-1 right-1 z-10">
+                        <AiInsightButton insight={widgetInsights[insightKey] ?? null} loading={insightsLoading} />
+                      </div>
+                    )}
+                  </div>
+                </WidgetWrapper>
+              </div>
+            );
+          })}
         </ResponsiveGridLayout>
       </div>
 

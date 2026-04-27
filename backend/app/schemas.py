@@ -76,6 +76,8 @@ class AnalystPerformance(BaseModel):
     analyst: str
     assigned: int
     resolved: int
+    avg_mttd_seconds: Optional[float] = None
+    avg_mttd_display: Optional[str] = None
     avg_mttr_seconds: Optional[float]
     avg_mttr_display: Optional[str]
     tp_found: int
@@ -580,6 +582,19 @@ class PostureScore(BaseModel):
 
 
 # --- Widget Insights ---
+
+class ExecSummaryRequest(BaseModel):
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    customer: Optional[str] = None
+    provider_id: Optional[int] = None
+
+
+class ExecSummaryResponse(BaseModel):
+    summary: str
+    generated_at: str
+    model_used: str
+
 
 class WidgetInsightsRequest(BaseModel):
     start_date: Optional[str] = None

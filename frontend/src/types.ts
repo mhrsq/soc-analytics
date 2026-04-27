@@ -69,6 +69,8 @@ export interface AnalystPerformance {
   analyst: string;
   assigned: number;
   resolved: number;
+  avg_mttd_seconds: number | null;
+  avg_mttd_display: string | null;
   avg_mttr_seconds: number | null;
   avg_mttr_display: string | null;
   tp_found: number;
@@ -631,6 +633,12 @@ export interface ClassifierRunResult {
 }
 
 // ── Widget AI Insights (Manager View) ──
+
+export interface ExecSummaryResponse {
+  summary: string;
+  generated_at: string;
+  model_used: string;
+}
 
 export interface WidgetInsightsRequest {
   start_date?: string;

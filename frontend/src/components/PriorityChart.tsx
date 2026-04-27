@@ -19,28 +19,29 @@ interface Props {
 }
 
 const PRIORITY_COLORS: Record<string, string> = {
-  "P1 - Critical": "#ef4444",
-  "P1 -Critical": "#ef4444",
-  "Critical": "#ef4444",
-  "P2 - High": "#f59e0b",
-  "P2 -High": "#f59e0b",
-  "High": "#f59e0b",
-  "P3 - Medium": "#9b9ba8",
-  "P3 -Medium": "#9b9ba8",
-  "Medium": "#9b9ba8",
-  "P4 - Low": "#3e3e48",
-  "P4 -Low": "#3e3e48",
-  "Low": "#3e3e48",
+  "P1 - Critical": "#ef4444",   // red
+  "P1-Critical":   "#ef4444",
+  Critical:        "#ef4444",
+  "P2 - High":     "#f97316",   // orange
+  "P2-High":       "#f97316",
+  High:            "#f97316",
+  "P3 - Medium":   "#eab308",   // yellow
+  "P3-Medium":     "#eab308",
+  Medium:          "#eab308",
+  "P4 - Low":      "#22c55e",   // green
+  "P4-Low":        "#22c55e",
+  Low:             "#22c55e",
+  Normal:          "#3b82f6",    // blue
 };
 
 function getPriorityColor(priority: string): string {
   if (PRIORITY_COLORS[priority]) return PRIORITY_COLORS[priority];
-  const lower = priority.toLowerCase();
-  if (lower.includes("critical")) return "#ef4444";
-  if (lower.includes("high")) return "#f59e0b";
-  if (lower.includes("medium")) return "#9b9ba8";
-  if (lower.includes("low")) return "#3e3e48";
-  return "#646471";
+  const p = priority.toLowerCase();
+  if (p.includes("critical")) return "#ef4444";
+  if (p.includes("high")) return "#f97316";
+  if (p.includes("medium")) return "#eab308";
+  if (p.includes("low")) return "#22c55e";
+  return "#3b82f6";
 }
 
 export function PriorityChart({ data, loading, bare }: Props) {

@@ -394,6 +394,9 @@ class AnalyticsService:
                 func.count(Ticket.id).filter(
                     Ticket.status.in_(["Resolved", "Closed"])
                 ).label("resolved"),
+                func.avg(Ticket.mttd_seconds).filter(
+                    Ticket.mttd_seconds != None, Ticket.mttd_seconds > 0
+                ).label("avg_mttd"),
                 func.avg(Ticket.mttr_seconds).filter(
                     Ticket.mttr_seconds != None, Ticket.mttr_seconds > 0
                 ).label("avg_mttr"),
@@ -412,6 +415,8 @@ class AnalyticsService:
                 "analyst": row.technician,
                 "assigned": row.assigned,
                 "resolved": row.resolved,
+                "avg_mttd_seconds": round(row.avg_mttd, 1) if row.avg_mttd else None,
+                "avg_mttd_display": _format_duration(row.avg_mttd),
                 "avg_mttr_seconds": round(row.avg_mttr, 1) if row.avg_mttr else None,
                 "avg_mttr_display": _format_duration(row.avg_mttr),
                 "tp_found": row.tp_found,
