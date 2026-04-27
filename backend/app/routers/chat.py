@@ -311,14 +311,15 @@ async def _call_llm_chat(provider: LlmProvider, messages: list[dict]) -> str:
         return response.content[0].text
 
     else:
-        # OpenAI-compatible (openai, xai, google)
+        # OpenAI-compatible (openai, xai, google, openrouter, 9router)
         import httpx
-        if provider.provider == "xai":
-            url = provider.base_url or "https://api.x.ai/v1"
-        elif provider.provider == "google":
-            url = provider.base_url or "https://generativelanguage.googleapis.com/v1beta/openai"
-        else:
-            url = provider.base_url or "https://api.openai.com/v1"
+        DEFAULT_URLS = {
+            "xai": "https://api.x.ai/v1",
+            "google": "https://generativelanguage.googleapis.com/v1beta/openai",
+            "openrouter": "https://openrouter.ai/api/v1",
+            "9router": "https://9ai.cyberxatria.id/v1",
+        }
+        url = provider.base_url or DEFAULT_URLS.get(provider.provider, "https://api.openai.com/v1")
 
         model_lower = (provider.model or "").lower()
         use_new_param = provider.provider == "openai" and any(
@@ -330,7 +331,7 @@ async def _call_llm_chat(provider: LlmProvider, messages: list[dict]) -> str:
             resp = await http.post(
                 f"{url}/chat/completions",
                 headers={"Authorization": f"Bearer {provider.api_key}", "Content-Type": "application/json"},
-                json={"model": provider.model, **token_param, "messages": messages},
+                json={"model": provider.model, **token_param, "stream": False, "messages": messages},
             )
             if resp.status_code != 200:
                 raise RuntimeError(f"LLM HTTP {resp.status_code}: {resp.text[:300]}")

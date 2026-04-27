@@ -183,7 +183,7 @@ async def _test_llm_call(
             "xai": "https://api.x.ai/v1",
             "google": "https://generativelanguage.googleapis.com/v1beta/openai",
             "openrouter": "https://openrouter.ai/api/v1",
-            "9router": "http://localhost:20128/v1",
+            "9router": "https://9ai.cyberxatria.id/v1",
         }
         url = base_url or DEFAULT_URLS.get(provider, "https://api.openai.com/v1")
 
@@ -197,6 +197,7 @@ async def _test_llm_call(
                 json={
                     "model": model,
                     "max_tokens": 64,
+                    "stream": False,
                     "messages": [{"role": "user", "content": prompt}],
                 },
             )
@@ -260,7 +261,7 @@ async def get_provider_models(provider_id: int, user: User = Depends(require_aut
         "xai": "https://api.x.ai/v1",
         "google": "https://generativelanguage.googleapis.com/v1beta/openai",
         "openrouter": "https://openrouter.ai/api/v1",
-        "9router": "http://localhost:20128/v1",
+        "9router": "https://9ai.cyberxatria.id/v1",
     }
     url = row.base_url or DEFAULT_URLS.get(row.provider, "https://api.openai.com/v1")
 

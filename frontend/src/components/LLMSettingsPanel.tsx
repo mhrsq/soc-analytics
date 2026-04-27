@@ -28,7 +28,7 @@ const PROVIDERS = [
 
 const DEFAULT_URLS: Record<string, string> = {
   openrouter: "https://openrouter.ai/api/v1",
-  "9router": "http://localhost:20128/v1",
+  "9router": "https://9ai.cyberxatria.id/v1",
 };
 
 interface Props {

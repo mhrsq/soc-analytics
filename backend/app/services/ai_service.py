@@ -117,7 +117,7 @@ Focus on:
             "xai": "https://api.x.ai/v1",
             "google": "https://generativelanguage.googleapis.com/v1beta/openai",
             "openrouter": "https://openrouter.ai/api/v1",
-            "9router": "http://localhost:20128/v1",
+            "9router": "https://9ai.cyberxatria.id/v1",
         }
         url = provider.base_url or DEFAULT_URLS.get(provider.provider, "https://api.openai.com/v1")
 
@@ -141,6 +141,7 @@ Focus on:
                 json={
                     "model": provider.model,
                     **token_param,
+                    "stream": False,
                     "messages": [
                         {"role": "system", "content": self.SYSTEM_PROMPT},
                         {"role": "user", "content": prompt},
