@@ -95,6 +95,12 @@ export function Dashboard() {
         start_date: filters.start,
         end_date: filters.end,
         customer: filters.customer || undefined,
+        sla_trend: summary.data ? [summary.data] as unknown as Record<string, unknown>[] : undefined,
+        fp_trend: volume.data as unknown as Record<string, unknown>[] ?? undefined,
+        mom_kpis: priority.data as unknown as Record<string, unknown>[] ?? undefined,
+        analyst_scores: analysts.data as unknown as Record<string, unknown>[] ?? undefined,
+        posture_score: summary.data as unknown as Record<string, unknown> ?? undefined,
+        funnel: topAlerts.data as unknown as Record<string, unknown>[] ?? undefined,
       };
       const result = await api.getWidgetInsights(req);
       setWidgetInsights(result.insights);
@@ -103,7 +109,7 @@ export function Dashboard() {
     } finally {
       setInsightsLoading(false);
     }
-  }, [filters]);
+  }, [filters, summary.data, volume.data, priority.data, analysts.data, topAlerts.data]);
 
   const firstError = summary.error || volume.error || validation.error || priority.error || customers.error || topAlerts.error || mttd.error || analysts.error || null;
 
@@ -354,7 +360,7 @@ export function Dashboard() {
                 >
                   <div className="relative h-full">
                     {renderWidgetContent(widget)}
-                    {(widgetInsights[insightKey] || insightsLoading) && (
+                    {(widgetInsights[insightKey] || insightsLoading || Object.keys(widgetInsights).length > 0) && (
                       <div className="absolute top-1 right-1 z-10">
                         <AiInsightButton insight={widgetInsights[insightKey] ?? null} loading={insightsLoading} />
                       </div>
