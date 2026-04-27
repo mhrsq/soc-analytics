@@ -5,6 +5,7 @@ import type { ShiftPerformance } from "../types";
 interface Props {
   data: ShiftPerformance[] | null;
   loading: boolean;
+  bare?: boolean;
 }
 
 function slaColor(pct: number | null): string {
@@ -24,7 +25,7 @@ function fmtPct(v: number | null): string {
   return `${v.toFixed(1)}%`;
 }
 
-export function ShiftPerformanceChart({ data, loading }: Props) {
+export function ShiftPerformanceChart({ data, loading, bare = false }: Props) {
   const inner =
     loading || !data ? (
       <TableSkeleton rows={4} cols={4} />
@@ -138,5 +139,6 @@ export function ShiftPerformanceChart({ data, loading }: Props) {
       </div>
     );
 
+  if (bare) return <>{inner}</>;
   return <Card title="Shift Performance">{inner}</Card>;
 }

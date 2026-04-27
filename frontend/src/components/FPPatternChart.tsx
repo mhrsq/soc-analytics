@@ -17,6 +17,7 @@ import type { FpPatternItem } from "../types";
 interface Props {
   data: FpPatternItem[] | null;
   loading: boolean;
+  bare?: boolean;
 }
 
 function barColor(fpRate: number): string {
@@ -29,7 +30,7 @@ function truncate(s: string, max: number): string {
   return s.length > max ? s.slice(0, max - 1) + "…" : s;
 }
 
-export function FPPatternChart({ data, loading }: Props) {
+export function FPPatternChart({ data, loading, bare = false }: Props) {
   const cc = useChartColors();
   const tooltipStyle = useTooltipStyle();
 
@@ -123,5 +124,6 @@ export function FPPatternChart({ data, loading }: Props) {
       </ResponsiveContainer>
     );
 
+  if (bare) return <>{inner}</>;
   return <Card title="FP Rate by Category">{inner}</Card>;
 }

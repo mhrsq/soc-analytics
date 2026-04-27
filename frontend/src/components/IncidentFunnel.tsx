@@ -5,6 +5,7 @@ import type { IncidentFunnelStep } from "../types";
 interface Props {
   data: IncidentFunnelStep[] | null;
   loading: boolean;
+  bare?: boolean;
 }
 
 const STEP_COLORS = [
@@ -14,7 +15,7 @@ const STEP_COLORS = [
   "#ef4444",
 ];
 
-export function IncidentFunnel({ data, loading }: Props) {
+export function IncidentFunnel({ data, loading, bare = false }: Props) {
   const inner =
     loading || !data ? (
       <ChartSkeleton height={240} />
@@ -66,5 +67,6 @@ export function IncidentFunnel({ data, loading }: Props) {
       </div>
     );
 
+  if (bare) return <>{inner}</>;
   return <Card title="Alert to Incident Funnel">{inner}</Card>;
 }

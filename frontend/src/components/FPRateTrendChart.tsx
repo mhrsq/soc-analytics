@@ -16,6 +16,7 @@ import type { FpTrendPoint } from "../types";
 interface Props {
   data: FpTrendPoint[] | null;
   loading: boolean;
+  bare?: boolean;
 }
 
 function fmtMonth(v: string): string {
@@ -24,7 +25,7 @@ function fmtMonth(v: string): string {
   return d.toLocaleDateString("en-US", { month: "short", year: "2-digit" });
 }
 
-export function FPRateTrendChart({ data, loading }: Props) {
+export function FPRateTrendChart({ data, loading, bare = false }: Props) {
   const cc = useChartColors();
   const tooltipStyle = useTooltipStyle();
 
@@ -91,5 +92,6 @@ export function FPRateTrendChart({ data, loading }: Props) {
     </ResponsiveContainer>
   );
 
+  if (bare) return <>{inner}</>;
   return <Card title="False Positive Rate Trend">{inner}</Card>;
 }

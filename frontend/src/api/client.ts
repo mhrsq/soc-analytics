@@ -189,6 +189,15 @@ export const api = {
       body: JSON.stringify({ profiles, active_profile_id: activeProfileId }),
     }),
 
+  getManagerDashboardProfiles: () =>
+    request<{ id: string; name: string; widgets: unknown[]; is_default: boolean; is_active: boolean }[]>("/dashboard/profiles?page=manager"),
+
+  saveManagerDashboardProfiles: (profiles: { id: string; name: string; widgets: unknown[]; is_default: boolean; is_active?: boolean }[], activeProfileId: string | null) =>
+    request<{ ok: boolean }>("/dashboard/profiles?page=manager", {
+      method: "PUT",
+      body: JSON.stringify({ profiles, active_profile_id: activeProfileId }),
+    }),
+
   // ── AI Chat ──
   sendChatMessage: (data: { message: string; conversation_id?: string; provider_id?: number; model_override?: string; filters?: Record<string, string> }) =>
     request<{ message: string; conversation_id: string; model_used: string | null; created_at: string }>("/chat/message", {

@@ -244,12 +244,21 @@ CREATE TABLE IF NOT EXISTS dashboard_profiles (
     widgets      JSONB NOT NULL DEFAULT '[]',
     is_default   BOOLEAN DEFAULT false,
     is_active    BOOLEAN DEFAULT false,
+    page         VARCHAR(50) DEFAULT 'main',
     created_at   TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at   TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     PRIMARY KEY (id, user_id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_dashboard_profiles_user ON dashboard_profiles(user_id);
+
+-- Migration: add page column to existing databases
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='dashboard_profiles' AND column_name='page') THEN
+    ALTER TABLE dashboard_profiles ADD COLUMN page VARCHAR(50) DEFAULT 'main';
+  END IF;
+END$$;
 
 -- Users & Authentication
 CREATE TABLE IF NOT EXISTS users (

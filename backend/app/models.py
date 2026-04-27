@@ -171,6 +171,7 @@ class DashboardProfile(Base):
     widgets = Column(JSONB, nullable=False, default=list)
     is_default = Column(Boolean, default=False)
     is_active = Column(Boolean, default=False)
+    page = Column(String(50), default="main")
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
     updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
 

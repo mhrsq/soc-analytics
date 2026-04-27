@@ -9,6 +9,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import { DashboardProvider } from "./contexts/DashboardContext";
 import { CustomerDashboardProvider } from "./contexts/CustomerDashboardContext";
+import { ManagerDashboardProvider } from "./contexts/ManagerDashboardContext";
 import { NotificationBell } from "./components/NotificationBell";
 import { ThemePanel } from "./components/ThemePanel";
 import { LLMSettingsPanel } from "./components/LLMSettingsPanel";
@@ -397,7 +398,7 @@ function AppShell() {
       ) : (
         <>
           <main className="mx-auto px-3 sm:px-6 pb-6">
-            {page === "dashboard" ? <Dashboard /> : page === "manager" ? <ManagerView /> : page === "customer" ? <CustomerView customerScope={customerScope} /> : page === "users" ? <UserManagement /> : <Dashboard />}
+            {page === "dashboard" ? <Dashboard /> : page === "manager" ? <ManagerDashboardProvider><ManagerView /></ManagerDashboardProvider> : page === "customer" ? <CustomerView customerScope={customerScope} /> : page === "users" ? <UserManagement /> : <Dashboard />}
           </main>
         </>
       )}

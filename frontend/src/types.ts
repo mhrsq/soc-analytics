@@ -212,7 +212,19 @@ export type DataSource =
   | "mttd"
   | "analysts"
   | "summary"
-  | "live-feed";
+  | "live-feed"
+  | "sla-trend"
+  | "fp-trend"
+  | "customer-sla"
+  | "sla-breach"
+  | "mom-kpis"
+  | "incident-funnel"
+  | "queue-health"
+  | "shift-perf"
+  | "posture-score"
+  | "fp-patterns"
+  | "analyst-table"
+  | "team-trend";
 
 export interface WidgetConfig {
   id: string;

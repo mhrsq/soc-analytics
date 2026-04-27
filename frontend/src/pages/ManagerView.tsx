@@ -1,7 +1,10 @@
 import { useState, useMemo, useCallback } from "react";
+import { ResponsiveGridLayout, useContainerWidth, getCompactor } from "react-grid-layout";
+import "react-grid-layout/css/styles.css";
+import "react-resizable/css/styles.css";
 import { api } from "../api/client";
 import { useFetch } from "../hooks/useFetch";
-import { Card } from "../components/Card";
+import { useManagerDashboard } from "../contexts/ManagerDashboardContext";
 import { Spinner } from "../components/Spinner";
 import { AnalystDetailModal } from "../components/AnalystDetailModal";
 import { TicketDetailModal } from "../components/TicketDetailModal";
@@ -18,9 +21,13 @@ import { PostureScoreCard } from "../components/PostureScoreCard";
 import { FPPatternChart } from "../components/FPPatternChart";
 import { ClassifierPanel } from "../components/ClassifierPanel";
 import { AiInsightButton } from "../components/AiInsightButton";
-import type { AnalystScore, WidgetInsightsRequest } from "../types";
-import { Users, ChevronDown, BarChart3, AlertTriangle, Minus, Sparkles } from "lucide-react";
+import { WidgetWrapper } from "../components/WidgetWrapper";
+import { ManagerAddWidgetModal } from "../components/ManagerAddWidgetModal";
+import { EditWidgetModal } from "../components/EditWidgetModal";
+import { ChartRenderer } from "../components/ChartRenderer";
 import { ErrorAlert } from "../components/ErrorAlert";
+import type { AnalystScore, WidgetInsightsRequest, WidgetConfig } from "../types";
+import { Users, ChevronDown, BarChart3, AlertTriangle, Minus, Sparkles, Pencil, Plus, RotateCcw } from "lucide-react";
 
 const STORAGE_KEY = "soc-manager-excluded-analysts";
 function loadExcluded(): Set<string> {
@@ -84,6 +91,14 @@ export function ManagerView() {
   const [sortCol, setSortCol] = useState<string>("composite_score");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
+  const {
+    widgets, editMode, setEditMode,
+    addWidget, removeWidget, updateWidget, updateLayout, resetLayout,
+  } = useManagerDashboard();
+  const { width: containerWidth, containerRef } = useContainerWidth({ initialWidth: 1200 });
+  const [addOpen, setAddOpen] = useState(false);
+  const [editWidgetState, setEditWidgetState] = useState<WidgetConfig | null>(null);
+
   const range = useMemo(() => getDateRange(periodMonths), [periodMonths]);
   const { data: rawData, loading, error } = useFetch<AnalystScore[]>(
     () => api.getAnalystScores({ start: range.start, end: range.end }),
@@ -139,7 +154,7 @@ export function ManagerView() {
   };
 
   const sortIcon = (col: string) => {
-    if (sortCol !== col) return <span className="opacity-30 ml-0.5">↕</span>;
+    if (sortCol !== col) return <span className="opacity-30 ml-0.5">{"↕"}</span>;
     return <span className="ml-0.5">{sortDir === "asc" ? "▲" : "▼"}</span>;
   };
 
@@ -170,80 +185,77 @@ export function ManagerView() {
     }
   }, [range, slaTrend.data, fpTrend.data, momKpis.data, data, customerSla.data, posture.data, shiftPerf.data, funnel.data]);
 
-  return (
-    <div className="space-y-4 py-4 sm:py-6">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-base font-semibold" style={{ color: "var(--theme-text-primary)" }}>
-            Team Workload
-          </h2>
-          <p className="text-xs mt-0.5" style={{ color: "var(--theme-text-muted)" }}>
-            {data ? `${data.length} analysts · ${totalTeamTickets.toLocaleString()} tickets` : "Loading..."}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={generateInsights}
-            disabled={insightsLoading}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all disabled:opacity-50"
-            style={{
-              background: "color-mix(in srgb, var(--theme-accent) 12%, transparent)",
-              color: "var(--theme-accent)",
-              border: "1px solid color-mix(in srgb, var(--theme-accent) 25%, transparent)",
-            }}
-          >
-            <Sparkles className={`w-3.5 h-3.5 ${insightsLoading ? "animate-pulse" : ""}`} />
-            {insightsLoading ? "Generating..." : "AI Analysis"}
-          </button>
-          <div className="relative">
-            <select
-              value={periodMonths}
-              onChange={(e) => setPeriodMonths(Number(e.target.value))}
-              className="appearance-none pl-3 pr-8 py-1.5 rounded-lg text-xs font-medium cursor-pointer"
-              style={{
-                backgroundColor: "var(--theme-surface-raised)",
-                color: "var(--theme-text-secondary)",
-                border: "1px solid var(--theme-surface-border)",
-              }}
-            >
-              {PERIOD_OPTIONS.map((p) => (
-                <option key={p.months} value={p.months}>{p.label}</option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none" style={{ color: "var(--theme-text-muted)" }} />
-          </div>
-        </div>
-      </div>
+  // -- Data map for custom (non-built-in) widgets --
+  const dataMap = useMemo<Partial<Record<string, unknown[] | null>>>(() => ({
+    "sla-trend": slaTrend.data as unknown[] | null,
+    "fp-trend": fpTrend.data as unknown[] | null,
+    "customer-sla": customerSla.data as unknown[] | null,
+    "mom-kpis": momKpis.data as unknown[] | null,
+    "incident-funnel": funnel.data as unknown[] | null,
+    "queue-health": queueHealth.data as unknown[] | null,
+    "shift-perf": shiftPerf.data as unknown[] | null,
+    "fp-patterns": fpPatterns.data as unknown[] | null,
+    "posture-score": posture.data ? [posture.data] as unknown[] : null,
+    "analysts": (data ?? null) as unknown[] | null,
+    "volume": slaTrend.data as unknown[] | null,
+    "priority": null,
+    "top-alerts": null,
+    "validation": null,
+    "customers": null,
+    "mttd": null,
+    "summary": null,
+    "live-feed": null,
+    "analyst-table": null,
+    "team-trend": null,
+    "sla-breach": null,
+  }), [slaTrend.data, fpTrend.data, customerSla.data, momKpis.data, funnel.data, queueHealth.data, shiftPerf.data, fpPatterns.data, posture.data, data]);
 
-      <ErrorAlert error={error} />
+  // -- Grid layouts --
+  const layouts = useMemo(() => ({
+    lg: widgets.map(w => ({ i: w.id, x: w.x, y: w.y, w: w.w, h: w.h, minW: 3, minH: 3 })),
+  }), [widgets]);
 
-      {loading ? (
-        <div className="flex items-center justify-center py-20"><Spinner /></div>
-      ) : !data || data.length === 0 ? (
-        <Card>
-          <div className="text-center py-12">
-            <Users className="w-10 h-10 mx-auto mb-3 opacity-30" style={{ color: "var(--theme-text-muted)" }} />
-            <p className="text-sm font-medium" style={{ color: "var(--theme-text-muted)" }}>
-              No analyst data for this period
-            </p>
-            <p className="text-xs mt-1 max-w-sm mx-auto" style={{ color: "var(--theme-text-muted)" }}>
-              Analysts need at least 5 resolved tickets. Try "All Time".
-            </p>
-            <button
-              onClick={() => setPeriodMonths(0)}
-              className="mt-3 px-3 py-1.5 text-xs rounded-lg font-medium"
-              style={{ backgroundColor: "color-mix(in srgb, var(--theme-accent) 15%, transparent)", color: "var(--theme-accent)" }}
-            >
-              View All Time
-            </button>
-          </div>
-        </Card>
-      ) : (
-        <>
-          {/* Workload Table */}
-          <Card noPad>
-            <div className="overflow-x-auto">
+  const handleLayoutChange = useCallback((_: unknown, allLayouts: Record<string, { i: string; x: number; y: number; w: number; h: number }[]>) => {
+    if (!editMode) return;
+    const lg = allLayouts.lg;
+    if (lg) updateLayout(lg);
+  }, [editMode, updateLayout]);
+
+  // -- Widget insight key mapping --
+  const INSIGHT_KEY_MAP: Record<string, string> = {
+    "sla-trend": "sla_trend",
+    "fp-trend": "fp_trend",
+    "customer-sla": "customer_sla",
+    "mom-kpis": "mom_kpis",
+    "incident-funnel": "funnel",
+    "shift-perf": "shift_perf",
+    "posture-score": "posture_score",
+    "fp-patterns": "fp_trend",
+    "analyst-table": "analyst_scores",
+    "team-trend": "team_trend",
+  };
+
+  // -- Render widget content --
+  function renderWidgetContent(widget: WidgetConfig) {
+    if (widget.builtIn) {
+      switch (widget.id) {
+        case "analyst-table": {
+          if (loading) return <div className="flex items-center justify-center h-full"><Spinner /></div>;
+          if (!data || data.length === 0) return (
+            <div className="flex flex-col items-center justify-center h-full gap-2">
+              <Users className="w-8 h-8 opacity-30" style={{ color: "var(--theme-text-muted)" }} />
+              <p className="text-xs" style={{ color: "var(--theme-text-muted)" }}>No analyst data for this period</p>
+              <button
+                onClick={() => setPeriodMonths(0)}
+                className="px-2 py-1 text-[10px] rounded font-medium"
+                style={{ backgroundColor: "color-mix(in srgb, var(--theme-accent) 15%, transparent)", color: "var(--theme-accent)" }}
+              >
+                View All Time
+              </button>
+            </div>
+          );
+          return (
+            <div className="h-full overflow-auto">
               <table className="w-full text-xs">
                 <thead>
                   <tr style={{ borderBottom: "1px solid var(--theme-surface-border)" }}>
@@ -340,119 +352,205 @@ export function ManagerView() {
                 </tbody>
               </table>
             </div>
-          </Card>
-
-          {/* Performance Trends */}
-          <Card>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <BarChart3 className="w-4 h-4" style={{ color: "var(--theme-text-muted)" }} />
-                <h3 className="text-sm font-medium" style={{ color: "var(--theme-text-primary)" }}>
-                  Performance Trends
-                </h3>
-                <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: "var(--theme-surface-raised)", color: "var(--theme-text-muted)" }}>
-                  Weekly
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                {backfillMsg && (
-                  <span className="text-[10px]" style={{ color: "var(--theme-text-secondary)" }}>
-                    {backfillMsg}
+          );
+        }
+        case "team-trend": {
+          return (
+            <div className="h-full flex flex-col">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="w-3.5 h-3.5" style={{ color: "var(--theme-text-muted)" }} />
+                  <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: "var(--theme-surface-raised)", color: "var(--theme-text-muted)" }}>
+                    Weekly
                   </span>
-                )}
-                <button
-                  onClick={async () => {
-                    try {
-                      const res = await fetch("/api/analysts/snapshots/backfill?weeks=26", { method: "POST", headers: { Authorization: `Bearer ${localStorage.getItem("soc_token")}` } });
-                      const data = await res.json();
-                      setBackfillMsg(data.message || "Backfill triggered");
-                      setTimeout(() => setBackfillMsg(null), 5000);
-                    } catch (e) {
-                      setBackfillMsg("Backfill failed: " + (e instanceof Error ? e.message : "Unknown error"));
-                      setTimeout(() => setBackfillMsg(null), 5000);
-                    }
-                  }}
-                  className="text-[10px] px-2 py-1 rounded transition-colors hover:bg-white/[0.05]"
-                  style={{ color: "var(--theme-text-muted)", border: "1px solid var(--theme-surface-border)" }}
-                >
-                  Backfill snapshots
-                </button>
+                </div>
+                <div className="flex items-center gap-2">
+                  {backfillMsg && (
+                    <span className="text-[10px]" style={{ color: "var(--theme-text-secondary)" }}>
+                      {backfillMsg}
+                    </span>
+                  )}
+                  <button
+                    onClick={async () => {
+                      try {
+                        const res = await fetch("/api/analysts/snapshots/backfill?weeks=26", { method: "POST", headers: { Authorization: `Bearer ${localStorage.getItem("soc_token")}` } });
+                        const bfData = await res.json();
+                        setBackfillMsg(bfData.message || "Backfill triggered");
+                        setTimeout(() => setBackfillMsg(null), 5000);
+                      } catch (e) {
+                        setBackfillMsg("Backfill failed: " + (e instanceof Error ? e.message : "Unknown error"));
+                        setTimeout(() => setBackfillMsg(null), 5000);
+                      }
+                    }}
+                    className="text-[10px] px-2 py-1 rounded transition-colors hover:bg-white/[0.05]"
+                    style={{ color: "var(--theme-text-muted)", border: "1px solid var(--theme-surface-border)" }}
+                  >
+                    Backfill snapshots
+                  </button>
+                </div>
+              </div>
+              <div className="flex-1 min-h-0">
+                <TeamTrendChart selectedAnalysts={data?.map((a) => a.analyst)} granularity="weekly" />
               </div>
             </div>
-            <TeamTrendChart selectedAnalysts={data.map((a) => a.analyst)} granularity="weekly" />
-          </Card>
+          );
+        }
+        case "sla-trend": return <SLATrendChart data={slaTrend.data} loading={slaTrend.loading} bare />;
+        case "fp-trend": return <FPRateTrendChart data={fpTrend.data} loading={fpTrend.loading} bare />;
+        case "customer-sla": return <CustomerSlaHeatmap data={customerSla.data} loading={customerSla.loading} bare />;
+        case "sla-breach": return <SlaBreachAnalysis start={range.start} end={range.end} bare />;
+        case "mom-kpis": return <MomKpiCards data={momKpis.data} loading={momKpis.loading} bare />;
+        case "incident-funnel": return <IncidentFunnel data={funnel.data} loading={funnel.loading} bare />;
+        case "queue-health": return <QueueHealth data={queueHealth.data} loading={queueHealth.loading} bare />;
+        case "shift-perf": return <ShiftPerformanceChart data={shiftPerf.data} loading={shiftPerf.loading} bare />;
+        case "posture-score": return <PostureScoreCard data={posture.data} loading={posture.loading} bare />;
+        case "fp-patterns": return <FPPatternChart data={fpPatterns.data} loading={fpPatterns.loading} bare />;
+      }
+    }
+    // Custom widget -- use ChartRenderer with data from dataMap
+    const wData = dataMap[widget.dataSource];
+    if (!wData) return <div className="text-xs text-center py-4" style={{ color: "var(--theme-text-muted)" }}>No data</div>;
+    return <ChartRenderer chartType={widget.chartType} data={wData as unknown[]} />;
+  }
 
-          {/* P0 Analytics Widgets — 2 rows, each split 50/50 */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-            <div className="relative">
-              <SLATrendChart data={slaTrend.data} loading={slaTrend.loading} />
-              <div className="absolute top-3 right-3 z-10">
-                <AiInsightButton insight={widgetInsights["sla_trend"] ?? null} loading={insightsLoading} />
-              </div>
-            </div>
-            <div className="relative">
-              <FPRateTrendChart data={fpTrend.data} loading={fpTrend.loading} />
-              <div className="absolute top-3 right-3 z-10">
-                <AiInsightButton insight={widgetInsights["fp_trend"] ?? null} loading={insightsLoading} />
-              </div>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-            <div className="relative">
-              <CustomerSlaHeatmap data={customerSla.data} loading={customerSla.loading} />
-              <div className="absolute top-3 right-3 z-10">
-                <AiInsightButton insight={widgetInsights["customer_sla"] ?? null} loading={insightsLoading} />
-              </div>
-            </div>
-            <SlaBreachAnalysis start={range.start} end={range.end} />
-          </div>
-
-          {/* P1 Analytics Widgets */}
-          <div className="mt-4 relative">
-            <MomKpiCards data={momKpis.data} loading={momKpis.loading} />
-            <div className="absolute top-3 right-3 z-10">
-              <AiInsightButton insight={widgetInsights["mom_kpis"] ?? null} loading={insightsLoading} />
-            </div>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-            <div className="relative">
-              <IncidentFunnel data={funnel.data} loading={funnel.loading} />
-              <div className="absolute top-3 right-3 z-10">
-                <AiInsightButton insight={widgetInsights["funnel"] ?? null} loading={insightsLoading} />
-              </div>
-            </div>
-            <QueueHealth data={queueHealth.data} loading={queueHealth.loading} />
-          </div>
-          <div className="mt-4 relative">
-            <ShiftPerformanceChart data={shiftPerf.data} loading={shiftPerf.loading} />
-            <div className="absolute top-3 right-3 z-10">
-              <AiInsightButton insight={widgetInsights["shift_perf"] ?? null} loading={insightsLoading} />
-            </div>
-          </div>
-
-          {/* P2 Analytics */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-            <div className="relative">
-              <PostureScoreCard data={posture.data} loading={posture.loading} />
-              <div className="absolute top-3 right-3 z-10">
-                <AiInsightButton insight={widgetInsights["posture_score"] ?? null} loading={insightsLoading} />
-              </div>
-            </div>
-            <div className="relative">
-              <FPPatternChart data={fpPatterns.data} loading={fpPatterns.loading} />
-              <div className="absolute top-3 right-3 z-10">
-                <AiInsightButton insight={widgetInsights["fp_trend"] ?? null} loading={insightsLoading} />
-              </div>
-            </div>
-          </div>
-          {isAdmin && (
-            <div className="mt-4">
-              <ClassifierPanel isAdmin={isAdmin} />
-            </div>
+  return (
+    <div className="space-y-4 py-4 sm:py-6">
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-base font-semibold" style={{ color: "var(--theme-text-primary)" }}>
+            Team Workload
+          </h2>
+          <p className="text-xs mt-0.5" style={{ color: "var(--theme-text-muted)" }}>
+            {data ? `${data.length} analysts · ${totalTeamTickets.toLocaleString()} tickets` : "Loading..."}
+          </p>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={generateInsights}
+            disabled={insightsLoading}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all disabled:opacity-50"
+            style={{
+              background: "color-mix(in srgb, var(--theme-accent) 12%, transparent)",
+              color: "var(--theme-accent)",
+              border: "1px solid color-mix(in srgb, var(--theme-accent) 25%, transparent)",
+            }}
+          >
+            <Sparkles className={`w-3.5 h-3.5 ${insightsLoading ? "animate-pulse" : ""}`} />
+            {insightsLoading ? "Generating..." : "AI Analysis"}
+          </button>
+          <button
+            onClick={() => setEditMode(!editMode)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+            style={{
+              background: editMode
+                ? "color-mix(in srgb, var(--theme-accent) 20%, transparent)"
+                : "color-mix(in srgb, var(--theme-accent) 8%, transparent)",
+              color: "var(--theme-accent)",
+              border: `1px solid color-mix(in srgb, var(--theme-accent) ${editMode ? "40" : "20"}%, transparent)`,
+            }}
+          >
+            <Pencil className="w-3.5 h-3.5" />
+            {editMode ? "Done" : "Edit"}
+          </button>
+          {editMode && (
+            <>
+              <button
+                onClick={() => setAddOpen(true)}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+                style={{
+                  background: "color-mix(in srgb, var(--theme-accent) 8%, transparent)",
+                  color: "var(--theme-accent)",
+                  border: "1px solid color-mix(in srgb, var(--theme-accent) 20%, transparent)",
+                }}
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Add
+              </button>
+              <button
+                onClick={resetLayout}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+                style={{
+                  background: "color-mix(in srgb, var(--theme-accent) 8%, transparent)",
+                  color: "var(--theme-accent)",
+                  border: "1px solid color-mix(in srgb, var(--theme-accent) 20%, transparent)",
+                }}
+                title="Reset to default layout"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+              </button>
+            </>
           )}
-        </>
+          <div className="relative">
+            <select
+              value={periodMonths}
+              onChange={(e) => setPeriodMonths(Number(e.target.value))}
+              className="appearance-none pl-3 pr-8 py-1.5 rounded-lg text-xs font-medium cursor-pointer"
+              style={{
+                backgroundColor: "var(--theme-surface-raised)",
+                color: "var(--theme-text-secondary)",
+                border: "1px solid var(--theme-surface-border)",
+              }}
+            >
+              {PERIOD_OPTIONS.map((p) => (
+                <option key={p.months} value={p.months}>{p.label}</option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none" style={{ color: "var(--theme-text-muted)" }} />
+          </div>
+        </div>
+      </div>
+
+      <ErrorAlert error={error} />
+
+      {/* Grid Layout */}
+      <div ref={containerRef as React.Ref<HTMLDivElement>}>
+        <ResponsiveGridLayout
+          className="layout"
+          layouts={layouts}
+          breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
+          cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+          rowHeight={40}
+          width={containerWidth}
+          margin={[16, 16]}
+          draggableHandle=".drag-handle"
+          onLayoutChange={handleLayoutChange}
+          isDraggable={editMode}
+          isResizable={editMode}
+          compactor={getCompactor("vertical")}
+        >
+          {widgets.map(w => (
+            <div key={w.id}>
+              <WidgetWrapper
+                widget={w}
+                editMode={editMode}
+                onEdit={() => setEditWidgetState(w)}
+                onRemove={() => removeWidget(w.id)}
+              >
+                <div className="relative h-full">
+                  {renderWidgetContent(w)}
+                  {widgetInsights[INSIGHT_KEY_MAP[w.id] ?? w.id] && (
+                    <div className="absolute top-1 right-1 z-10">
+                      <AiInsightButton insight={widgetInsights[INSIGHT_KEY_MAP[w.id] ?? w.id] ?? null} loading={insightsLoading} />
+                    </div>
+                  )}
+                </div>
+              </WidgetWrapper>
+            </div>
+          ))}
+        </ResponsiveGridLayout>
+      </div>
+
+      {/* Classifier Panel (admin only, outside grid) */}
+      {isAdmin && (
+        <div className="mt-4">
+          <ClassifierPanel isAdmin={isAdmin} />
+        </div>
       )}
 
+      {/* Modals */}
+      <ManagerAddWidgetModal open={addOpen} onClose={() => setAddOpen(false)} onAdd={addWidget} />
+      <EditWidgetModal widget={editWidgetState} onClose={() => setEditWidgetState(null)} onSave={updateWidget} />
       <AnalystDetailModal
         analyst={selectedAnalyst}
         startDate={range.start}

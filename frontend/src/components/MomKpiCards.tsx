@@ -4,6 +4,7 @@ import type { MomKpi } from "../types";
 interface Props {
   data: MomKpi[] | null;
   loading: boolean;
+  bare?: boolean;
 }
 
 const LABEL_MAP: Record<string, string> = {
@@ -67,60 +68,59 @@ function SkeletonCards() {
   );
 }
 
-export function MomKpiCards({ data, loading }: Props) {
-  return (
-    <Card title="Month-over-Month">
-      {loading || !data ? (
-        <SkeletonCards />
-      ) : (
-        <div className="flex flex-wrap gap-3">
-          {data.map((kpi) => {
-            const label = LABEL_MAP[kpi.metric] || kpi.metric;
-            const deltaColor = kpi.delta_pct !== null ? getDeltaColor(kpi.metric, kpi.delta_pct) : "var(--theme-text-muted)";
-            const arrow = kpi.delta_pct !== null ? getDeltaArrow(kpi.delta_pct) : "";
+export function MomKpiCards({ data, loading, bare = false }: Props) {
+  const inner = loading || !data ? (
+    <SkeletonCards />
+  ) : (
+    <div className="flex flex-wrap gap-3">
+      {data.map((kpi) => {
+        const label = LABEL_MAP[kpi.metric] || kpi.metric;
+        const deltaColor = kpi.delta_pct !== null ? getDeltaColor(kpi.metric, kpi.delta_pct) : "var(--theme-text-muted)";
+        const arrow = kpi.delta_pct !== null ? getDeltaArrow(kpi.delta_pct) : "";
 
-            return (
-              <div
-                key={kpi.metric}
-                className="flex-1 min-w-[140px] rounded-lg p-3"
-                style={{
-                  backgroundColor: "var(--theme-surface-raised)",
-                  border: "1px solid var(--theme-surface-border)",
-                }}
+        return (
+          <div
+            key={kpi.metric}
+            className="flex-1 min-w-[140px] rounded-lg p-3"
+            style={{
+              backgroundColor: "var(--theme-surface-raised)",
+              border: "1px solid var(--theme-surface-border)",
+            }}
+          >
+            <p
+              className="text-[10px] font-medium uppercase tracking-wider mb-1"
+              style={{ color: "var(--theme-text-muted)" }}
+            >
+              {label}
+            </p>
+            <p
+              className="text-xl font-bold font-mono tabular-nums"
+              style={{ color: "var(--theme-text-primary)" }}
+            >
+              {fmtValue(kpi.metric, kpi.current)}
+            </p>
+            <div className="flex items-center gap-2 mt-1">
+              <span
+                className="text-[10px]"
+                style={{ color: "var(--theme-text-muted)" }}
               >
-                <p
-                  className="text-[10px] font-medium uppercase tracking-wider mb-1"
-                  style={{ color: "var(--theme-text-muted)" }}
+                prev: {fmtValue(kpi.metric, kpi.previous)}
+              </span>
+              {kpi.delta_pct !== null && (
+                <span
+                  className="text-[10px] font-semibold font-mono"
+                  style={{ color: deltaColor }}
                 >
-                  {label}
-                </p>
-                <p
-                  className="text-xl font-bold font-mono tabular-nums"
-                  style={{ color: "var(--theme-text-primary)" }}
-                >
-                  {fmtValue(kpi.metric, kpi.current)}
-                </p>
-                <div className="flex items-center gap-2 mt-1">
-                  <span
-                    className="text-[10px]"
-                    style={{ color: "var(--theme-text-muted)" }}
-                  >
-                    prev: {fmtValue(kpi.metric, kpi.previous)}
-                  </span>
-                  {kpi.delta_pct !== null && (
-                    <span
-                      className="text-[10px] font-semibold font-mono"
-                      style={{ color: deltaColor }}
-                    >
-                      {arrow} {Math.abs(kpi.delta_pct).toFixed(1)}%
-                    </span>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </Card>
+                  {arrow} {Math.abs(kpi.delta_pct).toFixed(1)}%
+                </span>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
+
+  if (bare) return <>{inner}</>;
+  return <Card title="Month-over-Month">{inner}</Card>;
 }

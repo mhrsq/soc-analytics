@@ -18,6 +18,7 @@ import type { SlaTrendPoint } from "../types";
 interface Props {
   data: SlaTrendPoint[] | null;
   loading: boolean;
+  bare?: boolean;
 }
 
 function fmtMonth(v: string): string {
@@ -26,7 +27,7 @@ function fmtMonth(v: string): string {
   return d.toLocaleDateString("en-US", { month: "short", year: "2-digit" });
 }
 
-export function SLATrendChart({ data, loading }: Props) {
+export function SLATrendChart({ data, loading, bare = false }: Props) {
   const cc = useChartColors();
   const tooltipStyle = useTooltipStyle();
 
@@ -99,5 +100,6 @@ export function SLATrendChart({ data, loading }: Props) {
     </ResponsiveContainer>
   );
 
+  if (bare) return <>{inner}</>;
   return <Card title="SLA Compliance Trend">{inner}</Card>;
 }

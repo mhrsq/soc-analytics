@@ -6,6 +6,7 @@ import type { CustomerSlaCell } from "../types";
 interface Props {
   data: CustomerSlaCell[] | null;
   loading: boolean;
+  bare?: boolean;
 }
 
 function slaColor(pct: number | null): string {
@@ -28,7 +29,7 @@ function fmtMonth(v: string): string {
   return d.toLocaleDateString("en-US", { month: "short", year: "2-digit" });
 }
 
-export function CustomerSlaHeatmap({ data, loading }: Props) {
+export function CustomerSlaHeatmap({ data, loading, bare = false }: Props) {
   const { customers, months, lookup } = useMemo(() => {
     if (!data) return { customers: [], months: [], lookup: new Map<string, number | null>() };
 
@@ -120,5 +121,6 @@ export function CustomerSlaHeatmap({ data, loading }: Props) {
     </div>
   );
 
+  if (bare) return <>{inner}</>;
   return <Card title="Customer SLA Matrix" noPad>{inner}</Card>;
 }

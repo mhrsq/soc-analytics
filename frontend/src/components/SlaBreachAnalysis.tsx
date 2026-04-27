@@ -28,9 +28,10 @@ const DIMENSIONS: { key: Dimension; label: string }[] = [
 interface Props {
   start?: string;
   end?: string;
+  bare?: boolean;
 }
 
-export function SlaBreachAnalysis({ start, end }: Props) {
+export function SlaBreachAnalysis({ start, end, bare = false }: Props) {
   const cc = useChartColors();
   const tooltipStyle = useTooltipStyle();
 
@@ -122,34 +123,43 @@ export function SlaBreachAnalysis({ start, end }: Props) {
     </ResponsiveContainer>
   );
 
+  const dimensionControls = (
+    <div className="flex items-center gap-1">
+      {DIMENSIONS.map((d) => (
+        <button
+          key={d.key}
+          onClick={() => setDimension(d.key)}
+          className="px-2.5 py-1 text-[11px] font-medium rounded transition-colors"
+          style={{
+            backgroundColor: dimension === d.key
+              ? "color-mix(in srgb, var(--theme-accent) 20%, transparent)"
+              : "transparent",
+            color: dimension === d.key
+              ? "var(--theme-accent)"
+              : "var(--theme-text-muted)",
+            border: "1px solid",
+            borderColor: dimension === d.key
+              ? "color-mix(in srgb, var(--theme-accent) 40%, transparent)"
+              : "var(--theme-surface-border)",
+          }}
+        >
+          {d.label}
+        </button>
+      ))}
+    </div>
+  );
+
+  if (bare) return (
+    <>
+      <div className="mb-2">{dimensionControls}</div>
+      {inner}
+    </>
+  );
+
   return (
     <Card
       title="SLA Breach Analysis"
-      action={
-        <div className="flex items-center gap-1">
-          {DIMENSIONS.map((d) => (
-            <button
-              key={d.key}
-              onClick={() => setDimension(d.key)}
-              className="px-2.5 py-1 text-[11px] font-medium rounded transition-colors"
-              style={{
-                backgroundColor: dimension === d.key
-                  ? "color-mix(in srgb, var(--theme-accent) 20%, transparent)"
-                  : "transparent",
-                color: dimension === d.key
-                  ? "var(--theme-accent)"
-                  : "var(--theme-text-muted)",
-                border: "1px solid",
-                borderColor: dimension === d.key
-                  ? "color-mix(in srgb, var(--theme-accent) 40%, transparent)"
-                  : "var(--theme-surface-border)",
-              }}
-            >
-              {d.label}
-            </button>
-          ))}
-        </div>
-      }
+      action={dimensionControls}
     >
       {inner}
     </Card>

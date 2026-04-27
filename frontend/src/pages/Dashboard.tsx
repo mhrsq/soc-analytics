@@ -119,6 +119,18 @@ export function Dashboard() {
       analysts: analysts.data ?? null,
       summary: sumArr,
       "live-feed": null, // Live feed manages its own data fetching
+      "sla-trend": null,
+      "fp-trend": null,
+      "customer-sla": null,
+      "sla-breach": null,
+      "mom-kpis": null,
+      "incident-funnel": null,
+      "queue-health": null,
+      "shift-perf": null,
+      "posture-score": null,
+      "fp-patterns": null,
+      "analyst-table": null,
+      "team-trend": null,
     };
   }, [volume.data, validation.data, priority.data, customers.data, topAlerts.data, mttd.data, analysts.data, summary.data]);
 
@@ -132,6 +144,18 @@ export function Dashboard() {
     analysts: analysts.loading,
     summary: summary.loading,
     "live-feed": false,
+    "sla-trend": false,
+    "fp-trend": false,
+    "customer-sla": false,
+    "sla-breach": false,
+    "mom-kpis": false,
+    "incident-funnel": false,
+    "queue-health": false,
+    "shift-perf": false,
+    "posture-score": false,
+    "fp-patterns": false,
+    "analyst-table": false,
+    "team-trend": false,
   };
 
   // Grid layout for react-grid-layout

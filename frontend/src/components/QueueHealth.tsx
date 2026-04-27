@@ -16,6 +16,7 @@ import type { QueueBucket } from "../types";
 interface Props {
   data: QueueBucket[] | null;
   loading: boolean;
+  bare?: boolean;
 }
 
 /** Color scale from green (fresh) to red (stale). */
@@ -33,7 +34,7 @@ function bucketColor(bucket: string): string {
   return BUCKET_COLORS[bucket] || "#6b7280";
 }
 
-export function QueueHealth({ data, loading }: Props) {
+export function QueueHealth({ data, loading, bare = false }: Props) {
   const cc = useChartColors();
 
   const allZero = data ? data.every((d) => d.count === 0) : false;
@@ -87,5 +88,6 @@ export function QueueHealth({ data, loading }: Props) {
       </ResponsiveContainer>
     );
 
+  if (bare) return <>{inner}</>;
   return <Card title="Queue Health">{inner}</Card>;
 }
