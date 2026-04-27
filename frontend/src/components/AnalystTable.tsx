@@ -41,13 +41,27 @@ export function AnalystTable({ data, loading, bare }: Props) {
                 </td>
                 <td className="py-3 pr-3 text-right font-mono" style={{ color: "var(--theme-text-secondary)" }}>{row.assigned.toLocaleString()}</td>
                 <td className="py-3 pr-3 text-right">
-                  <div className="inline-flex items-center gap-1.5">
-                    <div className="w-10 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "color-mix(in srgb, var(--theme-surface-border) 50%, transparent)" }}>
-                      <div className={`h-full rounded-full transition-all duration-500 ${resolvePct >= 90 ? "bg-signal-green" : resolvePct >= 70 ? "bg-signal-amber" : "bg-signal-red"}`}
-                        style={{ width: `${Math.min(resolvePct, 100)}%` }} />
-                    </div>
-                    <span className="font-mono text-xs" style={{ color: "var(--theme-text-secondary)" }}>{row.resolved.toLocaleString()}</span>
-                  </div>
+                  {(() => {
+                    const openCount = row.assigned - row.resolved;
+                    return (
+                      <div className="inline-flex items-center gap-2">
+                        <div className="w-16 h-2 rounded-full overflow-hidden flex" style={{ backgroundColor: "color-mix(in srgb, var(--theme-surface-border) 50%, transparent)" }}>
+                          <div className="h-full rounded-l-full transition-all duration-500 bg-signal-green"
+                            style={{ width: `${Math.min(resolvePct, 100)}%` }} />
+                          {openCount > 0 && (
+                            <div className="h-full rounded-r-full bg-signal-amber"
+                              style={{ width: `${Math.min(100 - resolvePct, 100)}%` }} />
+                          )}
+                        </div>
+                        <span className="font-mono text-xs" style={{ color: "var(--theme-text-secondary)" }}>
+                          {row.resolved}
+                          {openCount > 0 && (
+                            <span style={{ color: "var(--theme-text-muted)" }}> / {openCount} open</span>
+                          )}
+                        </span>
+                      </div>
+                    );
+                  })()}
                 </td>
                 <td className="py-3 pr-3 text-right font-mono text-xs" style={{ color: "var(--theme-text-secondary)" }}>{row.avg_mttr_display ?? "—"}</td>
                 <td className="py-3 text-right font-mono text-xs" style={{ color: "var(--theme-text-primary)" }}>{row.tp_found.toLocaleString()}</td>

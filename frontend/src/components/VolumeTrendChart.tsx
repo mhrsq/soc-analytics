@@ -49,9 +49,21 @@ export function VolumeTrendChart({ data, loading, bare }: Props) {
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke={cc.grid} opacity={0.2} />
-          <XAxis dataKey="date" tick={{ fill: cc.tick, fontSize: 11 }} tickLine={false} axisLine={false} />
+          <XAxis
+            dataKey="date"
+            tick={{ fill: cc.tick, fontSize: 11 }}
+            tickLine={false}
+            axisLine={false}
+            tickFormatter={(v: string) => {
+              const d = new Date(v);
+              return d.toLocaleDateString("id-ID", { day: "2-digit", month: "short" });
+            }}
+          />
           <YAxis tick={{ fill: cc.tick, fontSize: 11 }} tickLine={false} axisLine={false} width={35} />
-          <Tooltip contentStyle={tooltipStyle} />
+          <Tooltip
+            contentStyle={tooltipStyle}
+            labelFormatter={(v: string) => new Date(v).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" })}
+          />
           <Area type="monotone" dataKey="fp_count" stroke="#9b9ba8" strokeWidth={1.5} fill="url(#fpGrad)" name="False Positive" />
           <Area type="monotone" dataKey="tp_count" stroke="#10b981" strokeWidth={1.5} fill="url(#tpGrad)" name="True Positive" />
         </AreaChart>

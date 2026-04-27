@@ -83,38 +83,29 @@ export function LiveTicketFeed({ filters, loading: extLoading, bare, onTicketCli
         </span>
       </div>
 
-      {/* Table header */}
-      <div className="grid grid-cols-[60px_60px_1fr_120px] gap-1 px-1 pb-1 text-[10px] font-semibold uppercase tracking-wider"
-        style={{ color: "var(--theme-text-muted)" }}>
-        <span>Time</span>
-        <span>ID</span>
-        <span>Ticket Name</span>
-        <span>Asset</span>
-      </div>
-
       {/* Rows */}
       <div className="flex-1 overflow-y-auto space-y-0">
         {tickets.map((t, i) => (
           <div
             key={t.id}
             onClick={() => onTicketClick?.(t.id)}
-            className="grid grid-cols-[60px_60px_1fr_120px] gap-1 px-1 py-1 rounded cursor-pointer transition-colors hover:bg-white/[0.03]"
-            style={{
-              animation: i < 3 ? `fadeInRow 0.3s ease ${i * 0.08}s both` : undefined,
-            }}
+            className="flex items-start gap-2 px-1 py-1.5 rounded cursor-pointer transition-colors hover:bg-white/[0.03]"
+            style={{ animation: i < 3 ? `fadeInRow 0.3s ease ${i * 0.08}s both` : undefined }}
           >
-            <span className="text-[11px] font-mono tabular-nums truncate" style={{ color: "var(--theme-text-muted)" }}>
+            <span className="text-[10px] font-mono tabular-nums shrink-0 w-12 pt-0.5" style={{ color: "var(--theme-text-muted)" }}>
               {formatTime(t.created_time)}
             </span>
-            <span className="text-[11px] font-mono tabular-nums" style={{ color: "var(--theme-accent)" }}>
+            <span className="text-[11px] font-mono tabular-nums shrink-0 pt-0.5" style={{ color: "var(--theme-accent)" }}>
               #{t.id}
             </span>
-            <span className="text-[11px] truncate" style={{ color: "var(--theme-text-secondary)" }} title={t.subject}>
-              {t.subject}
-            </span>
-            <span className="text-[11px] font-mono truncate" style={{ color: "var(--theme-text-muted)" }} title={t.asset_name || "—"}>
-              {t.asset_name || "—"}
-            </span>
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] truncate" style={{ color: "var(--theme-text-secondary)" }} title={t.subject}>
+                {t.subject}
+              </p>
+              <p className="text-[10px] font-mono truncate" style={{ color: "var(--theme-text-muted)" }} title={t.asset_name || ""}>
+                {t.asset_name || "—"}
+              </p>
+            </div>
           </div>
         ))}
       </div>
