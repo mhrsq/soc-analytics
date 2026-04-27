@@ -1030,6 +1030,66 @@ class AnalyticsService:
             "days_remaining": days_remaining,
         }
 
+    async def get_filter_options(
+        self,
+        start_date=None,
+        end_date=None,
+        customer=None,
+    ) -> dict:
+        """Get available filter options for frontend dropdowns."""
+        from sqlalchemy import distinct
+
+        # Customers: scoped by date range only (not by customer)
+        date_filters = self._build_filters(start_date, end_date)
+        cust_q = (
+            select(distinct(Ticket.customer))
+            .where(*date_filters, Ticket.customer != None)
+            .order_by(Ticket.customer)
+        )
+        customers = (await self.session.execute(cust_q)).scalars().all()
+
+        # Priorities: no date/customer filter
+        prio_q = (
+            select(distinct(Ticket.priority))
+            .where(Ticket.priority != None)
+            .order_by(Ticket.priority)
+        )
+        priorities = (await self.session.execute(prio_q)).scalars().all()
+
+        # Statuses: no date/customer filter
+        stat_q = (
+            select(distinct(Ticket.status))
+            .where(Ticket.status != None)
+            .order_by(Ticket.status)
+        )
+        statuses = (await self.session.execute(stat_q)).scalars().all()
+
+        # Technicians: no date/customer filter
+        tech_q = (
+            select(distinct(Ticket.technician))
+            .where(Ticket.technician != None)
+            .order_by(Ticket.technician)
+        )
+        technicians = (await self.session.execute(tech_q)).scalars().all()
+
+        # Asset names: filtered by customer + date
+        asset_filters = self._build_filters(start_date, end_date, customer)
+        asset_q = (
+            select(distinct(Ticket.asset_name))
+            .where(*asset_filters, Ticket.asset_name != None, Ticket.asset_name != "")
+            .order_by(Ticket.asset_name)
+        )
+        asset_names = (await self.session.execute(asset_q)).scalars().all()
+
+        return {
+            "customers": customers,
+            "priorities": priorities,
+            "statuses": statuses,
+            "technicians": technicians,
+            "validations": ["True Positive", "False Positive", "Not Specified"],
+            "asset_names": asset_names,
+        }
+
     def _build_filters(
         self,
         start_date: Optional[date] = None,

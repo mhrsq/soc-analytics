@@ -263,76 +263,15 @@ async def get_filter_options(
     end: Optional[str] = None,
 ):
     """Get available filter options for the frontend dropdowns."""
-    from sqlalchemy import distinct, select
     from app.database import async_session
-    from app.models import Ticket
+    from app.routers.metrics import enforce_customer_scope
+    from app.services.analytics_service import AnalyticsService
+    from app.utils import parse_date_param
 
-    # Enforce customer scoping: customer-role users can only see their own data
-    user_role = getattr(request.state, "user_role", None)
-    user_customer = getattr(request.state, "user_customer", None)
-    if user_role == "customer" and user_customer:
-        customer = user_customer  # Override any requested customer
+    customer = enforce_customer_scope(request, customer)
 
     async with async_session() as db:
-        # Get unique customers — scoped to date range if provided
-        cust_q = (
-            select(distinct(Ticket.customer))
-            .where(Ticket.customer != None)
+        svc = AnalyticsService(db)
+        return await svc.get_filter_options(
+            parse_date_param(start), parse_date_param(end), customer
         )
-        if start:
-            from sqlalchemy import cast, Date as SADate
-            cust_q = cust_q.where(cast(Ticket.created_time, SADate) >= start)
-        if end:
-            cust_q = cust_q.where(cast(Ticket.created_time, SADate) <= end)
-        customers = (
-            await db.execute(cust_q.order_by(Ticket.customer))
-        ).scalars().all()
-
-        priorities = (
-            await db.execute(
-                select(distinct(Ticket.priority))
-                .where(Ticket.priority != None)
-                .order_by(Ticket.priority)
-            )
-        ).scalars().all()
-
-        statuses = (
-            await db.execute(
-                select(distinct(Ticket.status))
-                .where(Ticket.status != None)
-                .order_by(Ticket.status)
-            )
-        ).scalars().all()
-
-        technicians = (
-            await db.execute(
-                select(distinct(Ticket.technician))
-                .where(Ticket.technician != None)
-                .order_by(Ticket.technician)
-            )
-        ).scalars().all()
-
-        # Asset names — cascade with customer and date filters
-        asset_q = (
-            select(distinct(Ticket.asset_name))
-            .where(Ticket.asset_name != None, Ticket.asset_name != "")
-        )
-        if customer:
-            asset_q = asset_q.where(Ticket.customer == customer)
-        if start:
-            from sqlalchemy import cast, Date as SADate
-            asset_q = asset_q.where(cast(Ticket.created_time, SADate) >= start)
-        if end:
-            asset_q = asset_q.where(cast(Ticket.created_time, SADate) <= end)
-        asset_names = (
-            await db.execute(asset_q.order_by(Ticket.asset_name))
-        ).scalars().all()
-
-    return {
-        "customers": customers,
-        "priorities": priorities,
-        "statuses": statuses,
-        "technicians": technicians,
-        "validations": ["True Positive", "False Positive", "Not Specified"],
-        "asset_names": asset_names,
-    }

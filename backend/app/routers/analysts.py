@@ -1,7 +1,6 @@
 """Analyst scoring & Manager View API endpoints."""
 
-from datetime import date, datetime, timezone
-from typing import Optional, Union
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,26 +15,9 @@ from app.schemas import (
     TeamTrendPoint,
 )
 from app.services.analyst_service import AnalystScoringService
+from app.utils import parse_date_param as _parse_time
 
 router = APIRouter(prefix="/api/analysts", tags=["analysts"])
-
-
-def _parse_time(value: Optional[str]) -> Optional[Union[date, datetime]]:
-    """Parse ISO datetime or date string."""
-    if not value:
-        return None
-    if len(value) == 10 and value[4] == "-" and value[7] == "-":
-        try:
-            return date.fromisoformat(value)
-        except ValueError:
-            return None
-    try:
-        dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
-        if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=timezone.utc)
-        return dt
-    except ValueError:
-        return None
 
 
 @router.get("/scores", response_model=list[AnalystScore])

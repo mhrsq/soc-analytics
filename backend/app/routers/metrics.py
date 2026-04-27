@@ -1,7 +1,7 @@
 """Metrics API endpoints."""
 
-from datetime import date, datetime, timezone
-from typing import Optional, Union
+from datetime import date, datetime
+from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -30,6 +30,7 @@ from app.schemas import (
     VolumePoint,
 )
 from app.services.analytics_service import AnalyticsService
+from app.utils import parse_date_param as _parse_time, parse_asset_names as _parse_asset_names
 
 router = APIRouter(prefix="/api/metrics", tags=["metrics"])
 
@@ -41,36 +42,6 @@ def enforce_customer_scope(request: Request, customer: Optional[str]) -> Optiona
     if user_role == "customer" and user_customer:
         return user_customer
     return customer
-
-
-def _parse_asset_names(raw: Optional[str]) -> Optional[list[str]]:
-    """Parse comma-separated asset names from query param."""
-    if not raw:
-        return None
-    names = [n.strip() for n in raw.split(",") if n.strip()]
-    return names or None
-
-
-def _parse_time(value: Optional[str]) -> Optional[Union[date, datetime]]:
-    """Parse ISO datetime or date string.
-    Date-only strings (YYYY-MM-DD) return date objects for day-level filtering.
-    Full datetime strings return datetime objects for precise filtering."""
-    if not value:
-        return None
-    # Date-only pattern (YYYY-MM-DD) → return date, not datetime
-    if len(value) == 10 and value[4] == "-" and value[7] == "-":
-        try:
-            return date.fromisoformat(value)
-        except ValueError:
-            return None
-    # Full ISO datetime
-    try:
-        dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
-        if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=timezone.utc)
-        return dt
-    except ValueError:
-        return None
 
 
 @router.get("/summary", response_model=MetricsSummary)

@@ -2,10 +2,17 @@ import { useState } from "react";
 import { X, Plus, BarChart3, PieChart, TrendingUp, Activity, Radar, Layers } from "lucide-react";
 import type { ChartType, DataSource } from "../types";
 
+export interface DataSourceOption {
+  value: DataSource;
+  label: string;
+  desc: string;
+}
+
 interface Props {
   open: boolean;
   onClose: () => void;
   onAdd: (name: string, chartType: ChartType, dataSource: DataSource) => void;
+  dataSources?: DataSourceOption[];
 }
 
 const CHART_OPTIONS: { value: ChartType; label: string; icon: React.ElementType; desc: string }[] = [
@@ -26,7 +33,7 @@ const CHART_OPTIONS: { value: ChartType; label: string; icon: React.ElementType;
   { value: "table", label: "Table", icon: Activity, desc: "Table view for live data feeds" },
 ];
 
-const DATA_OPTIONS: { value: DataSource; label: string; desc: string }[] = [
+const DEFAULT_DATA_OPTIONS: DataSourceOption[] = [
   { value: "volume", label: "Ticket Volume", desc: "Daily ticket counts with TP/FP breakdown" },
   { value: "validation", label: "Alert Quality (TP/FP)", desc: "True Positive vs False Positive ratio" },
   { value: "priority", label: "Priority Distribution", desc: "Tickets by priority level (P1–P4)" },
@@ -36,19 +43,20 @@ const DATA_OPTIONS: { value: DataSource; label: string; desc: string }[] = [
   { value: "live-feed", label: "Live Ticket Feed", desc: "Latest 10 tickets with timestamp, ID, name, and asset" },
 ];
 
-export function AddWidgetModal({ open, onClose, onAdd }: Props) {
+export function AddWidgetModal({ open, onClose, onAdd, dataSources }: Props) {
+  const dataOptions = dataSources ?? DEFAULT_DATA_OPTIONS;
   const [name, setName] = useState("");
   const [chartType, setChartType] = useState<ChartType>("bar");
-  const [dataSource, setDataSource] = useState<DataSource>("volume");
+  const [dataSource, setDataSource] = useState<DataSource>(dataOptions[0]?.value ?? "volume");
 
   if (!open) return null;
 
   const handleAdd = () => {
-    const finalName = name.trim() || `${CHART_OPTIONS.find(c => c.value === chartType)?.label} — ${DATA_OPTIONS.find(d => d.value === dataSource)?.label}`;
+    const finalName = name.trim() || `${CHART_OPTIONS.find(c => c.value === chartType)?.label} — ${dataOptions.find(d => d.value === dataSource)?.label}`;
     onAdd(finalName, chartType, dataSource);
     setName("");
     setChartType("bar");
-    setDataSource("volume");
+    setDataSource(dataOptions[0]?.value ?? "volume");
     onClose();
   };
 
@@ -111,7 +119,7 @@ export function AddWidgetModal({ open, onClose, onAdd }: Props) {
           <div>
             <label className="text-xs font-medium" style={{ color: "var(--theme-text-muted)" }}>Data Source</label>
             <div className="grid grid-cols-2 gap-2 mt-2">
-              {DATA_OPTIONS.map(opt => (
+              {dataOptions.map(opt => (
                 <button
                   key={opt.value}
                   onClick={() => setDataSource(opt.value)}

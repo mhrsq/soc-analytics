@@ -22,7 +22,8 @@ import { FPPatternChart } from "../components/FPPatternChart";
 import { ClassifierPanel } from "../components/ClassifierPanel";
 import { AiInsightButton } from "../components/AiInsightButton";
 import { WidgetWrapper } from "../components/WidgetWrapper";
-import { ManagerAddWidgetModal } from "../components/ManagerAddWidgetModal";
+import { AddWidgetModal } from "../components/AddWidgetModal";
+import type { DataSourceOption } from "../components/AddWidgetModal";
 import { EditWidgetModal } from "../components/EditWidgetModal";
 import { ChartRenderer } from "../components/ChartRenderer";
 import { ErrorAlert } from "../components/ErrorAlert";
@@ -70,6 +71,23 @@ const FLAG_STYLES: Record<string, { bg: string; text: string; label: string }> =
   imbalanced: { bg: "rgba(245,158,11,0.1)", text: "#f59e0b", label: "Imbalanced" },
   underutilized: { bg: "rgba(161,161,170,0.1)", text: "#a1a1aa", label: "Underutilized" },
 };
+
+const MANAGER_DATA_SOURCES: DataSourceOption[] = [
+  { value: "sla-trend", label: "SLA Trend", desc: "Monthly MTTD/MTTR SLA compliance trend" },
+  { value: "fp-trend", label: "FP Rate Trend", desc: "Monthly false positive rate trend" },
+  { value: "customer-sla", label: "Customer SLA Matrix", desc: "Per-customer monthly SLA heatmap" },
+  { value: "sla-breach", label: "SLA Breach Analysis", desc: "Breach breakdown by analyst/customer/shift" },
+  { value: "mom-kpis", label: "Month-over-Month KPIs", desc: "Current vs previous period comparison" },
+  { value: "incident-funnel", label: "Incident Funnel", desc: "Alert>Event>TP>Incident conversion" },
+  { value: "queue-health", label: "Queue Health", desc: "Open ticket age distribution" },
+  { value: "shift-perf", label: "Shift Performance", desc: "Night/morning/evening shift comparison" },
+  { value: "posture-score", label: "Security Posture Score", desc: "Composite 0-100 security health score" },
+  { value: "fp-patterns", label: "FP Rate by Category", desc: "FP rate per attack category" },
+  { value: "volume", label: "Ticket Volume", desc: "Daily ticket counts with TP/FP breakdown" },
+  { value: "priority", label: "Priority Distribution", desc: "Tickets by priority P1-P4" },
+  { value: "top-alerts", label: "Top Alert Rules", desc: "Most frequent Wazuh alert rules" },
+  { value: "analysts", label: "Analyst Performance", desc: "Per-analyst workload and metrics" },
+];
 
 const SORT_MAP: Record<string, (a: AnalystScore) => string | number> = {
   analyst: (a) => a.analyst.toLowerCase(),
@@ -544,7 +562,7 @@ export function ManagerView() {
       </div>
 
       {/* Modals */}
-      <ManagerAddWidgetModal open={addOpen} onClose={() => setAddOpen(false)} onAdd={addWidget} />
+      <AddWidgetModal open={addOpen} onClose={() => setAddOpen(false)} onAdd={addWidget} dataSources={MANAGER_DATA_SOURCES} />
       <EditWidgetModal widget={editWidgetState} onClose={() => setEditWidgetState(null)} onSave={updateWidget} />
       <AnalystDetailModal
         analyst={selectedAnalyst}
