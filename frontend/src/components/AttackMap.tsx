@@ -245,16 +245,12 @@ export function AttackMap({ customer }: Props) {
   return (
     <div className="relative w-full flex flex-col" style={{ height: "calc(100vh - 56px)", background: "var(--theme-surface-base)" }}>
 
-      {/* Error alert */}
-      {loadError && (
-        <div className="absolute top-28 left-3 right-3 z-30">
-          <ErrorAlert error={loadError} onRetry={loadSummary} />
-        </div>
-      )}
-
-      {/* ── Header ── */}
-      <div className="absolute top-14 left-3 right-3 z-20 flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ backgroundColor: "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)" }}>
+      {/* ── Header bar — normal flow, not absolute ── */}
+      <div
+        className="flex-shrink-0 flex items-center justify-between flex-wrap gap-x-3 gap-y-2 px-3 py-2 z-20"
+        style={{ borderBottom: "1px solid var(--theme-surface-border)", background: "var(--theme-nav-bg)" }}
+      >
+        <div className="flex items-center gap-2">
           <Globe className="w-4 h-4" style={{ color: "var(--theme-text-secondary)" }} />
           <h2 className="text-sm font-semibold" style={{ color: "var(--theme-text-primary)" }}>Live Attack Map</h2>
           <div className="flex items-center gap-1.5 ml-2">
@@ -272,7 +268,7 @@ export function AttackMap({ customer }: Props) {
             { icon: TrendingUp, label: "Top Source", value: mapData?.top_source || "—" },
             { icon: Zap, label: "Unique IPs", value: fmtCount(mapData?.unique_ips || 0) },
           ].map(kpi => (
-            <div key={kpi.label} className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ backgroundColor: "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)" }}>
+            <div key={kpi.label} className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ backgroundColor: "color-mix(in srgb, var(--theme-surface-raised) 80%, transparent)", border: "1px solid var(--theme-surface-border)" }}>
               <kpi.icon className="w-3.5 h-3.5" style={{ color: "var(--theme-text-muted)" }} />
               <div>
                 <div className="text-[9px] uppercase tracking-wider" style={{ color: "var(--theme-text-muted)" }}>{kpi.label}</div>
@@ -411,8 +407,15 @@ export function AttackMap({ customer }: Props) {
           </div>
         )}
 
+        {/* Error alert */}
+        {loadError && (
+          <div className="absolute top-2 left-3 right-3 z-30">
+            <ErrorAlert error={loadError} onRetry={loadSummary} />
+          </div>
+        )}
+
         {/* Zoom controls */}
-        <div className="absolute top-16 right-3 z-10 flex flex-col gap-1">
+        <div className="absolute top-2 left-3 z-10 flex flex-col gap-1">
           {[
             { icon: ZoomIn, action: () => setZoom(z => Math.min(z * 1.5, 8)) },
             { icon: ZoomOut, action: () => setZoom(z => Math.max(z / 1.5, 1)) },
@@ -448,69 +451,69 @@ export function AttackMap({ customer }: Props) {
             </div>
           </div>
         )}
-      </div>
 
-      {/* ── Country stats panel (right side, shown on click) ── */}
-      {selectedGeo && countryStats && (
-        <div
-          className="absolute top-16 right-3 w-72 max-h-[calc(100%-8rem)] overflow-y-auto rounded-xl z-30 shadow-2xl"
-          style={{
-            background: "var(--theme-nav-bg)",
-            border: "1px solid var(--theme-surface-border)",
-            backdropFilter: "blur(12px)",
-          }}
-        >
-          <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid var(--theme-surface-border)" }}>
-            <div>
-              <h3 className="text-sm font-semibold" style={{ color: "var(--theme-text-primary)" }}>{selectedGeo}</h3>
-              <p className="text-xs" style={{ color: "var(--theme-text-secondary)" }}>{countryStats.total.toLocaleString()} attacks</p>
+        {/* Country stats panel (inside map div, right side) */}
+        {selectedGeo && countryStats && (
+          <div
+            className="absolute top-2 right-3 w-72 max-h-[calc(100%-2rem)] overflow-y-auto rounded-xl z-30 shadow-2xl"
+            style={{
+              background: "var(--theme-nav-bg)",
+              border: "1px solid var(--theme-surface-border)",
+              backdropFilter: "blur(12px)",
+            }}
+          >
+            <div className="sticky top-0 flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid var(--theme-surface-border)", background: "var(--theme-nav-bg)" }}>
+              <div>
+                <h3 className="text-sm font-semibold" style={{ color: "var(--theme-text-primary)" }}>{selectedGeo}</h3>
+                <p className="text-xs" style={{ color: "var(--theme-text-secondary)" }}>{countryStats.total.toLocaleString()} attacks</p>
+              </div>
+              <button onClick={() => setSelectedGeo(null)} className="text-xs px-2 py-1 rounded hover:opacity-70" style={{ color: "var(--theme-text-muted)" }}>✕</button>
             </div>
-            <button onClick={() => setSelectedGeo(null)} className="text-xs px-2 py-1 rounded" style={{ color: "var(--theme-text-muted)" }}>✕</button>
-          </div>
 
-          {/* Top Rules */}
-          <div className="px-4 py-3" style={{ borderBottom: "1px solid var(--theme-surface-border)" }}>
-            <h4 className="text-[10px] uppercase font-semibold mb-2" style={{ color: "var(--theme-text-muted)" }}>Top Rules</h4>
-            <div className="space-y-1.5">
-              {countryStats.topRules.map((r, i) => (
-                <div key={i} className="flex items-start gap-2">
-                  <span
-                    className="text-[9px] px-1.5 py-0.5 rounded shrink-0 font-mono"
-                    style={{
-                      background: r.level >= 10 ? "rgba(239,68,68,0.15)" : r.level >= 7 ? "rgba(245,158,11,0.15)" : "rgba(100,120,140,0.1)",
-                      color: r.level >= 10 ? "#ef4444" : r.level >= 7 ? "#f59e0b" : "var(--theme-text-muted)",
-                    }}
-                  >
-                    L{r.level}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[11px] truncate" style={{ color: "var(--theme-text-primary)" }} title={r.desc}>{r.desc}</p>
-                    <p className="text-[10px]" style={{ color: "var(--theme-text-muted)" }}>{r.count} hits</p>
+            {/* Top Rules */}
+            <div className="px-4 py-3" style={{ borderBottom: "1px solid var(--theme-surface-border)" }}>
+              <h4 className="text-[10px] uppercase font-semibold mb-2" style={{ color: "var(--theme-text-muted)" }}>Top Rules</h4>
+              <div className="space-y-1.5">
+                {countryStats.topRules.map((r, i) => (
+                  <div key={i} className="flex items-start gap-2">
+                    <span
+                      className="text-[9px] px-1.5 py-0.5 rounded shrink-0 font-mono"
+                      style={{
+                        background: r.level >= 10 ? "rgba(239,68,68,0.15)" : r.level >= 7 ? "rgba(245,158,11,0.15)" : "rgba(100,120,140,0.1)",
+                        color: r.level >= 10 ? "#ef4444" : r.level >= 7 ? "#f59e0b" : "var(--theme-text-muted)",
+                      }}
+                    >
+                      L{r.level}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11px] truncate" style={{ color: "var(--theme-text-primary)" }} title={r.desc}>{r.desc}</p>
+                      <p className="text-[10px]" style={{ color: "var(--theme-text-muted)" }}>{r.count} hits</p>
+                    </div>
                   </div>
-                </div>
-              ))}
-              {countryStats.topRules.length === 0 && (
-                <p className="text-[11px]" style={{ color: "var(--theme-text-dim)" }}>No rule data</p>
-              )}
+                ))}
+                {countryStats.topRules.length === 0 && (
+                  <p className="text-[11px]" style={{ color: "var(--theme-text-dim)" }}>No rule data</p>
+                )}
+              </div>
             </div>
-          </div>
 
-          {/* Top Ports */}
-          <div className="px-4 py-3">
-            <h4 className="text-[10px] uppercase font-semibold mb-2" style={{ color: "var(--theme-text-muted)" }}>Top Ports</h4>
-            <div className="flex flex-wrap gap-1.5">
-              {countryStats.topPorts.map(([port, count]) => (
-                <span key={port} className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: "var(--theme-surface-raised)", color: "var(--theme-text-secondary)" }}>
-                  :{port} <span style={{ color: "var(--theme-text-muted)" }}>({count})</span>
-                </span>
-              ))}
-              {countryStats.topPorts.length === 0 && (
-                <p className="text-[11px]" style={{ color: "var(--theme-text-dim)" }}>No port data</p>
-              )}
+            {/* Top Ports */}
+            <div className="px-4 py-3">
+              <h4 className="text-[10px] uppercase font-semibold mb-2" style={{ color: "var(--theme-text-muted)" }}>Top Ports</h4>
+              <div className="flex flex-wrap gap-1.5">
+                {countryStats.topPorts.map(([port, count]) => (
+                  <span key={port} className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: "var(--theme-surface-raised)", color: "var(--theme-text-secondary)" }}>
+                    :{port} <span style={{ color: "var(--theme-text-muted)" }}>({count})</span>
+                  </span>
+                ))}
+                {countryStats.topPorts.length === 0 && (
+                  <p className="text-[11px]" style={{ color: "var(--theme-text-dim)" }}>No port data</p>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* ── Bottom panel: Countries + Live Feed ── */}
       <div className="h-44 flex border-t shrink-0" style={{ backgroundColor: "var(--theme-surface-base)", borderColor: "var(--theme-surface-border)" }}>
