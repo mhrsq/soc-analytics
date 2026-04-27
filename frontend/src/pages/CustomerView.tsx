@@ -23,11 +23,11 @@ import type {
 } from "../types";
 import {
   Building2,
-  Shield,
-  ShieldAlert,
+  BellRing,
+  BellDot,
+  ShieldCheck,
   Clock,
   CheckCircle2,
-  AlertTriangle,
   ChevronDown,
   Server,
   Pencil,
@@ -100,16 +100,16 @@ function CustomerKPIs({ data, loading }: { data: MetricsSummary | null; loading:
     if (!data) return [];
     return [
       {
-        label: "Total Incidents",
+        label: "Total Alerts",
         value: data.total_tickets.toLocaleString(),
-        icon: <Shield className="w-5 h-5" />,
+        icon: <BellRing className="w-5 h-5" />,
         color: "var(--theme-accent)",
         sub: `${data.open_tickets} open`,
       },
       {
-        label: "Active Incidents",
+        label: "Active Alerts",
         value: data.open_tickets.toLocaleString(),
-        icon: <ShieldAlert className="w-5 h-5" />,
+        icon: <BellDot className="w-5 h-5" />,
         color: "#F59E0B",
         sub: data.total_tickets > 0 ? `${((data.open_tickets / data.total_tickets) * 100).toFixed(0)}% of total` : "\u2014",
       },
@@ -128,11 +128,11 @@ function CustomerKPIs({ data, loading }: { data: MetricsSummary | null; loading:
         sub: "Within SLA threshold",
       },
       {
-        label: "Security Incidents",
+        label: "Incidents",
         value: data.si_count.toLocaleString(),
-        icon: <AlertTriangle className="w-5 h-5" />,
+        icon: <ShieldCheck className="w-5 h-5" />,
         color: "#EF4444",
-        sub: "Confirmed threats",
+        sub: "True positive only",
       },
     ];
   }, [data]);
@@ -206,7 +206,7 @@ function IncidentTimeline({ data, loading }: { data: VolumePoint[] | null; loadi
             }}
             labelFormatter={(v: string) => new Date(v).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" })}
           />
-          <Area type="monotone" dataKey="total" stroke="var(--theme-accent)" strokeWidth={2} fill="url(#custGrad)" name="Incidents" />
+          <Area type="monotone" dataKey="total" stroke="var(--theme-accent)" strokeWidth={2} fill="url(#custGrad)" name="Alerts" />
         </AreaChart>
       </ResponsiveContainer>
     </div>
