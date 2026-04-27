@@ -436,30 +436,35 @@ Jawab HANYA dengan JSON valid, tanpa markdown atau teks lain."""
         metrics = await svc.get_summary(start_date, end_date, customer)
         top_alerts = await svc.get_top_alerts(5, start_date, end_date, customer)
 
-        prompt = f"""Kamu adalah SOC Manager senior. Buat Executive Summary singkat (3-5 paragraf)
-dalam Bahasa Indonesia berdasarkan data berikut:
+        period_str = f"{start_date} s/d {end_date}" if start_date and end_date else ("24 jam terakhir" if not start_date else "semua periode")
+        customer_str = f"Customer: {customer}" if customer else "Seluruh Customer"
+        top_alert_str = ", ".join([f"{a['rule_name']} ({a['count']} tiket)" for a in top_alerts[:5]]) or "—"
 
-Period: {start_date or "all time"} to {end_date or "now"}
-{f"Customer: {customer}" if customer else "All customers"}
+        prompt = f"""Tulis Executive Summary laporan operasional SOC dalam Bahasa Indonesia formal.
 
-Metrics:
-- Total tickets: {metrics['total_tickets']}
-- Open: {metrics['open_tickets']}
-- True Positive: {metrics['tp_count']} ({metrics['tp_rate']}%)
-- False Positive: {metrics['fp_count']} ({metrics['fp_rate']}%)
-- MTTD SLA: {metrics['sla_compliance_pct']}%
-- MTTR SLA: {metrics['mttr_sla_pct']}%
-- Avg MTTD: {metrics['avg_mttd_display']}
-- Avg MTTR: {metrics['avg_mttr_display']}
-- Security Incidents: {metrics['si_count']}
+PERIODE: {period_str}
+{customer_str}
 
-Top Alerts: {', '.join([f"{a['rule_name']} ({a['count']})" for a in top_alerts[:5]])}
+DATA OPERASIONAL:
+- Total tiket: {metrics['total_tickets']} | Open: {metrics['open_tickets']}
+- True Positive: {metrics['tp_count']} ({metrics['tp_rate']}%) | False Positive: {metrics['fp_count']} ({metrics['fp_rate']}%)
+- MTTD SLA Compliance: {metrics['sla_compliance_pct']}% | MTTR SLA: {metrics['mttr_sla_pct']}%
+- Rata-rata MTTD: {metrics['avg_mttd_display'] or "—"} | Rata-rata MTTR: {metrics['avg_mttr_display'] or "—"}
+- Security Incident (TP with impact): {metrics['si_count']}
+- Alert terbanyak: {top_alert_str}
 
-Instruksi:
-- Gunakan Bahasa Indonesia natural, profesional tapi santai
-- Highlight anomali dan action items
-- Beri rekomendasi konkret
-- Format sebagai paragraf (bukan bullet points)"""
+FORMAT OUTPUT:
+- Maksimal 3–4 paragraf singkat
+- Setiap paragraf mengandung angka spesifik dari data di atas
+- Gunakan **teks** untuk menekankan temuan kritis atau angka penting
+- Sertakan satu paragraf berisi action items atau rekomendasi konkret
+
+LARANGAN KERAS — jangan gunakan frasa berikut:
+"Perlu dicatat", "Penting untuk dipahami", "Secara keseluruhan", "Berdasarkan data",
+"Kabar baiknya", "Tidak dapat disangkal", "Sebagai catatan", "Dapat disimpulkan bahwa",
+kalimat pembuka basa-basi, kalimat yang tidak menambah informasi baru dari data.
+
+Tone: laporan eksekutif formal, objektif, padat, langsung ke poin."""
 
         try:
             text = await self._call_llm(provider, prompt)
