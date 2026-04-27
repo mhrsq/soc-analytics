@@ -212,8 +212,8 @@ export function ManagerView() {
 
   // -- Grid layouts --
   const layouts = useMemo(() => ({
-    lg: widgets.map(w => ({ i: w.id, x: w.x, y: w.y, w: w.w, h: w.h, minW: 3, minH: 3 })),
-  }), [widgets]);
+    lg: widgets.map(w => ({ i: w.id, x: w.x, y: w.y, w: w.w, h: w.h, minW: 3, minH: 3, static: !editMode })),
+  }), [widgets, editMode]);
 
   const handleLayoutChange = useCallback((_: unknown, allLayouts: Record<string, { i: string; x: number; y: number; w: number; h: number }[]>) => {
     if (!editMode) return;
@@ -235,9 +235,19 @@ export function ManagerView() {
     "team-trend": "team_trend",
   };
 
+  // Default chart types for built-in widgets (detect when user changed the chart type)
+  const BUILTIN_CHART_TYPES: Record<string, string> = {
+    "analyst-table": "table", "team-trend": "line", "sla-trend": "area", "fp-trend": "area",
+    "customer-sla": "table", "sla-breach": "horizontal-bar", "mom-kpis": "text-stats",
+    "incident-funnel": "funnel", "queue-health": "horizontal-bar", "shift-perf": "table",
+    "posture-score": "gauge", "fp-patterns": "horizontal-bar",
+  };
+
   // -- Render widget content --
   function renderWidgetContent(widget: WidgetConfig) {
-    if (widget.builtIn) {
+    // If user changed chart type from default → render via ChartRenderer instead
+    const chartTypeChanged = widget.builtIn && BUILTIN_CHART_TYPES[widget.id] && widget.chartType !== BUILTIN_CHART_TYPES[widget.id];
+    if (widget.builtIn && !chartTypeChanged) {
       switch (widget.id) {
         case "analyst-table": {
           if (loading) return <div className="flex items-center justify-center h-full"><Spinner /></div>;
