@@ -43,15 +43,13 @@ export function WidgetWrapper({ widget, editMode, onEdit, onRemove, tooltip, chi
             >
               <Pencil className="w-3 h-3" />
             </button>
-            {!widget.builtIn && (
-              <button
-                onClick={onRemove}
-                className="p-1 rounded transition-colors hover:opacity-80 text-red-400"
-                title="Remove widget"
-              >
-                <Trash2 className="w-3 h-3" />
-              </button>
-            )}
+            <button
+              onClick={onRemove}
+              className="p-1 rounded transition-colors hover:opacity-80 text-red-400"
+              title="Remove widget"
+            >
+              <Trash2 className="w-3 h-3" />
+            </button>
           </div>
         )}
       </div>

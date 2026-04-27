@@ -426,15 +426,7 @@ export function ManagerView() {
   return (
     <div className="space-y-4 py-4 sm:py-6">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-base font-semibold" style={{ color: "var(--theme-text-primary)" }}>
-            Team Workload
-          </h2>
-          <p className="text-xs mt-0.5" style={{ color: "var(--theme-text-muted)" }}>
-            {data ? `${data.length} analysts · ${totalTeamTickets.toLocaleString()} tickets` : "Loading..."}
-          </p>
-        </div>
+      <div className="flex flex-wrap items-center justify-end gap-2">
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={generateInsights}
@@ -550,13 +542,6 @@ export function ManagerView() {
           ))}
         </ResponsiveGridLayout>
       </div>
-
-      {/* Classifier Panel (admin only, outside grid) */}
-      {isAdmin && (
-        <div className="mt-4">
-          <ClassifierPanel isAdmin={isAdmin} />
-        </div>
-      )}
 
       {/* Modals */}
       <ManagerAddWidgetModal open={addOpen} onClose={() => setAddOpen(false)} onAdd={addWidget} />
