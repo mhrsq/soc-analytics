@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.schemas import AIInsight, AIInsightRequest
+from app.schemas import AIInsight, AIInsightRequest, WidgetInsightsRequest, WidgetInsightsResponse
 from app.services.ai_service import AIService
 from app.services.analytics_service import AnalyticsService
 
@@ -70,3 +70,17 @@ async def generate_insights(
         end_date=end_date,
     )
     return result
+
+
+@router.post("/widget-insights", response_model=WidgetInsightsResponse)
+async def get_widget_insights(
+    req: WidgetInsightsRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """Generate 1-2 sentence AI insights for all Manager View widgets in one LLM call."""
+    ai = AIService(db)
+    result = await ai.generate_widget_insights(req.model_dump(exclude_none=True), req.provider_id)
+    return WidgetInsightsResponse(
+        insights=result.get("insights", {}),
+        model_used=result.get("model_used", "unknown"),
+    )

@@ -618,6 +618,28 @@ export interface ClassifierRunResult {
   skipped: number;
 }
 
+// ── Widget AI Insights (Manager View) ──
+
+export interface WidgetInsightsRequest {
+  start_date?: string;
+  end_date?: string;
+  customer?: string;
+  provider_id?: number;
+  sla_trend?: Record<string, unknown>[];
+  fp_trend?: Record<string, unknown>[];
+  mom_kpis?: Record<string, unknown>[];
+  analyst_scores?: Record<string, unknown>[];
+  customer_sla?: Record<string, unknown>[];
+  posture_score?: Record<string, unknown>;
+  shift_perf?: Record<string, unknown>[];
+  funnel?: Record<string, unknown>[];
+}
+
+export interface WidgetInsightsResponse {
+  insights: Record<string, string>;
+  model_used: string;
+}
+
 export interface AttackMapEvent {
   id: string;
   time: string;

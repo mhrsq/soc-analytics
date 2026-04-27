@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { api } from "../api/client";
 import { useFetch } from "../hooks/useFetch";
 import { Card } from "../components/Card";
@@ -17,8 +17,9 @@ import { ShiftPerformanceChart } from "../components/ShiftPerformanceChart";
 import { PostureScoreCard } from "../components/PostureScoreCard";
 import { FPPatternChart } from "../components/FPPatternChart";
 import { ClassifierPanel } from "../components/ClassifierPanel";
-import type { AnalystScore } from "../types";
-import { Users, ChevronDown, BarChart3, AlertTriangle, Minus } from "lucide-react";
+import { AiInsightButton } from "../components/AiInsightButton";
+import type { AnalystScore, WidgetInsightsRequest } from "../types";
+import { Users, ChevronDown, BarChart3, AlertTriangle, Minus, Sparkles } from "lucide-react";
 import { ErrorAlert } from "../components/ErrorAlert";
 
 const STORAGE_KEY = "soc-manager-excluded-analysts";
@@ -108,6 +109,9 @@ export function ManagerView() {
     } catch { return false; }
   }, []);
 
+  const [widgetInsights, setWidgetInsights] = useState<Record<string, string>>({});
+  const [insightsLoading, setInsightsLoading] = useState(false);
+
   const data = useMemo(() => {
     if (!rawData) return null;
     return rawData.filter((a) => !excluded.has(a.analyst));
@@ -142,6 +146,30 @@ export function ManagerView() {
   const totalTeamTickets = useMemo(() => data?.reduce((s, d) => s + d.stats.total_tickets, 0) ?? 0, [data]);
   const avgPct = data && data.length > 0 ? 100 / data.length : 0;
 
+  const generateInsights = useCallback(async () => {
+    setInsightsLoading(true);
+    try {
+      const req: WidgetInsightsRequest = {
+        start_date: range.start,
+        end_date: range.end,
+        sla_trend: (slaTrend.data as unknown as Record<string, unknown>[]) ?? undefined,
+        fp_trend: (fpTrend.data as unknown as Record<string, unknown>[]) ?? undefined,
+        mom_kpis: (momKpis.data as unknown as Record<string, unknown>[]) ?? undefined,
+        analyst_scores: (data as unknown as Record<string, unknown>[]) ?? undefined,
+        customer_sla: (customerSla.data as unknown as Record<string, unknown>[]) ?? undefined,
+        posture_score: (posture.data as unknown as Record<string, unknown>) ?? undefined,
+        shift_perf: (shiftPerf.data as unknown as Record<string, unknown>[]) ?? undefined,
+        funnel: (funnel.data as unknown as Record<string, unknown>[]) ?? undefined,
+      };
+      const result = await api.getWidgetInsights(req);
+      setWidgetInsights(result.insights);
+    } catch (e) {
+      console.error("Widget insights failed", e);
+    } finally {
+      setInsightsLoading(false);
+    }
+  }, [range, slaTrend.data, fpTrend.data, momKpis.data, data, customerSla.data, posture.data, shiftPerf.data, funnel.data]);
+
   return (
     <div className="space-y-4 py-4 sm:py-6">
       {/* Header */}
@@ -154,22 +182,37 @@ export function ManagerView() {
             {data ? `${data.length} analysts · ${totalTeamTickets.toLocaleString()} tickets` : "Loading..."}
           </p>
         </div>
-        <div className="relative">
-          <select
-            value={periodMonths}
-            onChange={(e) => setPeriodMonths(Number(e.target.value))}
-            className="appearance-none pl-3 pr-8 py-1.5 rounded-lg text-xs font-medium cursor-pointer"
+        <div className="flex items-center gap-2">
+          <button
+            onClick={generateInsights}
+            disabled={insightsLoading}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all disabled:opacity-50"
             style={{
-              backgroundColor: "var(--theme-surface-raised)",
-              color: "var(--theme-text-secondary)",
-              border: "1px solid var(--theme-surface-border)",
+              background: "color-mix(in srgb, var(--theme-accent) 12%, transparent)",
+              color: "var(--theme-accent)",
+              border: "1px solid color-mix(in srgb, var(--theme-accent) 25%, transparent)",
             }}
           >
-            {PERIOD_OPTIONS.map((p) => (
-              <option key={p.months} value={p.months}>{p.label}</option>
-            ))}
-          </select>
-          <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none" style={{ color: "var(--theme-text-muted)" }} />
+            <Sparkles className={`w-3.5 h-3.5 ${insightsLoading ? "animate-pulse" : ""}`} />
+            {insightsLoading ? "Generating..." : "AI Analysis"}
+          </button>
+          <div className="relative">
+            <select
+              value={periodMonths}
+              onChange={(e) => setPeriodMonths(Number(e.target.value))}
+              className="appearance-none pl-3 pr-8 py-1.5 rounded-lg text-xs font-medium cursor-pointer"
+              style={{
+                backgroundColor: "var(--theme-surface-raised)",
+                color: "var(--theme-text-secondary)",
+                border: "1px solid var(--theme-surface-border)",
+              }}
+            >
+              {PERIOD_OPTIONS.map((p) => (
+                <option key={p.months} value={p.months}>{p.label}</option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none" style={{ color: "var(--theme-text-muted)" }} />
+          </div>
         </div>
       </div>
 
@@ -341,30 +384,66 @@ export function ManagerView() {
 
           {/* P0 Analytics Widgets — 2 rows, each split 50/50 */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-            <SLATrendChart data={slaTrend.data} loading={slaTrend.loading} />
-            <FPRateTrendChart data={fpTrend.data} loading={fpTrend.loading} />
+            <div className="relative">
+              <SLATrendChart data={slaTrend.data} loading={slaTrend.loading} />
+              <div className="absolute top-3 right-3 z-10">
+                <AiInsightButton insight={widgetInsights["sla_trend"] ?? null} loading={insightsLoading} />
+              </div>
+            </div>
+            <div className="relative">
+              <FPRateTrendChart data={fpTrend.data} loading={fpTrend.loading} />
+              <div className="absolute top-3 right-3 z-10">
+                <AiInsightButton insight={widgetInsights["fp_trend"] ?? null} loading={insightsLoading} />
+              </div>
+            </div>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-            <CustomerSlaHeatmap data={customerSla.data} loading={customerSla.loading} />
+            <div className="relative">
+              <CustomerSlaHeatmap data={customerSla.data} loading={customerSla.loading} />
+              <div className="absolute top-3 right-3 z-10">
+                <AiInsightButton insight={widgetInsights["customer_sla"] ?? null} loading={insightsLoading} />
+              </div>
+            </div>
             <SlaBreachAnalysis start={range.start} end={range.end} />
           </div>
 
           {/* P1 Analytics Widgets */}
-          <div className="mt-4">
+          <div className="mt-4 relative">
             <MomKpiCards data={momKpis.data} loading={momKpis.loading} />
+            <div className="absolute top-3 right-3 z-10">
+              <AiInsightButton insight={widgetInsights["mom_kpis"] ?? null} loading={insightsLoading} />
+            </div>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-            <IncidentFunnel data={funnel.data} loading={funnel.loading} />
+            <div className="relative">
+              <IncidentFunnel data={funnel.data} loading={funnel.loading} />
+              <div className="absolute top-3 right-3 z-10">
+                <AiInsightButton insight={widgetInsights["funnel"] ?? null} loading={insightsLoading} />
+              </div>
+            </div>
             <QueueHealth data={queueHealth.data} loading={queueHealth.loading} />
           </div>
-          <div className="mt-4">
+          <div className="mt-4 relative">
             <ShiftPerformanceChart data={shiftPerf.data} loading={shiftPerf.loading} />
+            <div className="absolute top-3 right-3 z-10">
+              <AiInsightButton insight={widgetInsights["shift_perf"] ?? null} loading={insightsLoading} />
+            </div>
           </div>
 
           {/* P2 Analytics */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-            <PostureScoreCard data={posture.data} loading={posture.loading} />
-            <FPPatternChart data={fpPatterns.data} loading={fpPatterns.loading} />
+            <div className="relative">
+              <PostureScoreCard data={posture.data} loading={posture.loading} />
+              <div className="absolute top-3 right-3 z-10">
+                <AiInsightButton insight={widgetInsights["posture_score"] ?? null} loading={insightsLoading} />
+              </div>
+            </div>
+            <div className="relative">
+              <FPPatternChart data={fpPatterns.data} loading={fpPatterns.loading} />
+              <div className="absolute top-3 right-3 z-10">
+                <AiInsightButton insight={widgetInsights["fp_trend"] ?? null} loading={insightsLoading} />
+              </div>
+            </div>
           </div>
           {isAdmin && (
             <div className="mt-4">

@@ -329,6 +329,95 @@ Setiap kategori rekomendasi HARUS ada minimal 1 item (jika memang tidak ada conc
         sections["generated_at"] = datetime.now(timezone.utc)
         return sections
 
+    async def generate_widget_insights(self, data: dict, provider_id: Optional[int] = None) -> dict:
+        """Generate 1-2 sentence AI insights per widget from aggregated metric data."""
+        provider = await self._get_provider(provider_id)
+        if not provider:
+            return {"error": "No LLM provider configured"}
+
+        # Build a compact summary of each widget's data
+        parts = []
+
+        if data.get("posture_score"):
+            ps = data["posture_score"]
+            parts.append(f"Security Posture Score: {ps.get('score', 0):.1f}/100 (Grade {ps.get('grade','?')}), MTTD SLA {ps.get('mttd_sla_pct', 0):.1f}%, MTTR SLA {ps.get('mttr_sla_pct', 0):.1f}%, FP Rate {ps.get('fp_rate', 0):.1f}%")
+
+        if data.get("sla_trend"):
+            rows = data["sla_trend"][-3:]  # last 3 months
+            trend_str = ", ".join([f"{r['month']}: MTTD={r.get('mttd_sla_pct', 'N/A')}% MTTR={r.get('mttr_sla_pct', 'N/A')}%" for r in rows])
+            parts.append(f"SLA Trend (3 bulan terakhir): {trend_str}")
+
+        if data.get("fp_trend"):
+            rows = data["fp_trend"][-3:]
+            fp_str = ", ".join([f"{r['month']}: FP={r.get('fp_rate', 'N/A')}%" for r in rows])
+            parts.append(f"FP Rate Trend: {fp_str}")
+
+        if data.get("mom_kpis"):
+            for k in data["mom_kpis"]:
+                parts.append(f"MoM {k['metric']}: sekarang={k['current']:.1f}, sebelumnya={k['previous']:.1f}, delta={k.get('delta_pct', 'N/A')}%")
+
+        if data.get("shift_perf"):
+            for s in data["shift_perf"]:
+                parts.append(f"Shift {s['shift']}: {s['total']} tiket, MTTD SLA {s.get('mttd_sla_pct', 'N/A')}%, avg MTTD {s.get('avg_mttd_min', 'N/A')} min")
+
+        if data.get("analyst_scores"):
+            top = sorted(data["analyst_scores"], key=lambda x: x.get("composite_score", 0), reverse=True)[:3]
+            for a in top:
+                parts.append(f"Analyst {a['analyst']}: score={a.get('composite_score', 0):.1f}, tier={a.get('tier','?')}")
+
+        if data.get("customer_sla"):
+            # Get worst customers
+            cells = [c for c in data["customer_sla"] if c.get("mttd_sla_pct") is not None]
+            worst = sorted(cells, key=lambda x: x.get("mttd_sla_pct", 100))[:3]
+            for c in worst:
+                parts.append(f"Customer {c['customer']} bulan {c['month']}: SLA {c.get('mttd_sla_pct', 'N/A')}%")
+
+        if data.get("funnel"):
+            for step in data["funnel"]:
+                parts.append(f"Funnel {step['step']}: {step['count']} ({step['pct_of_total']:.1f}% dari total)")
+
+        context = "\n".join(parts)
+
+        prompt = f"""Kamu adalah SOC analyst senior yang menganalisis data berikut.
+Berikan insight singkat (1-2 kalimat) dalam Bahasa Indonesia untuk SETIAP widget.
+Fokus pada: anomali, tren penting, atau action yang perlu diambil.
+Jawab dalam format JSON dengan key yang persis sama seperti yang diminta.
+
+DATA METRIK:
+{context}
+
+Berikan insight untuk widget-widget ini (format JSON):
+{{
+  "posture_score": "insight tentang security posture score keseluruhan",
+  "sla_trend": "insight tentang tren SLA compliance",
+  "fp_trend": "insight tentang tren false positive rate",
+  "mom_kpis": "insight tentang perbandingan bulan ini vs sebelumnya",
+  "customer_sla": "insight tentang performa SLA per customer",
+  "sla_breach": "insight tentang penyebab utama SLA breach",
+  "shift_perf": "insight tentang performa per shift",
+  "analyst_scores": "insight tentang performa tim analyst",
+  "fp_patterns": "insight tentang kategori yang paling banyak FP",
+  "funnel": "insight tentang konversi alert ke incident"
+}}
+
+Jawab HANYA dengan JSON valid, tanpa markdown atau teks lain."""
+
+        try:
+            result = await self._call_llm(provider, prompt)
+            # Parse JSON from response
+            import json
+            import re
+            # Extract JSON from response (LLM sometimes wraps in markdown)
+            json_match = re.search(r'\{.*\}', result, re.DOTALL)
+            if json_match:
+                insights = json.loads(json_match.group())
+            else:
+                insights = json.loads(result)
+            return {"insights": insights, "model_used": f"{provider.label} ({provider.model})"}
+        except Exception as e:
+            logger.error(f"Widget insights failed: {e}")
+            return {"insights": {}, "model_used": "error", "error": str(e)}
+
     def _fallback_insights(self, metrics: dict, period: str) -> dict:
         """Generate basic insights without AI when no LLM is available."""
         total = metrics.get("total_tickets", 0)

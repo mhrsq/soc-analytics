@@ -83,6 +83,8 @@ import type {
   PostureScore,
   ClassifierStats,
   ClassifierRunResult,
+  WidgetInsightsRequest,
+  WidgetInsightsResponse,
 } from "../types";
 
 interface Filters {
@@ -211,6 +213,12 @@ export const api = {
     request<AIInsight>("/ai/insights", {
       method: "POST",
       body: JSON.stringify(opts),
+    }),
+
+  getWidgetInsights: (req: WidgetInsightsRequest) =>
+    request<WidgetInsightsResponse>("/ai/widget-insights", {
+      method: "POST",
+      body: JSON.stringify(req),
     }),
 
   // ── LLM Providers ──

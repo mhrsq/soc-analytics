@@ -577,3 +577,26 @@ class PostureScore(BaseModel):
     resolution_rate: float
     incident_rate: float
     grade: str            # S/A/B/C/D
+
+
+# --- Widget Insights ---
+
+class WidgetInsightsRequest(BaseModel):
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    customer: Optional[str] = None
+    provider_id: Optional[int] = None
+    # Metric data summaries (frontend sends what it has)
+    sla_trend: Optional[list[dict]] = None
+    fp_trend: Optional[list[dict]] = None
+    mom_kpis: Optional[list[dict]] = None
+    analyst_scores: Optional[list[dict]] = None
+    customer_sla: Optional[list[dict]] = None
+    posture_score: Optional[dict] = None
+    shift_perf: Optional[list[dict]] = None
+    funnel: Optional[list[dict]] = None
+
+
+class WidgetInsightsResponse(BaseModel):
+    insights: dict[str, str]   # widget_key → 1-2 sentence insight in Bahasa Indonesia
+    model_used: str
