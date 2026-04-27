@@ -86,6 +86,9 @@ import type {
   WidgetInsightsRequest,
   WidgetInsightsResponse,
   ExecSummaryResponse,
+  MonthlyReportResponse,
+  ThreatBriefResponse,
+  SlaPrediction,
 } from "../types";
 
 interface Filters {
@@ -236,6 +239,15 @@ export const api = {
       method: "POST",
       body: JSON.stringify(req),
     }),
+
+  getMonthlyReport: (req: { customer: string; month: string; provider_id?: number }) =>
+    request<MonthlyReportResponse>('/reports/monthly', { method: 'POST', body: JSON.stringify(req) }),
+
+  getThreatBrief: (req: { customer: string; start_date?: string; end_date?: string }) =>
+    request<ThreatBriefResponse>('/ai/threat-brief', { method: 'POST', body: JSON.stringify(req) }),
+
+  getSlaPrediction: (customer?: string) =>
+    request<SlaPrediction>(`/metrics/sla-prediction${customer ? `?customer=${encodeURIComponent(customer)}` : ''}`),
 
   // ── LLM Providers ──
   getLlmProviders: () =>

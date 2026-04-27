@@ -615,3 +615,44 @@ class WidgetInsightsRequest(BaseModel):
 class WidgetInsightsResponse(BaseModel):
     insights: dict[str, str]   # widget_key → 1-2 sentence insight in Bahasa Indonesia
     model_used: str
+
+
+# --- Monthly Security Report ---
+
+class MonthlyReportRequest(BaseModel):
+    customer: str
+    month: str  # "2026-03" format
+    provider_id: Optional[int] = None
+
+
+class MonthlyReportResponse(BaseModel):
+    html: str
+    generated_at: str
+    model_used: str
+    month: str
+    customer: str
+
+
+# --- AI Threat Intelligence Brief ---
+
+class ThreatBriefRequest(BaseModel):
+    customer: str
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    provider_id: Optional[int] = None
+
+
+class ThreatBriefResponse(BaseModel):
+    brief: str
+    generated_at: str
+    model_used: str
+
+
+# --- Predictive SLA ---
+
+class SlaPrediction(BaseModel):
+    current_sla_pct: float
+    predicted_eom_sla_pct: float
+    trend: str  # "improving", "declining", "stable"
+    data_points: int
+    days_remaining: int

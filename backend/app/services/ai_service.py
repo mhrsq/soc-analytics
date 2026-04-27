@@ -14,6 +14,32 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 
 
+def _markdown_to_html(text: str, customer: str, month_name: str) -> str:
+    """Convert LLM markdown output to simple styled HTML."""
+    import re
+    lines = text.split('\n')
+    html_parts = [
+        f'<div style="font-family: IBM Plex Sans, sans-serif; max-width: 800px; margin: 0 auto; color: #e8e8ec; background: #0a0a0c; padding: 32px;">',
+        f'<h1 style="font-size: 20px; font-weight: 700; border-bottom: 2px solid #26262e; padding-bottom: 12px; margin-bottom: 24px;">Monthly Security Report<br><span style="font-size: 14px; font-weight: 400; color: #9b9ba8;">{customer} — {month_name}</span></h1>',
+    ]
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+        if line.startswith('## '):
+            html_parts.append(f'<h2 style="font-size: 15px; font-weight: 600; color: #a5a5b8; margin-top: 24px; margin-bottom: 8px;">{line[3:]}</h2>')
+        elif line.startswith('# '):
+            continue  # skip h1, we already have the header
+        elif line.startswith('- ') or line.startswith('* '):
+            content = re.sub(r'\*\*(.+?)\*\*', r'<strong style="color:#e8e8ec">\1</strong>', line[2:])
+            html_parts.append(f'<li style="margin-bottom: 6px; color: #9b9ba8; line-height: 1.6;">{content}</li>')
+        else:
+            content = re.sub(r'\*\*(.+?)\*\*', r'<strong style="color:#e8e8ec">\1</strong>', line)
+            html_parts.append(f'<p style="margin-bottom: 12px; color: #9b9ba8; line-height: 1.7;">{content}</p>')
+    html_parts.append('</div>')
+    return '\n'.join(html_parts)
+
+
 class AIService:
     """Generates AI-powered insights from SOC analytics data."""
 
@@ -479,6 +505,147 @@ Tone: laporan eksekutif formal, objektif, padat, langsung ke poin. Mulai langsun
             logger.error(f"Executive summary generation failed: {e}")
             return {
                 "summary": f"Failed to generate: {e}",
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "model_used": "error",
+            }
+
+    async def generate_monthly_report(self, customer: str, month: str, provider_id=None) -> dict:
+        """Generate a Monthly Security Operations Report as styled HTML."""
+        from app.services.analytics_service import AnalyticsService
+        from calendar import monthrange
+        from datetime import date
+
+        provider = await self._get_provider(provider_id)
+        if not provider:
+            return {
+                "html": "<p>No LLM provider configured.</p>",
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "model_used": "none",
+                "month": month,
+                "customer": customer,
+            }
+
+        # Parse month
+        year, mon = int(month[:4]), int(month[5:7])
+        last_day = monthrange(year, mon)[1]
+        start = date(year, mon, 1)
+        end = date(year, mon, last_day)
+
+        svc = AnalyticsService(self.db)
+        metrics = await svc.get_summary(start, end, customer)
+        top_alerts = await svc.get_top_alerts(8, start, end, customer)
+
+        month_name = start.strftime("%B %Y")
+        top_alert_str = "\n".join([
+            f"- {a['rule_name']}: {a['count']} tiket (TP rate: {a['tp_rate']}%)"
+            for a in top_alerts[:8]
+        ])
+
+        prompt = f"""Tulis Monthly Security Operations Report untuk {customer} periode {month_name}.
+
+DATA OPERASIONAL:
+- Total alert: {metrics['total_tickets']} | Open: {metrics['open_tickets']}
+- True Positive: {metrics['tp_count']} ({metrics['tp_rate']}%) | False Positive: {metrics['fp_count']} ({metrics['fp_rate']}%)
+- MTTD SLA Compliance: {metrics['sla_compliance_pct']}% | MTTR SLA: {metrics['mttr_sla_pct']}%
+- Rata-rata MTTD: {metrics['avg_mttd_display'] or "—"} | Rata-rata MTTR: {metrics['avg_mttr_display'] or "—"}
+- Security Incident (TP with impact): {metrics['si_count']}
+
+Top Alert Categories:
+{top_alert_str}
+
+FORMAT LAPORAN (gunakan PERSIS format ini, dalam Bahasa Indonesia formal):
+
+## Ringkasan Eksekutif
+[2-3 kalimat ringkasan kondisi keamanan bulan ini dengan angka spesifik]
+
+## Status Operasional
+[1-2 paragraf tentang volume alert, validasi TP/FP, dan status open tickets]
+
+## Performa SLA
+[1-2 paragraf tentang MTTD SLA {metrics['sla_compliance_pct']}% dan MTTR SLA {metrics['mttr_sla_pct']}%, bandingkan dengan target 99%]
+
+## Analisis Ancaman
+[1-2 paragraf tentang top alert categories, pola ancaman yang terdeteksi]
+
+## Rekomendasi
+[3-5 rekomendasi konkret berdasarkan data, dalam format bullet point dengan **bold** untuk prioritas]
+
+LARANGAN: "Perlu dicatat", "Penting untuk dipahami", "Secara keseluruhan", kalimat basa-basi."""
+
+        try:
+            text = await self._call_llm(provider, prompt)
+            html = _markdown_to_html(text, customer, month_name)
+            return {
+                "html": html,
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "model_used": f"{provider.label} ({provider.model})",
+                "month": month,
+                "customer": customer,
+            }
+        except Exception as e:
+            logger.error(f"Monthly report failed: {e}")
+            return {
+                "html": f"<p>Report generation failed: {e}</p>",
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "model_used": "error",
+                "month": month,
+                "customer": customer,
+            }
+
+    async def generate_threat_brief(self, customer: str, start_date=None, end_date=None, provider_id=None) -> dict:
+        """Generate an AI Threat Intelligence Brief for a customer."""
+        from app.services.analytics_service import AnalyticsService
+
+        provider = await self._get_provider(provider_id)
+        if not provider:
+            return {
+                "brief": "No LLM provider configured.",
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "model_used": "none",
+            }
+
+        svc = AnalyticsService(self.db)
+        top_alerts = await svc.get_top_alerts(10, start_date, end_date, customer)
+        metrics = await svc.get_summary(start_date, end_date, customer)
+        asset_exposure = await svc.get_asset_exposure(start_date, end_date, customer)
+
+        top_alerts_str = "\n".join([
+            f"- {a['rule_name']}: {a['count']} alerts (TP: {a['tp_rate']}%)"
+            for a in top_alerts[:8]
+        ])
+        top_assets_str = "\n".join([
+            f"- {a['asset_name']}: {a['count']} alerts"
+            for a in (asset_exposure or [])[:5]
+        ])
+
+        prompt = f"""Tulis Threat Intelligence Brief untuk {customer}.
+Gunakan hanya data yang diberikan. Jangan mengarang informasi.
+
+DATA:
+Total alerts: {metrics['total_tickets']} | TP: {metrics['tp_count']} ({metrics['tp_rate']}%) | FP: {metrics['fp_count']} ({metrics['fp_rate']}%)
+
+Top attack categories:
+{top_alerts_str}
+
+Assets paling banyak diserang:
+{top_assets_str}
+
+Tulis 2 paragraf singkat dalam Bahasa Indonesia formal:
+1. Paragraf 1: Gambaran umum threat landscape {customer} berdasarkan data — jenis serangan dominan, asset yang paling sering jadi target
+2. Paragraf 2: 1-2 rekomendasi spesifik berdasarkan pola di atas
+
+LARANGAN: kalimat basa-basi, frasa generik, informasi yang tidak ada di data di atas."""
+
+        try:
+            text = await self._call_llm(provider, prompt)
+            return {
+                "brief": text,
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "model_used": f"{provider.label} ({provider.model})",
+            }
+        except Exception as e:
+            return {
+                "brief": f"Failed: {e}",
                 "generated_at": datetime.now(timezone.utc).isoformat(),
                 "model_used": "error",
             }

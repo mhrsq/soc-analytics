@@ -13,6 +13,11 @@ import { EditWidgetModal } from "../components/EditWidgetModal";
 import { ChartRenderer } from "../components/ChartRenderer";
 import { ErrorAlert } from "../components/ErrorAlert";
 import { ConfirmDialog } from "../components/ConfirmDialog";
+import { ExecSummaryCard } from "../components/ExecSummaryCard";
+import { AiInsightButton } from "../components/AiInsightButton";
+import { ThreatBriefCard } from "../components/ThreatBriefCard";
+import { SLAPredictionCard } from "../components/SLAPredictionCard";
+import { MonthlyReportModal } from "../components/MonthlyReportModal";
 import type { WidgetConfig, ChartType, DataSource } from "../types";
 import type {
   MetricsSummary,
@@ -20,6 +25,7 @@ import type {
   PriorityItem,
   AlertRuleItem,
   FilterOptions,
+  WidgetInsightsRequest,
 } from "../types";
 import {
   Building2,
@@ -37,6 +43,8 @@ import {
   Star,
   Copy,
   Trash2,
+  Sparkles,
+  FileText,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -419,6 +427,9 @@ function CustomerToolbar({
   onSaveToNewProfile,
   onDeleteProfile,
   locked,
+  onAiAnalysis,
+  aiLoading,
+  onMonthlyReport,
 }: {
   customer: string;
   onCustomerChange: (v: string) => void;
@@ -436,6 +447,9 @@ function CustomerToolbar({
   onSaveToNewProfile: (name: string) => void;
   onDeleteProfile: (id: string) => void;
   locked?: boolean;
+  onAiAnalysis?: () => void;
+  aiLoading?: boolean;
+  onMonthlyReport?: () => void;
 }) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [showSaveNew, setShowSaveNew] = useState(false);
@@ -595,6 +609,39 @@ function CustomerToolbar({
           variant="danger"
         />
 
+        {/* Monthly Report */}
+        {onMonthlyReport && (
+          <button
+            onClick={onMonthlyReport}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium"
+            style={{
+              backgroundColor: "color-mix(in srgb, var(--theme-surface-raised) 80%, transparent)",
+              color: "var(--theme-text-secondary)",
+              border: "1px solid var(--theme-surface-border)",
+            }}
+          >
+            <FileText className="w-3.5 h-3.5" />
+            Report
+          </button>
+        )}
+
+        {/* AI Analysis */}
+        {onAiAnalysis && (
+          <button
+            onClick={onAiAnalysis}
+            disabled={aiLoading}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all disabled:opacity-50"
+            style={{
+              background: "color-mix(in srgb, var(--theme-accent) 12%, transparent)",
+              color: "var(--theme-accent)",
+              border: "1px solid color-mix(in srgb, var(--theme-accent) 25%, transparent)",
+            }}
+          >
+            <Sparkles className={`w-3.5 h-3.5 ${aiLoading ? "animate-pulse" : ""}`} />
+            {aiLoading ? "Generating..." : "AI Analysis"}
+          </button>
+        )}
+
         {/* Edit Mode */}
         <button
           onClick={onToggleEdit}
@@ -645,6 +692,9 @@ export function CustomerView({ customerScope }: CustomerViewProps) {
   const [periodDays, setPeriodDays] = useState(30);
   const [addOpen, setAddOpen] = useState(false);
   const [editWidgetState, setEditWidgetState] = useState<WidgetConfig | null>(null);
+  const [widgetInsights, setWidgetInsights] = useState<Record<string, string>>({});
+  const [insightsLoading, setInsightsLoading] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
 
   const {
     widgets, editMode, setEditMode,
@@ -659,6 +709,17 @@ export function CustomerView({ customerScope }: CustomerViewProps) {
   }, [customerScope]);
 
   const range = useMemo(() => getDateRange(periodDays), [periodDays]);
+
+  useEffect(() => {
+    if (customer) {
+      localStorage.setItem("soc_active_filters", JSON.stringify({
+        customer,
+        start: range.start || "",
+        end: range.end || "",
+        active_page: "customer",
+      }));
+    }
+  }, [customer, range]);
 
   const filterOptions = useFetch<FilterOptions>(() => api.getFilterOptions(), []);
 
@@ -678,6 +739,27 @@ export function CustomerView({ customerScope }: CustomerViewProps) {
   const handleCustomerChange = useCallback((val: string) => {
     setCustomer(val);
   }, []);
+
+  const generateInsights = useCallback(async () => {
+    setInsightsLoading(true);
+    try {
+      const req: WidgetInsightsRequest = {
+        start_date: range.start,
+        end_date: range.end,
+        customer: customer || undefined,
+        sla_trend: summary.data ? [summary.data] as unknown as Record<string, unknown>[] : undefined,
+        fp_trend: volume.data as unknown as Record<string, unknown>[] ?? undefined,
+        mom_kpis: priority.data as unknown as Record<string, unknown>[] ?? undefined,
+        funnel: topAlerts.data as unknown as Record<string, unknown>[] ?? undefined,
+      };
+      const result = await api.getWidgetInsights(req);
+      setWidgetInsights(result.insights);
+    } catch (e) {
+      console.error("Widget insights failed", e);
+    } finally {
+      setInsightsLoading(false);
+    }
+  }, [range, customer, summary.data, volume.data, priority.data, topAlerts.data]);
 
   const layouts = useMemo(() => ({
     lg: widgets.map(w => ({
@@ -838,7 +920,22 @@ export function CustomerView({ customerScope }: CustomerViewProps) {
             onSaveToNewProfile={saveToNewProfile}
             onDeleteProfile={deleteProfile}
             locked={!!customerScope}
+            onAiAnalysis={generateInsights}
+            aiLoading={insightsLoading}
+            onMonthlyReport={() => setReportOpen(true)}
           />
+
+          <ExecSummaryCard start={range.start} end={range.end} customer={customer} />
+
+          {/* Phase 2 AI components */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="lg:col-span-2">
+              <ThreatBriefCard customer={customer} start={range.start} end={range.end} />
+            </div>
+            <div>
+              <SLAPredictionCard customer={customer} />
+            </div>
+          </div>
 
           <ResponsiveGridLayout
             className="layout"
@@ -862,7 +959,14 @@ export function CustomerView({ customerScope }: CustomerViewProps) {
                   onEdit={() => setEditWidgetState(widget)}
                   onRemove={() => removeWidget(widget.id)}
                 >
-                  {renderWidgetContent(widget)}
+                  <div className="relative h-full">
+                    {renderWidgetContent(widget)}
+                    {(widgetInsights[widget.id] || insightsLoading || Object.keys(widgetInsights).length > 0) && (
+                      <div className="absolute top-1 right-1 z-10">
+                        <AiInsightButton insight={widgetInsights[widget.id] ?? null} loading={insightsLoading} />
+                      </div>
+                    )}
+                  </div>
                 </WidgetWrapper>
               </div>
             ))}
@@ -872,6 +976,8 @@ export function CustomerView({ customerScope }: CustomerViewProps) {
           <EditWidgetModal widget={editWidgetState} onClose={() => setEditWidgetState(null)} onSave={updateWidget} />
         </div>
       )}
+
+      {reportOpen && <MonthlyReportModal customer={customer} onClose={() => setReportOpen(false)} />}
     </div>
   );
 }

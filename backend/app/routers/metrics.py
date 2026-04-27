@@ -24,6 +24,7 @@ from app.schemas import (
     QueueBucket,
     ShiftPerformance,
     SlaBreachGroup,
+    SlaPrediction,
     SlaTrendPoint,
     ValidationBreakdown,
     VolumePoint,
@@ -373,3 +374,15 @@ async def get_posture_score(
     return await svc.get_posture_score(
         _parse_time(start), _parse_time(end), customer, _parse_asset_names(asset_name)
     )
+
+
+@router.get("/sla-prediction", response_model=SlaPrediction)
+async def get_sla_prediction(
+    request: Request,
+    customer: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """Predict end-of-month SLA compliance based on current month data and 7-day trend."""
+    customer = enforce_customer_scope(request, customer)
+    svc = AnalyticsService(db)
+    return await svc.get_sla_prediction(customer)

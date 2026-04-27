@@ -429,6 +429,30 @@ export interface TeamTrendPoint {
   analysts: { analyst: string; composite_score: number; tier: string }[];
 }
 
+// ── Monthly Report / Threat Brief / SLA Prediction ──
+
+export interface MonthlyReportResponse {
+  html: string;
+  generated_at: string;
+  model_used: string;
+  month: string;
+  customer: string;
+}
+
+export interface ThreatBriefResponse {
+  brief: string;
+  generated_at: string;
+  model_used: string;
+}
+
+export interface SlaPrediction {
+  current_sla_pct: number;
+  predicted_eom_sla_pct: number;
+  trend: "improving" | "declining" | "stable";
+  data_points: number;
+  days_remaining: number;
+}
+
 // ── Threat Map ──
 
 export interface AssetLocation {

@@ -967,6 +967,69 @@ class AnalyticsService:
             "grade": grade,
         }
 
+    async def get_sla_prediction(self, customer=None) -> dict:
+        """Predict end-of-month SLA compliance based on current month data and 7-day trend."""
+        from calendar import monthrange
+
+        today = date.today()
+
+        # Current month SLA so far
+        month_start = date(today.year, today.month, 1)
+        month_filters = self._build_filters(month_start, today, customer)
+        q = select(
+            func.count(Ticket.id).filter(Ticket.sla_met == True).label("met"),
+            func.count(Ticket.id).filter(Ticket.sla_met != None).label("total"),
+        ).where(*month_filters)
+        row = (await self.session.execute(q)).one()
+        current_sla = round(row.met / row.total * 100, 1) if row.total > 0 else 0.0
+
+        # Last 7 days daily SLA rate for trend
+        week_ago = today - timedelta(days=7)
+        week_filters = self._build_filters(week_ago, today, customer)
+        daily_q = (
+            select(
+                cast(Ticket.created_time, Date).label("d"),
+                func.sum(case((Ticket.sla_met == True, 1), else_=0)).label("met"),
+                func.count(Ticket.id).filter(Ticket.sla_met != None).label("total"),
+            )
+            .where(*week_filters, Ticket.sla_met != None)
+            .group_by(cast(Ticket.created_time, Date))
+            .order_by(cast(Ticket.created_time, Date))
+        )
+        daily_rows = (await self.session.execute(daily_q)).all()
+        daily_rates = [round(r.met / r.total * 100, 1) for r in daily_rows if r.total > 0]
+
+        # Linear trend: average of last half vs first half of daily rates
+        if len(daily_rates) >= 4:
+            first_half = sum(daily_rates[:len(daily_rates) // 2]) / (len(daily_rates) // 2)
+            second_half = sum(daily_rates[len(daily_rates) // 2:]) / (len(daily_rates) - len(daily_rates) // 2)
+            delta = second_half - first_half
+            if delta > 2:
+                trend = "improving"
+            elif delta < -2:
+                trend = "declining"
+            else:
+                trend = "stable"
+            daily_avg_change = delta / max(len(daily_rates), 1)
+        else:
+            trend = "stable"
+            daily_avg_change = 0.0
+
+        # Days remaining in month
+        days_in_month = monthrange(today.year, today.month)[1]
+        days_remaining = days_in_month - today.day
+
+        # Predict EOM SLA
+        predicted = min(100.0, max(0.0, current_sla + daily_avg_change * days_remaining))
+
+        return {
+            "current_sla_pct": current_sla,
+            "predicted_eom_sla_pct": round(predicted, 1),
+            "trend": trend,
+            "data_points": len(daily_rates),
+            "days_remaining": days_remaining,
+        }
+
     def _build_filters(
         self,
         start_date: Optional[date] = None,
