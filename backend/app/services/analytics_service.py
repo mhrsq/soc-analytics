@@ -791,9 +791,8 @@ class AnalyticsService:
 
         wib_hour = extract("hour", func.timezone("Asia/Jakarta", Ticket.created_time))
         shift_expr = case(
-            (and_(wib_hour >= 0, wib_hour <= 7), "Night (00-08)"),
-            (and_(wib_hour >= 8, wib_hour <= 15), "Morning (08-16)"),
-            else_="Evening (16-24)",
+            (and_(wib_hour >= 8, wib_hour <= 19), "Day (08:00-20:00)"),
+            else_="Night (20:00-08:00)",
         )
 
         q = (
