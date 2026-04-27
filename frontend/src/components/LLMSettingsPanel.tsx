@@ -12,9 +12,10 @@ import {
   Eye,
   EyeOff,
   Settings2,
+  Pencil,
 } from "lucide-react";
 import { api } from "../api/client";
-import type { LlmProvider, LlmProviderCreate, LlmTestResult } from "../types";
+import type { LlmProvider, LlmProviderCreate, LlmProviderUpdate, LlmTestResult } from "../types";
 import { ErrorAlert } from "./ErrorAlert";
 
 const PROVIDERS = [
@@ -43,6 +44,7 @@ export function LLMSettingsPanel({ open, onClose }: Props) {
   const [testing, setTesting] = useState<number | null>(null);
   const [testResult, setTestResult] = useState<{ id: number; result: LlmTestResult } | null>(null);
   const [deleting, setDeleting] = useState<number | null>(null);
+  const [editing, setEditing] = useState<LlmProvider | null>(null);
   const [opError, setOpError] = useState<string | null>(null);
 
   const fetchProviders = useCallback(async () => {
@@ -61,6 +63,7 @@ export function LLMSettingsPanel({ open, onClose }: Props) {
     if (open) {
       fetchProviders();
       setShowAdd(false);
+      setEditing(null);
       setTestResult(null);
     }
   }, [open, fetchProviders]);
@@ -173,19 +176,29 @@ export function LLMSettingsPanel({ open, onClose }: Props) {
             </div>
           ) : (
             <div className="space-y-3">
-              {providers.map((p) => (
-                <ProviderCard
-                  key={p.id}
-                  provider={p}
-                  testing={testing === p.id}
-                  deleting={deleting === p.id}
-                  testResult={testResult?.id === p.id ? testResult.result : null}
-                  onTest={() => handleTest(p.id)}
-                  onDelete={() => handleDelete(p.id)}
-                  onSetDefault={() => handleSetDefault(p.id)}
-                  onToggleActive={(active) => handleToggleActive(p.id, active)}
-                />
-              ))}
+              {providers.map((p) =>
+                editing?.id === p.id ? (
+                  <EditProviderForm
+                    key={p.id}
+                    provider={p}
+                    onSaved={() => { setEditing(null); fetchProviders(); }}
+                    onCancel={() => setEditing(null)}
+                  />
+                ) : (
+                  <ProviderCard
+                    key={p.id}
+                    provider={p}
+                    testing={testing === p.id}
+                    deleting={deleting === p.id}
+                    testResult={testResult?.id === p.id ? testResult.result : null}
+                    onTest={() => handleTest(p.id)}
+                    onDelete={() => handleDelete(p.id)}
+                    onSetDefault={() => handleSetDefault(p.id)}
+                    onToggleActive={(active) => handleToggleActive(p.id, active)}
+                    onEdit={() => setEditing(p)}
+                  />
+                )
+              )}
             </div>
           )}
 
@@ -240,6 +253,7 @@ function ProviderCard({
   onDelete,
   onSetDefault,
   onToggleActive,
+  onEdit,
 }: {
   provider: LlmProvider;
   testing: boolean;
@@ -249,6 +263,7 @@ function ProviderCard({
   onDelete: () => void;
   onSetDefault: () => void;
   onToggleActive: (active: boolean) => void;
+  onEdit: () => void;
 }) {
   const statusColor =
     p.test_status === "ok"
@@ -349,6 +364,15 @@ function ProviderCard({
         >
           {testing ? <Loader2 className="w-3 h-3 animate-spin" /> : <TestTube className="w-3 h-3" />}
           Test
+        </button>
+        <button
+          onClick={onEdit}
+          className="flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-medium rounded-md
+            hover:opacity-80 transition-opacity"
+          style={{ color: "var(--theme-text-muted)", border: "1px solid var(--theme-surface-border)" }}
+        >
+          <Pencil className="w-3 h-3" />
+          Edit
         </button>
         {!p.is_default && p.is_active && (
           <button
@@ -553,6 +577,179 @@ function AddProviderForm({ onAdded, onCancel }: { onAdded: () => void; onCancel:
         >
           {submitting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
           Add
+        </button>
+        <button
+          onClick={onCancel}
+          className="px-3 py-2 text-xs font-medium rounded-md transition-opacity hover:opacity-80"
+          style={{ color: "var(--theme-text-muted)", border: "1px solid var(--theme-surface-border)" }}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Edit Provider Form ─── */
+
+function EditProviderForm({
+  provider,
+  onSaved,
+  onCancel,
+}: {
+  provider: LlmProvider;
+  onSaved: () => void;
+  onCancel: () => void;
+}) {
+  const [form, setForm] = useState<LlmProviderUpdate>({
+    label: provider.label,
+    model: provider.model,
+    api_key: "",
+    base_url: provider.base_url ?? "",
+  });
+  const [showKey, setShowKey] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const selectedProvider = PROVIDERS.find((p) => p.value === provider.provider);
+
+  const handleSubmit = async () => {
+    if (!form.label?.trim() || !form.model?.trim()) {
+      setError("Label and model are required");
+      return;
+    }
+    setSubmitting(true);
+    setError(null);
+    try {
+      const update: LlmProviderUpdate = {
+        label: form.label,
+        model: form.model,
+        base_url: form.base_url || undefined,
+      };
+      if (form.api_key?.trim()) update.api_key = form.api_key;
+      await api.updateLlmProvider(provider.id, update);
+      onSaved();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const inputStyle = {
+    backgroundColor: "var(--theme-surface-base)",
+    color: "var(--theme-text-primary)",
+    border: "1px solid var(--theme-surface-border)",
+  };
+
+  return (
+    <div
+      className="rounded-lg p-4 space-y-3"
+      style={{
+        backgroundColor: "var(--theme-surface-base)",
+        border: "1px solid color-mix(in srgb, var(--theme-accent) 40%, var(--theme-surface-border))",
+      }}
+    >
+      <div className="flex items-center gap-2">
+        <Pencil className="w-3.5 h-3.5" style={{ color: "var(--theme-accent)" }} />
+        <p className="text-xs font-semibold" style={{ color: "var(--theme-text-primary)" }}>
+          Edit — {provider.label}
+        </p>
+        <span
+          className="text-[10px] font-mono px-1.5 py-0.5 rounded ml-auto"
+          style={{ background: "var(--theme-surface-raised)", color: "var(--theme-text-muted)" }}
+        >
+          {PROVIDERS.find(p => p.value === provider.provider)?.label ?? provider.provider}
+        </span>
+      </div>
+
+      {/* Label */}
+      <div>
+        <label className="block text-[10px] font-medium mb-1" style={{ color: "var(--theme-text-muted)" }}>
+          Display Label
+        </label>
+        <input
+          type="text"
+          value={form.label ?? ""}
+          onChange={(e) => setForm(f => ({ ...f, label: e.target.value }) as LlmProviderUpdate)}
+          className="w-full px-3 py-2 text-xs rounded-md outline-none focus:ring-1"
+          style={inputStyle}
+        />
+      </div>
+
+      {/* Model */}
+      <div>
+        <label className="block text-[10px] font-medium mb-1" style={{ color: "var(--theme-text-muted)" }}>
+          Model ID
+        </label>
+        <input
+          type="text"
+          value={form.model ?? ""}
+          onChange={(e) => setForm(f => ({ ...f, model: e.target.value }) as LlmProviderUpdate)}
+          placeholder={selectedProvider?.placeholder ?? "model-name"}
+          className="w-full px-3 py-2 text-xs rounded-md outline-none focus:ring-1"
+          style={inputStyle}
+        />
+      </div>
+
+      {/* API Key */}
+      <div>
+        <label className="block text-[10px] font-medium mb-1" style={{ color: "var(--theme-text-muted)" }}>
+          API Key{" "}
+          <span style={{ opacity: 0.5 }}>(leave blank to keep current: {provider.api_key_hint})</span>
+        </label>
+        <div className="relative">
+          <input
+            type={showKey ? "text" : "password"}
+            value={form.api_key ?? ""}
+            onChange={(e) => setForm(f => ({ ...f, api_key: e.target.value }) as LlmProviderUpdate)}
+            placeholder="sk-... (leave blank to keep unchanged)"
+            className="w-full px-3 py-2 pr-9 text-xs font-mono rounded-md outline-none focus:ring-1"
+            style={inputStyle}
+          />
+          <button
+            type="button"
+            onClick={() => setShowKey(!showKey)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5"
+            style={{ color: "var(--theme-text-muted)" }}
+          >
+            {showKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Base URL */}
+      <div>
+        <label className="block text-[10px] font-medium mb-1" style={{ color: "var(--theme-text-muted)" }}>
+          Base URL <span style={{ opacity: 0.5 }}>(optional)</span>
+        </label>
+        <input
+          type="text"
+          value={form.base_url ?? ""}
+          onChange={(e) => setForm(f => ({ ...f, base_url: e.target.value }) as LlmProviderUpdate)}
+          placeholder="https://..."
+          className="w-full px-3 py-2 text-xs font-mono rounded-md outline-none focus:ring-1"
+          style={inputStyle}
+        />
+      </div>
+
+      {error && (
+        <div className="flex items-center gap-1.5 text-xs text-red-400">
+          <AlertCircle className="w-3 h-3" />
+          {error}
+        </div>
+      )}
+
+      <div className="flex items-center gap-2 pt-1">
+        <button
+          onClick={handleSubmit}
+          disabled={submitting}
+          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium rounded-md
+            transition-all disabled:opacity-50"
+          style={{ backgroundColor: "var(--theme-accent)", color: "#fff" }}
+        >
+          {submitting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+          Save
         </button>
         <button
           onClick={onCancel}
