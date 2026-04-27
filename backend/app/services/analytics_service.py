@@ -473,7 +473,7 @@ class AnalyticsService:
                     / func.nullif(func.count().filter(Ticket.mttr_seconds != None), 0)
                 ).label("mttr_sla_pct"),
             )
-            .where(*filters, Ticket.created_time >= "2024-01-01")
+            .where(*filters, cast(Ticket.created_time, Date) >= date(2024, 1, 1))
             .group_by(month_expr)
             .order_by(month_expr)
         )
@@ -511,7 +511,7 @@ class AnalyticsService:
                     / func.nullif(func.count(), 0)
                 ).label("fp_rate"),
             )
-            .where(*filters, Ticket.created_time >= "2024-01-01")
+            .where(*filters, cast(Ticket.created_time, Date) >= date(2024, 1, 1))
             .group_by(month_expr)
             .order_by(month_expr)
         )
@@ -552,7 +552,7 @@ class AnalyticsService:
             )
             .where(
                 *filters,
-                Ticket.created_time >= "2024-01-01",
+                cast(Ticket.created_time, Date) >= date(2024, 1, 1),
                 Ticket.customer != None,
                 Ticket.customer != "",
             )

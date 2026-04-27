@@ -276,9 +276,10 @@ async def get_filter_options(
             .where(Ticket.customer != None)
         )
         if start:
-            cust_q = cust_q.where(Ticket.created_time >= start)
+            from sqlalchemy import cast, Date as SADate
+            cust_q = cust_q.where(cast(Ticket.created_time, SADate) >= start)
         if end:
-            cust_q = cust_q.where(Ticket.created_time <= end + "T23:59:59")
+            cust_q = cust_q.where(cast(Ticket.created_time, SADate) <= end)
         customers = (
             await db.execute(cust_q.order_by(Ticket.customer))
         ).scalars().all()
@@ -315,9 +316,10 @@ async def get_filter_options(
         if customer:
             asset_q = asset_q.where(Ticket.customer == customer)
         if start:
-            asset_q = asset_q.where(Ticket.created_time >= start)
+            from sqlalchemy import cast, Date as SADate
+            asset_q = asset_q.where(cast(Ticket.created_time, SADate) >= start)
         if end:
-            asset_q = asset_q.where(Ticket.created_time <= end + "T23:59:59")
+            asset_q = asset_q.where(cast(Ticket.created_time, SADate) <= end)
         asset_names = (
             await db.execute(asset_q.order_by(Ticket.asset_name))
         ).scalars().all()
