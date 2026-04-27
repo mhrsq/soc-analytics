@@ -123,7 +123,11 @@ SOAR started auto-creating tickets from Wazuh alerts. This caused:
 - **Value:** 93% of tickets are "Other" because SOAR doesn't classify. Auto-classification enables attack pattern analysis.
 - **Implementation:** On each sync cycle, find tickets with attack_category = "Other", batch-send subjects to configured LLM, update DB.
 - **Dependencies:** Working LLM provider (9router already configured)
-- **Note:** wazuh_rule_name is empty — classification must use subject only. SOAR-generated subjects follow pattern "[SE] | CUSTOMER | Category | ..." — may be parseable without LLM.
+- **Note:** wazuh_rule_name is empty — classification uses subject only.
+- **SOAR subject format (Mar 2025+):** `[SE] | CUSTOMER | MITRE_TACTIC | PRIORITY | Description`
+- **Regex-first approach:** 14 regex patterns already cover **82% of SOAR tickets** (23.6k/28.9k). Breakdown: Brute Force (5.6k), Network IDS/IPS (5.4k), Windows Security (2.6k), Account Manipulation (1.6k), O365/Cloud Identity (1.6k), Ingress Tool Transfer (1.5k), Agent Issue (1.5k), PowerShell (1.2k), App Shimming (1.2k), Exploit/Web Attack (0.7k), Malware (0.4k), Web Attack (0.3k), SQL Injection (0.1k), File/Dir Discovery (41).
+- **LLM fallback:** Only needed for ~5.3k (18%) "Uncategorized" tickets where regex doesn't match.
+- **Pre-SOAR tickets (2024):** Different format — `[OH]`, `[S]`, `[M]` = shift logs, `[MACD]` = change requests. These are operational/non-alert tickets, should be tagged accordingly.
 
 #### 10. FP Pattern Analysis (Noisy Rule Detection)
 - **For:** Manager
@@ -147,5 +151,5 @@ SOAR started auto-creating tickets from Wazuh alerts. This caused:
 - **Historical data range:** Jan 2024 – present. Pre-2024 data excluded from trend widgets.
 - **Manager View** is the primary target for P0/P1 widgets. CxO uses the same view.
 - **Client View** already has RBAC-scoped data. Future: add case_type + attack_category widgets.
-- **AI auto-classification** should be tested with a small batch first to validate accuracy before running on all 28k "Other" tickets.
-- **SOAR subject format** from Mar 2025+: "[SE] | CUSTOMER | Description..." — consider regex parsing as a faster alternative to LLM for basic classification.
+- **AI auto-classification:** Use regex first (covers 82%), LLM only for remaining 18%. Test on small batch before bulk run.
+- **Pre-SOAR tickets (before Mar 2025):** Attack category classification less reliable — subjects are human-written, inconsistent format.
