@@ -71,6 +71,10 @@ import type {
   TopologyLink,
   TopologyLinkCreate,
   SDPConnectionStatus,
+  SlaTrendPoint,
+  FpTrendPoint,
+  CustomerSlaCell,
+  SlaBreachGroup,
 } from "../types";
 
 interface Filters {
@@ -109,6 +113,18 @@ export const api = {
 
   getAssetExposure: (f: Filters = {}) =>
     request<{ asset_name: string; count: number }[]>(`/metrics/asset-exposure${qs(f)}`),
+
+  getSlaTrend: (f: Filters = {}) =>
+    request<SlaTrendPoint[]>(`/metrics/sla-trend${qs(f)}`),
+
+  getFpTrend: (f: Filters = {}) =>
+    request<FpTrendPoint[]>(`/metrics/fp-trend${qs(f)}`),
+
+  getCustomerSlaMatrix: (f: Filters = {}) =>
+    request<CustomerSlaCell[]>(`/metrics/customer-sla-matrix${qs(f)}`),
+
+  getSlaBreachAnalysis: (f: Filters = {}, dimension = "analyst") =>
+    request<SlaBreachGroup[]>(`/metrics/sla-breach${qs({ ...f, dimension })}`),
 
   // ── Sync ──
   getSyncStatus: () => request<SyncStatus>("/sync/status"),

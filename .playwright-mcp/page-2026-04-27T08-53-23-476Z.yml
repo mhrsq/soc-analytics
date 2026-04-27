@@ -1,0 +1,283 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - navigation [ref=e4]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - img "MTM" [ref=e8]
+          - generic [ref=e9]:
+            - generic [ref=e10]: SOC Analytics
+            - generic [ref=e11]: MTM Managed Security
+          - generic [ref=e12]:
+            - button "Main Dashboard" [ref=e13] [cursor=pointer]:
+              - img [ref=e14]
+              - generic [ref=e19]: Main Dashboard
+            - button "Manager View" [ref=e20] [cursor=pointer]:
+              - img [ref=e21]
+              - generic [ref=e26]: Manager
+            - button "Client View" [ref=e27] [cursor=pointer]:
+              - img [ref=e28]
+              - generic [ref=e32]: Client View
+            - button "Threats" [ref=e33] [cursor=pointer]:
+              - img [ref=e34]
+              - generic [ref=e37]: Threats
+            - button "User Management" [ref=e38] [cursor=pointer]:
+              - img [ref=e39]
+              - generic [ref=e41]: Users
+        - generic [ref=e42]:
+          - generic [ref=e44]: 27 Apr 2026 15.53.22
+          - button "Sync Status" [ref=e46] [cursor=pointer]:
+            - img [ref=e47]
+          - button [ref=e52] [cursor=pointer]:
+            - img [ref=e53]
+          - button "Settings" [ref=e57] [cursor=pointer]:
+            - img [ref=e58]
+          - button "Theme" [ref=e61] [cursor=pointer]:
+            - img [ref=e62]
+          - button "Logout" [ref=e69] [cursor=pointer]:
+            - generic [ref=e70]: SOC Analyst
+            - img [ref=e71]
+    - main [ref=e74]:
+      - generic [ref=e75]:
+        - generic [ref=e78]:
+          - button "Last 24 hours" [ref=e80] [cursor=pointer]:
+            - img [ref=e81]
+            - generic [ref=e84]: Last 24 hours
+            - img [ref=e85]
+          - generic [ref=e88]:
+            - img [ref=e89]
+            - combobox [ref=e93]:
+              - option "All Customers" [selected]
+          - button "All Assets" [ref=e95] [cursor=pointer]:
+            - img [ref=e96]
+            - generic [ref=e99]: All Assets
+            - img [ref=e100]
+          - button "Auto Refresh" [ref=e104] [cursor=pointer]:
+            - img [ref=e105]
+            - generic [ref=e110]: Auto Refresh
+            - img [ref=e111]
+          - button "Mahrus" [ref=e114] [cursor=pointer]:
+            - img [ref=e115]
+            - generic [ref=e120]: Mahrus
+            - img [ref=e121]
+          - button "Edit" [ref=e125] [cursor=pointer]:
+            - img [ref=e126]
+            - text: Edit
+        - generic [ref=e130]:
+          - generic [ref=e132]:
+            - heading "Overview" [level=3] [ref=e135]: Overview
+            - generic [ref=e138]:
+              - button "TOTAL TICKETS 33" [ref=e139] [cursor=pointer]:
+                - img [ref=e140]
+                - generic [ref=e143]: TOTAL TICKETS
+                - generic [ref=e144]: "33"
+              - button "OPEN 1" [ref=e145] [cursor=pointer]:
+                - generic [ref=e146]: OPEN
+                - generic [ref=e147]: "1"
+              - button "TRUE POSITIVE 0.0%" [ref=e148] [cursor=pointer]:
+                - img [ref=e149]
+                - generic [ref=e151]: TRUE POSITIVE
+                - generic [ref=e152]: 0.0%
+              - button "FALSE POSITIVE 96.7%" [ref=e153] [cursor=pointer]:
+                - img [ref=e154]
+                - generic [ref=e157]: FALSE POSITIVE
+                - generic [ref=e158]: 96.7%
+              - button "AVG MTTD 49m" [ref=e159] [cursor=pointer]:
+                - generic [ref=e160]: AVG MTTD
+                - generic [ref=e161]: 49m
+              - button "AVG MTTR 33m" [ref=e162] [cursor=pointer]:
+                - generic [ref=e163]: AVG MTTR
+                - generic [ref=e164]: 33m
+              - button "SLA COMPLIANCE 53.0%" [ref=e165] [cursor=pointer]:
+                - generic [ref=e166]: SLA COMPLIANCE
+                - generic [ref=e167]: 53.0%
+          - generic [ref=e169]:
+            - heading "Ticket Volume" [level=3] [ref=e172]: Ticket Volume
+            - generic [ref=e175]:
+              - generic [ref=e176]:
+                - generic [ref=e177]: "34"
+                - generic [ref=e178]: total
+              - img [ref=e181]:
+                - generic [ref=e186]:
+                  - generic [ref=e188]: 26 Apr
+                  - generic [ref=e190]: 26 Apr
+                  - generic [ref=e192]: 26 Apr
+                  - generic [ref=e194]: 26 Apr
+                  - generic [ref=e196]: 27 Apr
+                  - generic [ref=e198]: 27 Apr
+                  - generic [ref=e200]: 27 Apr
+                  - generic [ref=e202]: 27 Apr
+                  - generic [ref=e204]: 27 Apr
+                - generic [ref=e206]:
+                  - generic [ref=e208]: "0"
+                  - generic [ref=e210]: "0.75"
+                  - generic [ref=e212]: "1.5"
+                  - generic [ref=e214]: "2.25"
+                  - generic [ref=e216]: "3"
+              - generic [ref=e221]:
+                - generic [ref=e222]: False Positive 34
+                - generic [ref=e224]: True Positive 0
+          - generic [ref=e227]:
+            - heading "Alert Quality" [level=3] [ref=e230]: Alert Quality
+            - img [ref=e235]:
+              - generic [ref=e240]:
+                - generic [ref=e242]: True Positive
+                - generic [ref=e244]: Not Specified
+              - generic [ref=e246]:
+                - generic [ref=e248]: "0"
+                - generic [ref=e250]: "9"
+                - generic [ref=e252]: "18"
+                - generic [ref=e254]: "27"
+                - generic [ref=e256]: "36"
+          - generic [ref=e262]:
+            - heading "Priority Distribution" [level=3] [ref=e265]: Priority Distribution
+            - img [ref=e270]:
+              - generic [ref=e272]:
+                - generic [ref=e274]: "0"
+                - generic [ref=e276]: "6"
+                - generic [ref=e278]: "12"
+                - generic [ref=e280]: "18"
+                - generic [ref=e282]: "24"
+              - generic [ref=e284]:
+                - generic [ref=e286]: P1 - Critical
+                - generic [ref=e288]: P2 - High
+                - generic [ref=e290]: P3 - Medium
+          - generic [ref=e301]:
+            - heading "Tickets by Customer" [level=3] [ref=e304]: Tickets by Customer
+            - img [ref=e310]:
+              - generic [ref=e312]:
+                - generic [ref=e314]: IOS-MTM
+                - generic [ref=e316]: CMWI
+              - generic [ref=e318]:
+                - generic [ref=e320]: "0"
+                - generic [ref=e322]: "5"
+                - generic [ref=e324]: "10"
+                - generic [ref=e326]: "15"
+                - generic [ref=e328]: "20"
+          - generic [ref=e337]:
+            - heading "Top Alert Rules" [level=3] [ref=e340]: Top Alert Rules
+            - table [ref=e344]:
+              - rowgroup [ref=e345]:
+                - row "Category Count TP Rate" [ref=e346]:
+                  - columnheader "Category" [ref=e347]
+                  - columnheader "Count" [ref=e348]
+                  - columnheader "TP Rate" [ref=e349]
+              - rowgroup [ref=e350]:
+                - row "Other 34 0.0%" [ref=e351]:
+                  - cell "Other" [ref=e352]
+                  - cell "34" [ref=e353]
+                  - cell "0.0%" [ref=e354]:
+                    - generic [ref=e355]: 0.0%
+          - generic [ref=e357]:
+            - heading "Analyst Performance" [level=3] [ref=e360]: Analyst Performance
+            - table [ref=e364]:
+              - rowgroup [ref=e365]:
+                - row "Analyst Assigned Resolved Avg MTTR TP Found" [ref=e366]:
+                  - columnheader "Analyst" [ref=e367]
+                  - columnheader "Assigned" [ref=e368]
+                  - columnheader "Resolved" [ref=e369]
+                  - columnheader "Avg MTTR" [ref=e370]
+                  - columnheader "TP Found" [ref=e371]
+              - rowgroup [ref=e372]:
+                - row "KA Kristian Andrianto 22 22 44m 24s 0" [ref=e373]:
+                  - cell "KA Kristian Andrianto" [ref=e374]:
+                    - generic [ref=e375]:
+                      - generic [ref=e376]: KA
+                      - generic [ref=e377]: Kristian Andrianto
+                  - cell "22" [ref=e378]
+                  - cell "22" [ref=e379]:
+                    - generic [ref=e383]: "22"
+                  - cell "44m 24s" [ref=e384]
+                  - cell "0" [ref=e385]
+                - row "JW Jeffri Wahyu Putra Sitompul 9 9 12m 13s 0" [ref=e386]:
+                  - cell "JW Jeffri Wahyu Putra Sitompul" [ref=e387]:
+                    - generic [ref=e388]:
+                      - generic [ref=e389]: JW
+                      - generic [ref=e390]: Jeffri Wahyu Putra Sitompul
+                  - cell "9" [ref=e391]
+                  - cell "9" [ref=e392]:
+                    - generic [ref=e396]: "9"
+                  - cell "12m 13s" [ref=e397]
+                  - cell "0" [ref=e398]
+                - row "SM SOC MTM 3 2 / 1 open 22m 24s 0" [ref=e399]:
+                  - cell "SM SOC MTM" [ref=e400]:
+                    - generic [ref=e401]:
+                      - generic [ref=e402]: SM
+                      - generic [ref=e403]: SOC MTM
+                  - cell "3" [ref=e404]
+                  - cell "2 / 1 open" [ref=e405]:
+                    - generic [ref=e410]:
+                      - text: "2"
+                      - generic [ref=e411]: / 1 open
+                  - cell "22m 24s" [ref=e412]
+                  - cell "0" [ref=e413]
+          - generic [ref=e415]:
+            - heading "Live Ticket Feed" [level=3] [ref=e418]: Live Ticket Feed
+            - generic [ref=e422]:
+              - generic [ref=e423]:
+                - img [ref=e424]
+                - generic [ref=e430]: Live Feed
+                - generic [ref=e431]: 10 latest
+              - generic [ref=e432]:
+                - generic [ref=e433] [cursor=pointer]:
+                  - generic [ref=e434]: 20m ago
+                  - generic [ref=e435]: "#207181"
+                  - generic [ref=e436]:
+                    - paragraph [ref=e437]: "[SE] | O365 CMWI | Medium | Office 365: Successful login from VIP user: dm@cmwi.co.id."
+                    - paragraph [ref=e438]: wazuh-manager1-gcp-mtm-icc
+                - generic [ref=e439] [cursor=pointer]:
+                  - generic [ref=e440]: 1h ago
+                  - generic [ref=e441]: "#207151"
+                  - generic [ref=e442]:
+                    - paragraph [ref=e443]: "[SE] | CMWI | Brute Force | High | User account locked out (multiple login errors)"
+                    - paragraph [ref=e444]: AD_Server_Primary-Karawang-CMWI
+                - generic [ref=e445] [cursor=pointer]:
+                  - generic [ref=e446]: 1h ago
+                  - generic [ref=e447]: "#207147"
+                  - generic [ref=e448]:
+                    - paragraph [ref=e449]: "[SE] | O365 CMWI | Medium | Office 365: Successful login from VIP user: dm@cmwi.co.id."
+                    - paragraph [ref=e450]: wazuh-manager1-gcp-mtm-icc
+                - generic [ref=e451] [cursor=pointer]:
+                  - generic [ref=e452]: 2h ago
+                  - generic [ref=e453]: "#207146"
+                  - generic [ref=e454]:
+                    - paragraph [ref=e455]: "[SE] | O365 CMWI | Medium | Office 365: Successful login from VIP user: dm@cmwi.co.id."
+                    - paragraph [ref=e456]: wazuh-manager1-gcp-mtm-icc
+                - generic [ref=e457] [cursor=pointer]:
+                  - generic [ref=e458]: 2h ago
+                  - generic [ref=e459]: "#207145"
+                  - generic [ref=e460]:
+                    - paragraph [ref=e461]: "[SE] | CMWI | windows_security | High | Multiple Windows audit failure events"
+                    - paragraph [ref=e462]: AD_Server_Primary-Karawang-CMWI
+                - generic [ref=e463] [cursor=pointer]:
+                  - generic [ref=e464]: 2h ago
+                  - generic [ref=e465]: "#207142"
+                  - generic [ref=e466]:
+                    - paragraph [ref=e467]: "[SE] | CMWI | Brute Force | High | User account locked out (multiple login errors)"
+                    - paragraph [ref=e468]: AD_Server_Primary-Karawang-CMWI
+                - generic [ref=e469] [cursor=pointer]:
+                  - generic [ref=e470]: 4h ago
+                  - generic [ref=e471]: "#207109"
+                  - generic [ref=e472]:
+                    - paragraph [ref=e473]: "[SE] | CMWI | Account Manipulation | High | User account changed"
+                    - paragraph [ref=e474]: AD_Server_Primary-Karawang-CMWI
+                - generic [ref=e475] [cursor=pointer]:
+                  - generic [ref=e476]: 4h ago
+                  - generic [ref=e477]: "#207108"
+                  - generic [ref=e478]:
+                    - paragraph [ref=e479]: "[SE] | IOS | sysmon | Medium | Sysmon - Event 25: Process tampering - Image change"
+                    - paragraph [ref=e480]: pc-dashboard-its-mtm-icc
+                - generic [ref=e481] [cursor=pointer]:
+                  - generic [ref=e482]: 4h ago
+                  - generic [ref=e483]: "#207099"
+                  - generic [ref=e484]:
+                    - paragraph [ref=e485]: "[SE] | IOS | fortigate | Medium | Fortigate attack dropped: PHPUnit.Eval-stdin.PHP.Remote.Code.Execution"
+                    - paragraph [ref=e486]: syslog-its-mtm-icc
+                - generic [ref=e487] [cursor=pointer]:
+                  - generic [ref=e488]: 5h ago
+                  - generic [ref=e489]: "#207096"
+                  - generic [ref=e490]:
+                    - paragraph [ref=e491]: "[SE] | IOS | fortigate | Medium | Fortigate attack dropped: Generic.XXE.Detection"
+                    - paragraph [ref=e492]: syslog-its-mtm-icc
+    - button "SOC AI Assistant (Ctrl+K)" [ref=e493] [cursor=pointer]:
+      - img [ref=e494]
+  - generic [ref=e496]: "5"

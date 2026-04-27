@@ -12,9 +12,13 @@ from app.schemas import (
     AnalystPerformance,
     AlertRuleItem,
     CustomerItem,
+    CustomerSlaCell,
+    FpTrendPoint,
     MetricsSummary,
     MttdPoint,
     PriorityItem,
+    SlaBreachGroup,
+    SlaTrendPoint,
     ValidationBreakdown,
     VolumePoint,
 )
@@ -205,3 +209,64 @@ async def get_asset_exposure(
     return await svc.get_asset_exposure(
         _parse_time(start), _parse_time(end), customer, _parse_asset_names(asset_name), limit
     )
+
+
+@router.get("/sla-trend", response_model=list[SlaTrendPoint])
+async def get_sla_trend(
+    request: Request,
+    start: Optional[str] = Query(None),
+    end: Optional[str] = Query(None),
+    customer: Optional[str] = Query(None),
+    asset_name: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get monthly SLA compliance trend (MTTD + MTTR)."""
+    customer = enforce_customer_scope(request, customer)
+    svc = AnalyticsService(db)
+    return await svc.get_sla_trend(_parse_time(start), _parse_time(end), customer, _parse_asset_names(asset_name))
+
+
+@router.get("/fp-trend", response_model=list[FpTrendPoint])
+async def get_fp_trend(
+    request: Request,
+    start: Optional[str] = Query(None),
+    end: Optional[str] = Query(None),
+    customer: Optional[str] = Query(None),
+    asset_name: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get monthly False Positive rate trend."""
+    customer = enforce_customer_scope(request, customer)
+    svc = AnalyticsService(db)
+    return await svc.get_fp_trend(_parse_time(start), _parse_time(end), customer, _parse_asset_names(asset_name))
+
+
+@router.get("/customer-sla-matrix", response_model=list[CustomerSlaCell])
+async def get_customer_sla_matrix(
+    request: Request,
+    start: Optional[str] = Query(None),
+    end: Optional[str] = Query(None),
+    customer: Optional[str] = Query(None),
+    asset_name: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get per-customer per-month MTTD SLA compliance matrix."""
+    customer = enforce_customer_scope(request, customer)
+    svc = AnalyticsService(db)
+    return await svc.get_customer_sla_matrix(_parse_time(start), _parse_time(end), customer, _parse_asset_names(asset_name))
+
+
+@router.get("/sla-breach", response_model=list[SlaBreachGroup])
+async def get_sla_breach(
+    request: Request,
+    dimension: str = Query("analyst"),
+    start: Optional[str] = Query(None),
+    end: Optional[str] = Query(None),
+    customer: Optional[str] = Query(None),
+    asset_name: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get SLA breach analysis grouped by analyst, customer, priority, or hour."""
+    customer = enforce_customer_scope(request, customer)
+    svc = AnalyticsService(db)
+    return await svc.get_sla_breach_analysis(dimension, _parse_time(start), _parse_time(end), customer, _parse_asset_names(asset_name))

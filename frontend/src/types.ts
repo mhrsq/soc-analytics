@@ -520,6 +520,39 @@ export interface TopologyLinkCreate {
   metadata?: Record<string, unknown>;
 }
 
+// ── SLA / FP Analytics (Manager View P0) ──
+
+export interface SlaTrendPoint {
+  month: string;
+  mttd_sla_pct: number | null;
+  mttr_sla_pct: number | null;
+  total: number;
+  measured: number;
+}
+
+export interface FpTrendPoint {
+  month: string;
+  fp_rate: number | null;
+  tp_count: number;
+  fp_count: number;
+  total: number;
+}
+
+export interface CustomerSlaCell {
+  customer: string;
+  month: string;
+  mttd_sla_pct: number | null;
+  total: number;
+}
+
+export interface SlaBreachGroup {
+  group_value: string;
+  total: number;
+  breached: number;
+  breach_pct: number;
+  avg_mttd_min: number | null;
+}
+
 // ── Attack Map (Wazuh) ──
 export interface AttackMapEvent {
   id: string;

@@ -1,0 +1,74 @@
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - img "MTM" [ref=e8]
+        - generic [ref=e9]:
+          - generic [ref=e10]: SOC Analytics
+          - generic [ref=e11]: MTM Managed Security
+        - generic [ref=e12]:
+          - button "Main Dashboard" [ref=e13] [cursor=pointer]:
+            - img [ref=e14]
+            - generic [ref=e19]: Main Dashboard
+          - button "Manager View" [ref=e20] [cursor=pointer]:
+            - img [ref=e21]
+            - generic [ref=e26]: Manager
+          - button "Client View" [ref=e27] [cursor=pointer]:
+            - img [ref=e28]
+            - generic [ref=e32]: Client View
+          - button "Threats" [ref=e33] [cursor=pointer]:
+            - img [ref=e34]
+            - generic [ref=e37]: Threats
+          - button "User Management" [ref=e38] [cursor=pointer]:
+            - img [ref=e39]
+            - generic [ref=e41]: Users
+      - generic [ref=e42]:
+        - generic [ref=e44]: 27 Apr 2026 15.39.27
+        - button "Sync Status" [ref=e46] [cursor=pointer]:
+          - img [ref=e47]
+        - button [ref=e52] [cursor=pointer]:
+          - img [ref=e53]
+        - button "Settings" [ref=e58] [cursor=pointer]:
+          - img [ref=e59]
+        - button "Theme" [ref=e62] [cursor=pointer]:
+          - img [ref=e63]
+        - button "Logout" [ref=e70] [cursor=pointer]:
+          - generic [ref=e71]: SOC Analyst
+          - img [ref=e72]
+  - main [ref=e75]:
+    - generic [ref=e76]:
+      - generic [ref=e79]:
+        - button "Last 24 hours" [ref=e81] [cursor=pointer]:
+          - img [ref=e82]
+          - generic [ref=e85]: Last 24 hours
+          - img [ref=e86]
+        - generic [ref=e89]:
+          - img [ref=e90]
+          - combobox [ref=e94]:
+            - option "All Customers" [selected]
+        - button "All Assets" [ref=e96] [cursor=pointer]:
+          - img [ref=e97]
+          - generic [ref=e100]: All Assets
+          - img [ref=e101]
+        - button "Auto Refresh" [ref=e105] [cursor=pointer]:
+          - img [ref=e106]
+          - generic [ref=e111]: Auto Refresh
+          - img [ref=e112]
+        - button "Mahrus" [ref=e115] [cursor=pointer]:
+          - img [ref=e116]
+          - generic [ref=e121]: Mahrus
+          - img [ref=e122]
+        - button "Edit" [ref=e126] [cursor=pointer]:
+          - img [ref=e127]
+          - text: Edit
+      - generic [ref=e131]:
+        - heading "Overview" [level=3] [ref=e136]: Overview
+        - heading "Ticket Volume" [level=3] [ref=e165]: Ticket Volume
+        - heading "Alert Quality" [level=3] [ref=e189]: Alert Quality
+        - heading "Priority Distribution" [level=3] [ref=e200]: Priority Distribution
+        - heading "Tickets by Customer" [level=3] [ref=e223]: Tickets by Customer
+        - heading "Top Alert Rules" [level=3] [ref=e247]: Top Alert Rules
+        - heading "Analyst Performance" [level=3] [ref=e285]: Analyst Performance
+        - heading "Live Ticket Feed" [level=3] [ref=e329]: Live Ticket Feed
+  - button "SOC AI Assistant (Ctrl+K)" [ref=e334] [cursor=pointer]:
+    - img [ref=e335]

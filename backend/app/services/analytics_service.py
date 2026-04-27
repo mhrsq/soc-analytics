@@ -4,7 +4,7 @@ import logging
 from datetime import date, datetime, timedelta, timezone
 from typing import Optional
 
-from sqlalchemy import and_, case, cast, func, select, text, Date, Float, Integer
+from sqlalchemy import and_, case, cast, extract, func, select, text, Date, Float, Integer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Ticket
@@ -444,6 +444,187 @@ class AnalyticsService:
         result = await self.session.execute(q)
         return [
             {"asset_name": row.asset_name, "count": row.count}
+            for row in result.all()
+        ]
+
+    async def get_sla_trend(
+        self,
+        start_date=None,
+        end_date=None,
+        customer=None,
+        asset_names=None,
+    ) -> list[dict]:
+        """Get monthly SLA compliance trend (MTTD and MTTR SLA percentages)."""
+        filters = self._build_filters(start_date, end_date, customer, asset_names)
+        month_expr = func.date_trunc("month", Ticket.created_time)
+        q = (
+            select(
+                month_expr.label("month"),
+                func.count().label("total"),
+                func.count().filter(Ticket.mttd_seconds != None).label("measured"),
+                (
+                    100.0
+                    * func.sum(case((Ticket.sla_met == True, 1), else_=0))
+                    / func.nullif(func.count().filter(Ticket.mttd_seconds != None), 0)
+                ).label("mttd_sla_pct"),
+                (
+                    100.0
+                    * func.sum(case((Ticket.mttr_sla_met == True, 1), else_=0))
+                    / func.nullif(func.count().filter(Ticket.mttr_seconds != None), 0)
+                ).label("mttr_sla_pct"),
+            )
+            .where(*filters, Ticket.created_time >= "2024-01-01")
+            .group_by(month_expr)
+            .order_by(month_expr)
+        )
+        result = await self.session.execute(q)
+        return [
+            {
+                "month": row.month.strftime("%Y-%m"),
+                "total": row.total,
+                "measured": row.measured,
+                "mttd_sla_pct": round(row.mttd_sla_pct, 1) if row.mttd_sla_pct is not None else None,
+                "mttr_sla_pct": round(row.mttr_sla_pct, 1) if row.mttr_sla_pct is not None else None,
+            }
+            for row in result.all()
+        ]
+
+    async def get_fp_trend(
+        self,
+        start_date=None,
+        end_date=None,
+        customer=None,
+        asset_names=None,
+    ) -> list[dict]:
+        """Get monthly False Positive rate trend."""
+        filters = self._build_filters(start_date, end_date, customer, asset_names)
+        month_expr = func.date_trunc("month", Ticket.created_time)
+        q = (
+            select(
+                month_expr.label("month"),
+                func.count().label("total"),
+                func.sum(case((Ticket.validation == "True Positive", 1), else_=0)).label("tp_count"),
+                func.sum(case((Ticket.validation == "False Positive", 1), else_=0)).label("fp_count"),
+                (
+                    100.0
+                    * func.sum(case((Ticket.validation == "False Positive", 1), else_=0))
+                    / func.nullif(func.count(), 0)
+                ).label("fp_rate"),
+            )
+            .where(*filters, Ticket.created_time >= "2024-01-01")
+            .group_by(month_expr)
+            .order_by(month_expr)
+        )
+        result = await self.session.execute(q)
+        return [
+            {
+                "month": row.month.strftime("%Y-%m"),
+                "total": row.total,
+                "tp_count": int(row.tp_count or 0),
+                "fp_count": int(row.fp_count or 0),
+                "fp_rate": round(row.fp_rate, 1) if row.fp_rate is not None else None,
+            }
+            for row in result.all()
+        ]
+
+    async def get_customer_sla_matrix(
+        self,
+        start_date=None,
+        end_date=None,
+        customer=None,
+        asset_names=None,
+    ) -> list[dict]:
+        """Get per-customer per-month MTTD SLA compliance matrix."""
+        filters = self._build_filters(start_date, end_date, customer, asset_names)
+        month_expr = func.date_trunc("month", Ticket.created_time)
+        q = (
+            select(
+                Ticket.customer,
+                month_expr.label("month"),
+                (
+                    100.0
+                    * func.sum(case((Ticket.sla_met == True, 1), else_=0))
+                    / func.nullif(
+                        func.count().filter(Ticket.mttd_seconds != None), 0
+                    )
+                ).label("mttd_sla_pct"),
+                func.count().label("total"),
+            )
+            .where(
+                *filters,
+                Ticket.created_time >= "2024-01-01",
+                Ticket.customer != None,
+                Ticket.customer != "",
+            )
+            .group_by(Ticket.customer, month_expr)
+            .order_by(Ticket.customer, month_expr)
+        )
+        result = await self.session.execute(q)
+        return [
+            {
+                "customer": row.customer,
+                "month": row.month.strftime("%Y-%m"),
+                "mttd_sla_pct": round(row.mttd_sla_pct, 1) if row.mttd_sla_pct is not None else None,
+                "total": row.total,
+            }
+            for row in result.all()
+        ]
+
+    async def get_sla_breach_analysis(
+        self,
+        dimension: str = "analyst",
+        start_date=None,
+        end_date=None,
+        customer=None,
+        asset_names=None,
+    ) -> list[dict]:
+        """Get SLA breach breakdown by analyst, customer, priority, or hour."""
+        filters = self._build_filters(start_date, end_date, customer, asset_names)
+
+        if dimension == "analyst":
+            group_expr = Ticket.technician
+        elif dimension == "customer":
+            group_expr = Ticket.customer
+        elif dimension == "priority":
+            group_expr = Ticket.priority
+        elif dimension == "hour":
+            group_expr = extract(
+                "hour",
+                func.timezone("Asia/Jakarta", Ticket.created_time),
+            )
+        else:
+            group_expr = Ticket.technician
+
+        q = (
+            select(
+                group_expr.label("group_value"),
+                func.count().label("total"),
+                func.sum(case((Ticket.sla_met == False, 1), else_=0)).label("breached"),
+                (
+                    100.0
+                    * func.sum(case((Ticket.sla_met == False, 1), else_=0))
+                    / func.nullif(func.count(), 0)
+                ).label("breach_pct"),
+                func.avg(Ticket.mttd_seconds).label("avg_mttd_sec"),
+            )
+            .where(
+                *filters,
+                Ticket.sla_met == False,
+                Ticket.mttd_seconds != None,
+                group_expr != None,
+            )
+            .group_by(group_expr)
+            .order_by(func.count().desc())
+        )
+        result = await self.session.execute(q)
+        return [
+            {
+                "group_value": str(row.group_value),
+                "total": row.total,
+                "breached": int(row.breached or 0),
+                "breach_pct": round(row.breach_pct, 1) if row.breach_pct is not None else 0.0,
+                "avg_mttd_min": round(row.avg_mttd_sec / 60, 1) if row.avg_mttd_sec is not None else None,
+            }
             for row in result.all()
         ]
 

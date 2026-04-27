@@ -6,6 +6,10 @@ import { Spinner } from "../components/Spinner";
 import { AnalystDetailModal } from "../components/AnalystDetailModal";
 import { TicketDetailModal } from "../components/TicketDetailModal";
 import { TeamTrendChart } from "../components/AnalystTrendChart";
+import { SLATrendChart } from "../components/SLATrendChart";
+import { FPRateTrendChart } from "../components/FPRateTrendChart";
+import { CustomerSlaHeatmap } from "../components/CustomerSlaHeatmap";
+import { SlaBreachAnalysis } from "../components/SlaBreachAnalysis";
 import type { AnalystScore } from "../types";
 import { Users, ChevronDown, BarChart3, AlertTriangle, Minus } from "lucide-react";
 import { ErrorAlert } from "../components/ErrorAlert";
@@ -77,6 +81,10 @@ export function ManagerView() {
     () => api.getAnalystScores({ start: range.start, end: range.end }),
     [range.start, range.end]
   );
+
+  const slaTrend = useFetch(() => api.getSlaTrend({ start: range.start, end: range.end }), [range.start, range.end]);
+  const fpTrend = useFetch(() => api.getFpTrend({ start: range.start, end: range.end }), [range.start, range.end]);
+  const customerSla = useFetch(() => api.getCustomerSlaMatrix({ start: range.start, end: range.end }), [range.start, range.end]);
 
   const data = useMemo(() => {
     if (!rawData) return null;
@@ -308,6 +316,18 @@ export function ManagerView() {
             </div>
             <TeamTrendChart selectedAnalysts={data.map((a) => a.analyst)} granularity="weekly" />
           </Card>
+
+          {/* P0 Analytics Widgets */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+            <SLATrendChart data={slaTrend.data} loading={slaTrend.loading} />
+            <FPRateTrendChart data={fpTrend.data} loading={fpTrend.loading} />
+          </div>
+          <div className="mt-4">
+            <CustomerSlaHeatmap data={customerSla.data} loading={customerSla.loading} />
+          </div>
+          <div className="mt-4">
+            <SlaBreachAnalysis start={range.start} end={range.end} />
+          </div>
         </>
       )}
 

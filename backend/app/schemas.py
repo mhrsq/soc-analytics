@@ -495,3 +495,36 @@ class TopologyLinkOut(BaseModel):
     label: Optional[str]
     bandwidth: Optional[str]
     metadata: Optional[dict] = None
+
+
+# --- P0 Analytics Widgets ---
+
+class SlaTrendPoint(BaseModel):
+    month: str
+    mttd_sla_pct: Optional[float] = None
+    mttr_sla_pct: Optional[float] = None
+    total: int
+    measured: int
+
+
+class FpTrendPoint(BaseModel):
+    month: str
+    fp_rate: Optional[float] = None
+    tp_count: int
+    fp_count: int
+    total: int
+
+
+class CustomerSlaCell(BaseModel):
+    customer: str
+    month: str
+    mttd_sla_pct: Optional[float] = None
+    total: int
+
+
+class SlaBreachGroup(BaseModel):
+    group_value: str
+    total: int
+    breached: int
+    breach_pct: float
+    avg_mttd_min: Optional[float] = None
