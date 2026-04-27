@@ -115,10 +115,15 @@ export function ExecSummaryCard({ start, end, customer, bare: _bare }: Props) {
       )}
 
       {summary && (
-        <div className="space-y-2">
-          {summary.split(/\n\n+/).filter(p => p.trim()).map((para, i) => (
+        <div className="space-y-2.5">
+          {summary
+            .split(/\n\n+/)
+            .map(p => p.trim())
+            .filter(p => p && !p.match(/^---+$/) && !p.match(/^\*\*\*+$/))
+            .map(p => p.replace(/^#{1,3}\s+/, ""))
+            .map((para, i) => (
             <p key={i} className="text-sm leading-relaxed" style={{ color: "var(--theme-text-secondary)" }}>
-              {para.trim().split(/(\*\*[^*]+\*\*|\*[^*]+\*)/).map((part, j) => {
+              {para.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/).map((part, j) => {
                 if (part.startsWith("**") && part.endsWith("**"))
                   return <strong key={j} style={{ color: "var(--theme-text-primary)", fontWeight: 600 }}>{part.slice(2, -2)}</strong>;
                 if (part.startsWith("*") && part.endsWith("*"))

@@ -453,18 +453,20 @@ DATA OPERASIONAL:
 - Security Incident (TP with impact): {metrics['si_count']}
 - Alert terbanyak: {top_alert_str}
 
-FORMAT OUTPUT:
-- Maksimal 3–4 paragraf singkat
-- Setiap paragraf mengandung angka spesifik dari data di atas
-- Gunakan **teks** untuk menekankan temuan kritis atau angka penting
-- Sertakan satu paragraf berisi action items atau rekomendasi konkret
+FORMAT OUTPUT (ikuti persis):
+- Hanya 3–4 paragraf teks, dipisahkan baris kosong
+- JANGAN gunakan markdown header (##, ###), JANGAN gunakan garis pemisah (---, ***)
+- JANGAN gunakan bullet points atau numbered list
+- Gunakan **teks** HANYA untuk angka kritis atau temuan paling penting
+- Setiap paragraf wajib mengandung angka spesifik dari data
+- Paragraf terakhir: satu atau dua rekomendasi konkret dengan justifikasi data
 
-LARANGAN KERAS — jangan gunakan frasa berikut:
+LARANGAN KERAS — jangan gunakan frasa atau elemen berikut:
 "Perlu dicatat", "Penting untuk dipahami", "Secara keseluruhan", "Berdasarkan data",
 "Kabar baiknya", "Tidak dapat disangkal", "Sebagai catatan", "Dapat disimpulkan bahwa",
-kalimat pembuka basa-basi, kalimat yang tidak menambah informasi baru dari data.
+"## ", "### ", "---", "***", bullet points, kalimat pembuka basa-basi.
 
-Tone: laporan eksekutif formal, objektif, padat, langsung ke poin."""
+Tone: laporan eksekutif formal, objektif, padat, langsung ke poin. Mulai langsung dengan fakta."""
 
         try:
             text = await self._call_llm(provider, prompt)
