@@ -14,9 +14,13 @@ from app.schemas import (
     CustomerItem,
     CustomerSlaCell,
     FpTrendPoint,
+    IncidentFunnelStep,
     MetricsSummary,
+    MomKpi,
     MttdPoint,
     PriorityItem,
+    QueueBucket,
+    ShiftPerformance,
     SlaBreachGroup,
     SlaTrendPoint,
     ValidationBreakdown,
@@ -270,3 +274,63 @@ async def get_sla_breach(
     customer = enforce_customer_scope(request, customer)
     svc = AnalyticsService(db)
     return await svc.get_sla_breach_analysis(dimension, _parse_time(start), _parse_time(end), customer, _parse_asset_names(asset_name))
+
+
+# --- P1 Analytics Widgets ---
+
+
+@router.get("/mom-kpis", response_model=list[MomKpi])
+async def get_mom_kpis(
+    request: Request,
+    start: Optional[str] = Query(None, description="Current period start (ISO date/datetime)"),
+    end: Optional[str] = Query(None, description="Current period end (ISO date/datetime)"),
+    customer: Optional[str] = Query(None),
+    asset_name: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """Month-over-month KPI comparison: current vs previous period."""
+    customer = enforce_customer_scope(request, customer)
+    svc = AnalyticsService(db)
+    return await svc.get_mom_kpis(_parse_time(start), _parse_time(end), customer, _parse_asset_names(asset_name))
+
+
+@router.get("/incident-funnel", response_model=list[IncidentFunnelStep])
+async def get_incident_funnel(
+    request: Request,
+    start: Optional[str] = Query(None),
+    end: Optional[str] = Query(None),
+    customer: Optional[str] = Query(None),
+    asset_name: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """Security incident funnel: total alerts → events → TP → incidents."""
+    customer = enforce_customer_scope(request, customer)
+    svc = AnalyticsService(db)
+    return await svc.get_incident_funnel(_parse_time(start), _parse_time(end), customer, _parse_asset_names(asset_name))
+
+
+@router.get("/queue-health", response_model=list[QueueBucket])
+async def get_queue_health(
+    request: Request,
+    customer: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """Current open-ticket queue health bucketed by age."""
+    customer = enforce_customer_scope(request, customer)
+    svc = AnalyticsService(db)
+    return await svc.get_queue_health(customer)
+
+
+@router.get("/shift-performance", response_model=list[ShiftPerformance])
+async def get_shift_performance(
+    request: Request,
+    start: Optional[str] = Query(None),
+    end: Optional[str] = Query(None),
+    customer: Optional[str] = Query(None),
+    asset_name: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """Analyst performance breakdown by WIB shift window."""
+    customer = enforce_customer_scope(request, customer)
+    svc = AnalyticsService(db)
+    return await svc.get_shift_performance(_parse_time(start), _parse_time(end), customer, _parse_asset_names(asset_name))

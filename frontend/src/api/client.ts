@@ -75,6 +75,10 @@ import type {
   FpTrendPoint,
   CustomerSlaCell,
   SlaBreachGroup,
+  MomKpi,
+  IncidentFunnelStep,
+  QueueBucket,
+  ShiftPerformance,
 } from "../types";
 
 interface Filters {
@@ -125,6 +129,18 @@ export const api = {
 
   getSlaBreachAnalysis: (f: Filters = {}, dimension = "analyst") =>
     request<SlaBreachGroup[]>(`/metrics/sla-breach${qs({ ...f, dimension })}`),
+
+  getMomKpis: (f: Filters = {}) =>
+    request<MomKpi[]>(`/metrics/mom-kpis${qs(f)}`),
+
+  getIncidentFunnel: (f: Filters = {}) =>
+    request<IncidentFunnelStep[]>(`/metrics/incident-funnel${qs(f)}`),
+
+  getQueueHealth: (f: Filters = {}) =>
+    request<QueueBucket[]>(`/metrics/queue-health${qs(f)}`),
+
+  getShiftPerformance: (f: Filters = {}) =>
+    request<ShiftPerformance[]>(`/metrics/shift-performance${qs(f)}`),
 
   // ── Sync ──
   getSyncStatus: () => request<SyncStatus>("/sync/status"),

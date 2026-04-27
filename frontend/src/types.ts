@@ -553,6 +553,35 @@ export interface SlaBreachGroup {
   avg_mttd_min: number | null;
 }
 
+// ── Manager View P1 Analytics ──
+
+export interface MomKpi {
+  metric: string;
+  current: number;
+  previous: number;
+  delta_pct: number | null;
+}
+
+export interface IncidentFunnelStep {
+  step: string;
+  count: number;
+  pct_of_total: number;
+}
+
+export interface QueueBucket {
+  bucket: string;
+  count: number;
+  oldest_id: number | null;
+}
+
+export interface ShiftPerformance {
+  shift: string;
+  total: number;
+  avg_mttd_min: number | null;
+  mttd_sla_pct: number | null;
+  avg_mttr_min: number | null;
+}
+
 // ── Attack Map (Wazuh) ──
 export interface AttackMapEvent {
   id: string;

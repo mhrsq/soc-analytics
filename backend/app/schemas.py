@@ -528,3 +528,32 @@ class SlaBreachGroup(BaseModel):
     breached: int
     breach_pct: float
     avg_mttd_min: Optional[float] = None
+
+
+# --- P1 Analytics Widgets ---
+
+class MomKpi(BaseModel):
+    metric: str          # "total", "fp_rate", "mttd_sla", "mttr_sla", "incidents"
+    current: float
+    previous: float
+    delta_pct: Optional[float]   # percentage change; None when previous == 0
+
+
+class IncidentFunnelStep(BaseModel):
+    step: str            # "total_alerts", "security_events", "true_positives", "security_incidents"
+    count: int
+    pct_of_total: float
+
+
+class QueueBucket(BaseModel):
+    bucket: str          # "<1h", "1-4h", "4-12h", "12-24h", "1-3d", "3-7d", ">7d"
+    count: int
+    oldest_id: Optional[int]
+
+
+class ShiftPerformance(BaseModel):
+    shift: str               # "Night (00-08)", "Morning (08-16)", "Evening (16-24)"
+    total: int
+    avg_mttd_min: Optional[float]
+    mttd_sla_pct: Optional[float]
+    avg_mttr_min: Optional[float]

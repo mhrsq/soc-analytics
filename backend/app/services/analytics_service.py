@@ -627,6 +627,209 @@ class AnalyticsService:
             for row in result.all()
         ]
 
+    async def get_mom_kpis(
+        self,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None,
+        customer: Optional[str] = None,
+        asset_names: Optional[list[str]] = None,
+    ) -> list[dict]:
+        """Month-over-month KPI comparison.
+
+        Current period = start_date → end_date (default: last 30 days).
+        Previous period = same duration immediately before start_date.
+        """
+        today = date.today()
+        if not end_date:
+            end_date = today
+        if not start_date:
+            start_date = today - timedelta(days=30)
+
+        # Normalise to plain dates for arithmetic
+        s = start_date if isinstance(start_date, date) and not isinstance(start_date, datetime) else (start_date.date() if isinstance(start_date, datetime) else start_date)
+        e = end_date if isinstance(end_date, date) and not isinstance(end_date, datetime) else (end_date.date() if isinstance(end_date, datetime) else end_date)
+        duration = (e - s).days or 1
+        prev_end = s - timedelta(days=1)
+        prev_start = prev_end - timedelta(days=duration - 1)
+
+        async def _period_kpis(sd, ed):
+            filters = self._build_filters(sd, ed, customer, asset_names)
+            q = select(
+                func.count(Ticket.id).label("total"),
+                func.sum(case((Ticket.validation == "False Positive", 1), else_=0)).label("fp"),
+                (
+                    100.0
+                    * func.sum(case((Ticket.sla_met == True, 1), else_=0))
+                    / func.nullif(func.count().filter(Ticket.mttd_seconds != None), 0)
+                ).label("mttd_sla_pct"),
+                (
+                    100.0
+                    * func.sum(case((Ticket.mttr_sla_met == True, 1), else_=0))
+                    / func.nullif(func.count().filter(Ticket.mttr_seconds != None), 0)
+                ).label("mttr_sla_pct"),
+                func.sum(case((Ticket.case_type == "Security Incident", 1), else_=0)).label("incidents"),
+            ).where(*filters)
+            row = (await self.session.execute(q)).one()
+            total = row.total or 0
+            fp = int(row.fp or 0)
+            return {
+                "total": float(total),
+                "fp_rate": round(fp / total * 100, 2) if total > 0 else 0.0,
+                "mttd_sla": round(row.mttd_sla_pct, 1) if row.mttd_sla_pct is not None else 0.0,
+                "mttr_sla": round(row.mttr_sla_pct, 1) if row.mttr_sla_pct is not None else 0.0,
+                "incidents": float(int(row.incidents or 0)),
+            }
+
+        cur = await _period_kpis(s, e)
+        prev = await _period_kpis(prev_start, prev_end)
+
+        result = []
+        for metric in ("total", "fp_rate", "mttd_sla", "mttr_sla", "incidents"):
+            c_val = cur[metric]
+            p_val = prev[metric]
+            delta = round((c_val - p_val) / p_val * 100, 1) if p_val > 0 else None
+            result.append({
+                "metric": metric,
+                "current": c_val,
+                "previous": p_val,
+                "delta_pct": delta,
+            })
+        return result
+
+    async def get_incident_funnel(
+        self,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None,
+        customer: Optional[str] = None,
+        asset_names: Optional[list[str]] = None,
+    ) -> list[dict]:
+        """Security incident funnel: total → security events → true positives → incidents."""
+        filters = self._build_filters(start_date, end_date, customer, asset_names)
+
+        q = select(
+            func.count(Ticket.id).label("total_alerts"),
+            func.sum(case((Ticket.case_type == "Security Event", 1), else_=0)).label("security_events"),
+            func.sum(case((Ticket.validation == "True Positive", 1), else_=0)).label("true_positives"),
+            func.sum(case((Ticket.case_type == "Security Incident", 1), else_=0)).label("security_incidents"),
+        ).where(*filters)
+
+        row = (await self.session.execute(q)).one()
+        total = row.total_alerts or 0
+
+        steps = [
+            ("total_alerts", total),
+            ("security_events", int(row.security_events or 0)),
+            ("true_positives", int(row.true_positives or 0)),
+            ("security_incidents", int(row.security_incidents or 0)),
+        ]
+        return [
+            {
+                "step": step,
+                "count": count,
+                "pct_of_total": round(count / total * 100, 1) if total > 0 else 0.0,
+            }
+            for step, count in steps
+        ]
+
+    async def get_queue_health(
+        self,
+        customer: Optional[str] = None,
+    ) -> list[dict]:
+        """Current open-ticket queue bucketed by age."""
+        now = datetime.now(timezone.utc)
+
+        customer_filter = []
+        if customer:
+            customer_filter.append(Ticket.customer == customer)
+
+        q = select(Ticket.id, Ticket.created_time).where(
+            Ticket.status.in_(["Open", "Assigned", "In Progress"]),
+            *customer_filter,
+        )
+        results = (await self.session.execute(q)).all()
+
+        bucket_order = ["<1h", "1-4h", "4-12h", "12-24h", "1-3d", "3-7d", ">7d"]
+        buckets: dict[str, list[int]] = {b: [] for b in bucket_order}
+
+        for row in results:
+            if row.created_time is None:
+                continue
+            age_hours = (now - row.created_time).total_seconds() / 3600
+            if age_hours < 1:
+                buckets["<1h"].append(row.id)
+            elif age_hours < 4:
+                buckets["1-4h"].append(row.id)
+            elif age_hours < 12:
+                buckets["4-12h"].append(row.id)
+            elif age_hours < 24:
+                buckets["12-24h"].append(row.id)
+            elif age_hours < 72:
+                buckets["1-3d"].append(row.id)
+            elif age_hours < 168:
+                buckets["3-7d"].append(row.id)
+            else:
+                buckets[">7d"].append(row.id)
+
+        return [
+            {
+                "bucket": b,
+                "count": len(ids),
+                "oldest_id": min(ids) if ids else None,
+            }
+            for b, ids in buckets.items()
+        ]
+
+    async def get_shift_performance(
+        self,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None,
+        customer: Optional[str] = None,
+        asset_names: Optional[list[str]] = None,
+    ) -> list[dict]:
+        """Analyst shift performance bucketed by WIB hour ranges."""
+        filters = self._build_filters(start_date, end_date, customer, asset_names)
+
+        wib_hour = extract("hour", func.timezone("Asia/Jakarta", Ticket.created_time))
+        shift_expr = case(
+            (and_(wib_hour >= 0, wib_hour <= 7), "Night (00-08)"),
+            (and_(wib_hour >= 8, wib_hour <= 15), "Morning (08-16)"),
+            else_="Evening (16-24)",
+        )
+
+        q = (
+            select(
+                shift_expr.label("shift"),
+                func.count(Ticket.id).label("total"),
+                (func.avg(Ticket.mttd_seconds) / 60.0).label("avg_mttd_min"),
+                (
+                    100.0
+                    * func.sum(case((Ticket.sla_met == True, 1), else_=0))
+                    / func.nullif(func.count().filter(Ticket.mttd_seconds != None), 0)
+                ).label("mttd_sla_pct"),
+                (
+                    func.avg(
+                        case((Ticket.mttr_seconds != None, Ticket.mttr_seconds), else_=None)
+                    )
+                    / 60.0
+                ).label("avg_mttr_min"),
+            )
+            .where(*filters, cast(Ticket.created_time, Date) >= date(2024, 1, 1))
+            .group_by(shift_expr)
+            .order_by(shift_expr)
+        )
+
+        result = await self.session.execute(q)
+        return [
+            {
+                "shift": row.shift,
+                "total": row.total,
+                "avg_mttd_min": round(row.avg_mttd_min, 1) if row.avg_mttd_min is not None else None,
+                "mttd_sla_pct": round(row.mttd_sla_pct, 1) if row.mttd_sla_pct is not None else None,
+                "avg_mttr_min": round(row.avg_mttr_min, 1) if row.avg_mttr_min is not None else None,
+            }
+            for row in result.all()
+        ]
+
     def _build_filters(
         self,
         start_date: Optional[date] = None,

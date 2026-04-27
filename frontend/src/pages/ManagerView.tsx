@@ -10,6 +10,10 @@ import { SLATrendChart } from "../components/SLATrendChart";
 import { FPRateTrendChart } from "../components/FPRateTrendChart";
 import { CustomerSlaHeatmap } from "../components/CustomerSlaHeatmap";
 import { SlaBreachAnalysis } from "../components/SlaBreachAnalysis";
+import { MomKpiCards } from "../components/MomKpiCards";
+import { IncidentFunnel } from "../components/IncidentFunnel";
+import { QueueHealth } from "../components/QueueHealth";
+import { ShiftPerformanceChart } from "../components/ShiftPerformanceChart";
 import type { AnalystScore } from "../types";
 import { Users, ChevronDown, BarChart3, AlertTriangle, Minus } from "lucide-react";
 import { ErrorAlert } from "../components/ErrorAlert";
@@ -85,6 +89,11 @@ export function ManagerView() {
   const slaTrend = useFetch(() => api.getSlaTrend({ start: range.start, end: range.end }), [range.start, range.end]);
   const fpTrend = useFetch(() => api.getFpTrend({ start: range.start, end: range.end }), [range.start, range.end]);
   const customerSla = useFetch(() => api.getCustomerSlaMatrix({ start: range.start, end: range.end }), [range.start, range.end]);
+
+  const momKpis = useFetch(() => api.getMomKpis({ start: range.start, end: range.end }), [range.start, range.end]);
+  const funnel = useFetch(() => api.getIncidentFunnel({ start: range.start, end: range.end }), [range.start, range.end]);
+  const queueHealth = useFetch(() => api.getQueueHealth({}), []);
+  const shiftPerf = useFetch(() => api.getShiftPerformance({ start: range.start, end: range.end }), [range.start, range.end]);
 
   const data = useMemo(() => {
     if (!rawData) return null;
@@ -325,6 +334,18 @@ export function ManagerView() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
             <CustomerSlaHeatmap data={customerSla.data} loading={customerSla.loading} />
             <SlaBreachAnalysis start={range.start} end={range.end} />
+          </div>
+
+          {/* P1 Analytics Widgets */}
+          <div className="mt-4">
+            <MomKpiCards data={momKpis.data} loading={momKpis.loading} />
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+            <IncidentFunnel data={funnel.data} loading={funnel.loading} />
+            <QueueHealth data={queueHealth.data} loading={queueHealth.loading} />
+          </div>
+          <div className="mt-4">
+            <ShiftPerformanceChart data={shiftPerf.data} loading={shiftPerf.loading} />
           </div>
         </>
       )}
