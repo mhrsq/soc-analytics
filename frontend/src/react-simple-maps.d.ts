@@ -30,6 +30,10 @@ declare module "react-simple-maps" {
     stroke?: string;
     strokeWidth?: number;
     style?: { default?: CSSProperties; hover?: CSSProperties; pressed?: CSSProperties };
+    onMouseEnter?: (evt: any) => void;
+    onMouseMove?: (evt: any) => void;
+    onMouseLeave?: (evt: any) => void;
+    onClick?: (evt: any) => void;
   }
   export const Geography: ComponentType<GeographyProps>;
 

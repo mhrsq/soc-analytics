@@ -647,7 +647,7 @@ export function CustomerView() {
   const filterOptions = useFetch<FilterOptions>(() => api.getFilterOptions(), []);
 
   const f = useMemo(
-    () => ({ start: range.start, end: range.end, cust: customer || undefined }),
+    () => ({ start: range.start, end: range.end, customer: customer || undefined }),
     [range.start, range.end, customer]
   );
   const deps = [range.start, range.end, customer];

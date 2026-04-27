@@ -95,6 +95,9 @@ export function AttackMap({ customer }: Props) {
   const [center, setCenter] = useState<[number, number]>([20, 10]);
   const [lastUpdate, setLastUpdate] = useState<string>("");
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [hoveredGeo, setHoveredGeo] = useState<string | null>(null);
+  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+  const [selectedGeo, setSelectedGeo] = useState<string | null>(null);
   const arcIdCounter = useRef(0);
   const seenIds = useRef(new Set<string>());
   const animRef = useRef<number | null>(null);
@@ -208,18 +211,49 @@ export function AttackMap({ customer }: Props) {
     return items.slice(0, 8);
   }, [events]);
 
+  // Country stats for selected geography
+  const countryStats = useMemo(() => {
+    if (!selectedGeo) return null;
+    const evts = events.filter(e => e.source_country === selectedGeo);
+    const total = evts.length;
+
+    const ruleMap = new Map<string, { desc: string; count: number; level: number }>();
+    const portMap = new Map<number, number>();
+    const protoMap = new Map<string, number>();
+
+    for (const e of evts) {
+      if (e.rule_id) {
+        const prev = ruleMap.get(e.rule_id);
+        ruleMap.set(e.rule_id, {
+          desc: e.rule_desc || prev?.desc || e.rule_id,
+          count: (prev?.count ?? 0) + 1,
+          level: Math.max(prev?.level ?? 0, e.rule_level ?? 0),
+        });
+      }
+      if (e.port) portMap.set(Number(e.port), (portMap.get(Number(e.port)) ?? 0) + 1);
+      if (e.protocol) protoMap.set(e.protocol, (protoMap.get(e.protocol) ?? 0) + 1);
+    }
+
+    return {
+      total,
+      topRules: [...ruleMap.values()].sort((a, b) => b.count - a.count).slice(0, 5),
+      topPorts: [...portMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5),
+      topProtos: [...protoMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5),
+    };
+  }, [selectedGeo, events]);
+
   return (
     <div className="relative w-full flex flex-col" style={{ height: "calc(100vh - 56px)", background: "var(--theme-surface-base)" }}>
 
       {/* Error alert */}
       {loadError && (
-        <div className="absolute top-16 left-3 right-3 z-30">
+        <div className="absolute top-28 left-3 right-3 z-30">
           <ErrorAlert error={loadError} onRetry={loadSummary} />
         </div>
       )}
 
       {/* ── Header ── */}
-      <div className="absolute top-3 left-3 right-3 z-20 flex items-center justify-between flex-wrap gap-2">
+      <div className="absolute top-14 left-3 right-3 z-20 flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ backgroundColor: "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)" }}>
           <Globe className="w-4 h-4" style={{ color: "var(--theme-text-secondary)" }} />
           <h2 className="text-sm font-semibold" style={{ color: "var(--theme-text-primary)" }}>Live Attack Map</h2>
@@ -265,12 +299,23 @@ export function AttackMap({ customer }: Props) {
                   <Geography
                     key={geo.rsmKey}
                     geography={geo}
-                    fill={count > 0 ? heatColor(count, maxCountryCount) : "var(--theme-card-bg)"}
+                    fill={selectedGeo === name ? "rgba(59,130,246,0.35)" : count > 0 ? heatColor(count, maxCountryCount) : "var(--theme-card-bg)"}
                     stroke="var(--theme-surface-border)"
                     strokeWidth={0.3}
+                    onMouseEnter={(evt) => {
+                      setHoveredGeo(name);
+                      const e = evt as unknown as React.MouseEvent;
+                      setTooltipPos({ x: e.clientX, y: e.clientY });
+                    }}
+                    onMouseMove={(evt) => {
+                      const e = evt as unknown as React.MouseEvent;
+                      setTooltipPos({ x: e.clientX, y: e.clientY });
+                    }}
+                    onMouseLeave={() => setHoveredGeo(null)}
+                    onClick={() => setSelectedGeo(prev => prev === name ? null : name)}
                     style={{
-                      default: { outline: "none" },
-                      hover: { fill: count > 0 ? heatColor(count * 1.5, maxCountryCount) : "var(--theme-surface-raised)", outline: "none" },
+                      default: { outline: "none", cursor: "pointer" },
+                      hover: { fill: selectedGeo === name ? "rgba(59,130,246,0.5)" : count > 0 ? heatColor(count * 1.5, maxCountryCount) : "var(--theme-surface-raised)", outline: "none", cursor: "pointer" },
                       pressed: { outline: "none" },
                     }}
                   />
@@ -346,6 +391,26 @@ export function AttackMap({ customer }: Props) {
           </ZoomableGroup>
         </ComposableMap>
 
+        {/* Country hover tooltip */}
+        {hoveredGeo && (
+          <div
+            className="fixed text-xs px-2.5 py-1.5 rounded-lg pointer-events-none z-50 shadow-lg"
+            style={{
+              left: tooltipPos.x + 14,
+              top: tooltipPos.y - 35,
+              background: "var(--theme-nav-bg)",
+              border: "1px solid var(--theme-surface-border)",
+              color: "var(--theme-text-primary)",
+              backdropFilter: "blur(8px)",
+            }}
+          >
+            <span className="font-medium">{hoveredGeo}</span>
+            <span className="ml-2" style={{ color: "var(--theme-text-secondary)" }}>
+              {(countryMap.get(hoveredGeo) ?? 0).toLocaleString()} attacks
+            </span>
+          </div>
+        )}
+
         {/* Zoom controls */}
         <div className="absolute top-16 right-3 z-10 flex flex-col gap-1">
           {[
@@ -385,6 +450,68 @@ export function AttackMap({ customer }: Props) {
         )}
       </div>
 
+      {/* ── Country stats panel (right side, shown on click) ── */}
+      {selectedGeo && countryStats && (
+        <div
+          className="absolute top-16 right-3 w-72 max-h-[calc(100%-8rem)] overflow-y-auto rounded-xl z-30 shadow-2xl"
+          style={{
+            background: "var(--theme-nav-bg)",
+            border: "1px solid var(--theme-surface-border)",
+            backdropFilter: "blur(12px)",
+          }}
+        >
+          <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid var(--theme-surface-border)" }}>
+            <div>
+              <h3 className="text-sm font-semibold" style={{ color: "var(--theme-text-primary)" }}>{selectedGeo}</h3>
+              <p className="text-xs" style={{ color: "var(--theme-text-secondary)" }}>{countryStats.total.toLocaleString()} attacks</p>
+            </div>
+            <button onClick={() => setSelectedGeo(null)} className="text-xs px-2 py-1 rounded" style={{ color: "var(--theme-text-muted)" }}>✕</button>
+          </div>
+
+          {/* Top Rules */}
+          <div className="px-4 py-3" style={{ borderBottom: "1px solid var(--theme-surface-border)" }}>
+            <h4 className="text-[10px] uppercase font-semibold mb-2" style={{ color: "var(--theme-text-muted)" }}>Top Rules</h4>
+            <div className="space-y-1.5">
+              {countryStats.topRules.map((r, i) => (
+                <div key={i} className="flex items-start gap-2">
+                  <span
+                    className="text-[9px] px-1.5 py-0.5 rounded shrink-0 font-mono"
+                    style={{
+                      background: r.level >= 10 ? "rgba(239,68,68,0.15)" : r.level >= 7 ? "rgba(245,158,11,0.15)" : "rgba(100,120,140,0.1)",
+                      color: r.level >= 10 ? "#ef4444" : r.level >= 7 ? "#f59e0b" : "var(--theme-text-muted)",
+                    }}
+                  >
+                    L{r.level}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] truncate" style={{ color: "var(--theme-text-primary)" }} title={r.desc}>{r.desc}</p>
+                    <p className="text-[10px]" style={{ color: "var(--theme-text-muted)" }}>{r.count} hits</p>
+                  </div>
+                </div>
+              ))}
+              {countryStats.topRules.length === 0 && (
+                <p className="text-[11px]" style={{ color: "var(--theme-text-dim)" }}>No rule data</p>
+              )}
+            </div>
+          </div>
+
+          {/* Top Ports */}
+          <div className="px-4 py-3">
+            <h4 className="text-[10px] uppercase font-semibold mb-2" style={{ color: "var(--theme-text-muted)" }}>Top Ports</h4>
+            <div className="flex flex-wrap gap-1.5">
+              {countryStats.topPorts.map(([port, count]) => (
+                <span key={port} className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: "var(--theme-surface-raised)", color: "var(--theme-text-secondary)" }}>
+                  :{port} <span style={{ color: "var(--theme-text-muted)" }}>({count})</span>
+                </span>
+              ))}
+              {countryStats.topPorts.length === 0 && (
+                <p className="text-[11px]" style={{ color: "var(--theme-text-dim)" }}>No port data</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Bottom panel: Countries + Live Feed ── */}
       <div className="h-44 flex border-t shrink-0" style={{ backgroundColor: "var(--theme-surface-base)", borderColor: "var(--theme-surface-border)" }}>
         {/* Top Attacking Countries */}
@@ -413,14 +540,31 @@ export function AttackMap({ customer }: Props) {
             <span className="ml-auto font-mono">{events.length} events</span>
           </div>
           {events.map((e, i) => (
-            <div key={`${e.id}-${i}`} className="flex items-center gap-2 px-3 py-1 text-[11px] hover:bg-white/[0.02]">
-              <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: getProtoColor(e.protocol) }} />
-              <span className="font-mono w-28 shrink-0 truncate" style={{ color: "var(--theme-text-secondary)" }}>{e.source_ip}</span>
-              <span style={{ color: "var(--theme-text-dim)" }}>→</span>
-              <span className="font-mono shrink-0" style={{ color: "var(--theme-text-muted)" }}>:{e.port}</span>
-              <span className="text-[10px] px-1 rounded shrink-0" style={{ backgroundColor: getProtoColor(e.protocol) + "20", color: getProtoColor(e.protocol) }}>{e.protocol}</span>
-              <span className="truncate" style={{ color: "var(--theme-text-dim)" }}>{e.agent_name}</span>
-              <span className="ml-auto font-mono shrink-0 text-[10px]" style={{ color: "var(--theme-text-dim)" }}>{timeAgo(e.time)}</span>
+            <div key={`${e.id}-${i}`} className="flex items-start gap-2 px-3 py-1 text-[11px] hover:bg-white/[0.02]">
+              <span className="w-1.5 h-1.5 rounded-full shrink-0 mt-1.5" style={{ backgroundColor: getProtoColor(e.protocol) }} />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-mono w-28 shrink-0 truncate" style={{ color: "var(--theme-text-secondary)" }}>{e.source_ip}</span>
+                  <span style={{ color: "var(--theme-text-dim)" }}>→</span>
+                  <span className="font-mono shrink-0" style={{ color: "var(--theme-text-muted)" }}>:{e.port}</span>
+                  <span className="text-[10px] px-1 rounded shrink-0" style={{ backgroundColor: getProtoColor(e.protocol) + "20", color: getProtoColor(e.protocol) }}>{e.protocol}</span>
+                  {e.rule_level > 0 && (
+                    <span className="text-[9px] px-1 rounded font-mono shrink-0" style={{
+                      background: e.rule_level >= 10 ? "rgba(239,68,68,0.15)" : e.rule_level >= 7 ? "rgba(245,158,11,0.15)" : "rgba(100,120,140,0.1)",
+                      color: e.rule_level >= 10 ? "#ef4444" : e.rule_level >= 7 ? "#f59e0b" : "var(--theme-text-muted)",
+                    }}>
+                      L{e.rule_level}
+                    </span>
+                  )}
+                  <span className="truncate" style={{ color: "var(--theme-text-dim)" }}>{e.agent_name}</span>
+                  <span className="ml-auto font-mono shrink-0 text-[10px]" style={{ color: "var(--theme-text-dim)" }}>{timeAgo(e.time)}</span>
+                </div>
+                {e.rule_desc && (
+                  <p className="text-[10px] truncate mt-0.5" style={{ color: "var(--theme-text-dim)", maxWidth: "300px" }} title={e.rule_desc}>
+                    {e.rule_desc}
+                  </p>
+                )}
+              </div>
             </div>
           ))}
         </div>

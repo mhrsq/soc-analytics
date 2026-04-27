@@ -52,12 +52,25 @@ const FLAG_STYLES: Record<string, { bg: string; text: string; label: string }> =
   underutilized: { bg: "rgba(161,161,170,0.1)", text: "#a1a1aa", label: "Underutilized" },
 };
 
+const SORT_MAP: Record<string, (a: AnalystScore) => string | number> = {
+  analyst: (a) => a.analyst.toLowerCase(),
+  composite_score: (a) => a.composite_score,
+  total_tickets: (a) => a.stats.total_tickets,
+  resolved: (a) => a.stats.resolved,
+  open: (a) => a.stats.total_tickets - a.stats.resolved,
+  avg_mttd: (a) => a.stats.avg_mttd_seconds ?? Infinity,
+  avg_mttr: (a) => a.stats.avg_mttr_seconds ?? Infinity,
+  sla_pct: (a) => a.stats.sla_pct ?? 0,
+};
+
 export function ManagerView() {
   const [periodMonths, setPeriodMonths] = useState(1);
   const [selectedAnalyst, setSelectedAnalyst] = useState<string | null>(null);
   const [ticketId, setTicketId] = useState<number | null>(null);
   const [excluded] = useState<Set<string>>(loadExcluded);
   const [backfillMsg, setBackfillMsg] = useState<string | null>(null);
+  const [sortCol, setSortCol] = useState<string>("composite_score");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
   const range = useMemo(() => getDateRange(periodMonths), [periodMonths]);
   const { data: rawData, loading, error } = useFetch<AnalystScore[]>(
@@ -69,6 +82,32 @@ export function ManagerView() {
     if (!rawData) return null;
     return rawData.filter((a) => !excluded.has(a.analyst));
   }, [rawData, excluded]);
+
+  const sorted = useMemo(() => {
+    if (!data) return [];
+    return [...data].sort((a, b) => {
+      const fn = SORT_MAP[sortCol];
+      if (!fn) return 0;
+      const av = fn(a);
+      const bv = fn(b);
+      const cmp = typeof av === "string" ? av.localeCompare(bv as string) : (av as number) - (bv as number);
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+  }, [data, sortCol, sortDir]);
+
+  const toggleSort = (col: string) => {
+    if (sortCol === col) {
+      setSortDir(d => d === "asc" ? "desc" : "asc");
+    } else {
+      setSortCol(col);
+      setSortDir("desc");
+    }
+  };
+
+  const sortIcon = (col: string) => {
+    if (sortCol !== col) return <span className="opacity-30 ml-0.5">↕</span>;
+    return <span className="ml-0.5">{sortDir === "asc" ? "▲" : "▼"}</span>;
+  };
 
   const totalTeamTickets = useMemo(() => data?.reduce((s, d) => s + d.stats.total_tickets, 0) ?? 0, [data]);
   const avgPct = data && data.length > 0 ? 100 / data.length : 0;
@@ -135,19 +174,30 @@ export function ManagerView() {
               <table className="w-full text-xs">
                 <thead>
                   <tr style={{ borderBottom: "1px solid var(--theme-surface-border)" }}>
-                    {["Analyst", "Assigned", "Resolved", "Open", "MTTD", "MTTR", "SLA", "Workload", ""].map((h) => (
+                    {([
+                      ["Analyst", "analyst"],
+                      ["Assigned", "total_tickets"],
+                      ["Resolved", "resolved"],
+                      ["Open", "open"],
+                      ["MTTD", "avg_mttd"],
+                      ["MTTR", "avg_mttr"],
+                      ["SLA", "sla_pct"],
+                      ["Workload", "total_tickets"],
+                      ["", null],
+                    ] as const).map(([h, col]) => (
                       <th
-                        key={h}
-                        className="px-4 py-2.5 text-left font-medium uppercase tracking-wider text-[10px]"
+                        key={h || "_flag"}
+                        className={`px-4 py-2.5 text-left font-medium uppercase tracking-wider text-[10px]${col ? " cursor-pointer select-none hover:opacity-80" : ""}`}
                         style={{ color: "var(--theme-text-muted)" }}
+                        onClick={col ? () => toggleSort(col) : undefined}
                       >
-                        {h}
+                        {h}{col ? sortIcon(col) : null}
                       </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {data.map((a) => {
+                  {sorted.map((a) => {
                     const pct = totalTeamTickets > 0 ? (a.stats.total_tickets / totalTeamTickets) * 100 : 0;
                     const openCount = a.stats.total_tickets - a.stats.resolved;
                     const flag = getWorkloadFlag(pct, avgPct);

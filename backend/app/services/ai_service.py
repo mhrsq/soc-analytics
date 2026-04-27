@@ -93,7 +93,7 @@ Focus on:
         """Call the appropriate LLM provider."""
         if provider.provider == "anthropic":
             return await self._call_anthropic(provider, prompt)
-        elif provider.provider in ("openai", "xai", "google"):
+        elif provider.provider in ("openai", "xai", "google", "openrouter", "9router"):
             return await self._call_openai_compatible(provider, prompt)
         else:
             raise ValueError(f"Unsupported provider: {provider.provider}")
@@ -113,12 +113,13 @@ Focus on:
     async def _call_openai_compatible(self, provider: LlmProvider, prompt: str) -> str:
         import httpx
 
-        if provider.provider == "xai":
-            url = provider.base_url or "https://api.x.ai/v1"
-        elif provider.provider == "google":
-            url = provider.base_url or "https://generativelanguage.googleapis.com/v1beta/openai"
-        else:
-            url = provider.base_url or "https://api.openai.com/v1"
+        DEFAULT_URLS = {
+            "xai": "https://api.x.ai/v1",
+            "google": "https://generativelanguage.googleapis.com/v1beta/openai",
+            "openrouter": "https://openrouter.ai/api/v1",
+            "9router": "http://localhost:20128/v1",
+        }
+        url = provider.base_url or DEFAULT_URLS.get(provider.provider, "https://api.openai.com/v1")
 
         # Newer OpenAI models (gpt-4o, gpt-5*, o1, o3, etc.) require
         # 'max_completion_tokens' instead of 'max_tokens'.

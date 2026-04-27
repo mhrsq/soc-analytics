@@ -269,7 +269,7 @@ export interface NewTicketNotification {
 
 export interface LlmProvider {
   id: number;
-  provider: "openai" | "anthropic" | "xai" | "google";
+  provider: "openai" | "anthropic" | "xai" | "google" | "openrouter" | "9router";
   label: string;
   model: string;
   api_key_hint: string;
@@ -282,7 +282,7 @@ export interface LlmProvider {
 }
 
 export interface LlmProviderCreate {
-  provider: "openai" | "anthropic" | "xai" | "google";
+  provider: "openai" | "anthropic" | "xai" | "google" | "openrouter" | "9router";
   label: string;
   model: string;
   api_key: string;

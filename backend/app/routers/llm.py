@@ -57,7 +57,7 @@ async def list_providers(user: User = Depends(require_auth), db: AsyncSession = 
 @router.post("/providers", response_model=LlmProviderOut)
 async def add_provider(body: LlmProviderCreate, user: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
     """Add a new LLM provider configuration."""
-    if body.provider not in ("openai", "anthropic", "xai", "google"):
+    if body.provider not in ("openai", "anthropic", "xai", "google", "openrouter", "9router"):
         raise HTTPException(400, f"Unsupported provider: {body.provider}")
 
     # If setting as default, unset other defaults
@@ -175,16 +175,17 @@ async def _test_llm_call(
         )
         return resp.content[0].text
 
-    elif provider in ("openai", "xai", "google"):
+    elif provider in ("openai", "xai", "google", "openrouter", "9router"):
         # All use OpenAI-compatible API
         import httpx
 
-        if provider == "xai":
-            url = base_url or "https://api.x.ai/v1"
-        elif provider == "google":
-            url = base_url or "https://generativelanguage.googleapis.com/v1beta/openai"
-        else:
-            url = base_url or "https://api.openai.com/v1"
+        DEFAULT_URLS = {
+            "xai": "https://api.x.ai/v1",
+            "google": "https://generativelanguage.googleapis.com/v1beta/openai",
+            "openrouter": "https://openrouter.ai/api/v1",
+            "9router": "http://localhost:20128/v1",
+        }
+        url = base_url or DEFAULT_URLS.get(provider, "https://api.openai.com/v1")
 
         async with httpx.AsyncClient(timeout=30) as http:
             resp = await http.post(
@@ -255,12 +256,13 @@ async def get_provider_models(provider_id: int, user: User = Depends(require_aut
 
     # OpenAI-compatible providers
     import httpx
-    if row.provider == "xai":
-        url = row.base_url or "https://api.x.ai/v1"
-    elif row.provider == "google":
-        url = row.base_url or "https://generativelanguage.googleapis.com/v1beta/openai"
-    else:
-        url = row.base_url or "https://api.openai.com/v1"
+    DEFAULT_URLS = {
+        "xai": "https://api.x.ai/v1",
+        "google": "https://generativelanguage.googleapis.com/v1beta/openai",
+        "openrouter": "https://openrouter.ai/api/v1",
+        "9router": "http://localhost:20128/v1",
+    }
+    url = row.base_url or DEFAULT_URLS.get(row.provider, "https://api.openai.com/v1")
 
     try:
         async with httpx.AsyncClient(timeout=10) as http:

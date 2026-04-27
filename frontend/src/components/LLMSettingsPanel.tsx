@@ -22,7 +22,14 @@ const PROVIDERS = [
   { value: "anthropic", label: "Anthropic", placeholder: "claude-sonnet-4-20250514, claude-haiku-3" },
   { value: "xai", label: "xAI (Grok)", placeholder: "grok-3-fast, grok-3-mini" },
   { value: "google", label: "Google (Gemini)", placeholder: "gemini-2.5-flash" },
+  { value: "openrouter", label: "OpenRouter", placeholder: "openai/gpt-4o" },
+  { value: "9router", label: "9router", placeholder: "cc/claude-opus-4-6" },
 ] as const;
+
+const DEFAULT_URLS: Record<string, string> = {
+  openrouter: "https://openrouter.ai/api/v1",
+  "9router": "http://localhost:20128/v1",
+};
 
 interface Props {
   open: boolean;
@@ -434,12 +441,14 @@ function AddProviderForm({ onAdded, onCancel }: { onAdded: () => void; onCancel:
         </label>
         <select
           value={form.provider}
-          onChange={(e) =>
+          onChange={(e) => {
+            const newProvider = e.target.value as LlmProviderCreate["provider"];
             setForm((f) => ({
               ...f,
-              provider: e.target.value as LlmProviderCreate["provider"],
-            }))
-          }
+              provider: newProvider,
+              base_url: DEFAULT_URLS[newProvider] || f.base_url || "",
+            }));
+          }}
           className="w-full px-3 py-2 text-xs rounded-md outline-none focus:ring-1"
           style={{ ...inputStyle, focusRingColor: "var(--theme-accent)" } as React.CSSProperties}
         >
