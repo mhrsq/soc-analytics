@@ -32,9 +32,7 @@ const DATA_OPTIONS: { value: DataSource; label: string; desc: string }[] = [
   { value: "priority", label: "Priority Distribution", desc: "Tickets by priority level (P1–P4)" },
   { value: "customers", label: "Tickets by Customer", desc: "Ticket count per customer" },
   { value: "top-alerts", label: "Top Alert Rules", desc: "Most frequent Wazuh alert rules" },
-  { value: "mttd", label: "MTTD / SLA", desc: "Mean Time To Detect trend" },
   { value: "analysts", label: "Analyst Performance", desc: "Per-analyst workload and metrics" },
-  { value: "summary", label: "SLA Achievement Gauge", desc: "SLA compliance gauge (needs Gauge chart type)" },
   { value: "live-feed", label: "Live Ticket Feed", desc: "Latest 10 tickets with timestamp, ID, name, and asset" },
 ];
 
