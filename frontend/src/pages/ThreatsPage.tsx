@@ -100,13 +100,17 @@ const nodeTypes = { topology: TopoNode };
 // ═══════════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════
-export function ThreatsPage() {
+interface ThreatsPageProps {
+  customerScope?: string;
+}
+
+export function ThreatsPage({ customerScope }: ThreatsPageProps) {
   const [mode, setMode] = useState<Mode>("attack");
   const [attacks, setAttacks] = useState<AttackArc[]>([]);
   const [nodes, setNodes] = useState<TopologyNode[]>([]);
   const [links, setLinks] = useState<TopologyLink[]>([]);
   const [feed, setFeed] = useState<FeedItem[]>([]);
-  const [customer, setCustomer] = useState("");
+  const [customer, setCustomer] = useState(customerScope || "");
   const [customers, setCustomers] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -139,6 +143,10 @@ export function ThreatsPage() {
   const [edgeColorInput, setEdgeColorInput] = useState("");
 
   const feedRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (customerScope) setCustomer(customerScope);
+  }, [customerScope]);
 
   // Load all data
   const loadData = useCallback(async () => {
@@ -429,10 +437,12 @@ export function ThreatsPage() {
               </button>
             </>
           )}
-          <select value={customer} onChange={e => setCustomer(e.target.value)} className="text-xs px-3 py-2 pr-8 rounded-lg" style={{ backgroundColor: "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-primary)" }}>
-            <option value="">All Customers</option>
-            {customers.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
+          {!customerScope && (
+            <select value={customer} onChange={e => setCustomer(e.target.value)} className="text-xs px-3 py-2 pr-8 rounded-lg" style={{ backgroundColor: "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-primary)" }}>
+              <option value="">All Customers</option>
+              {customers.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          )}
           <button onClick={loadData} className="p-2 rounded-lg hover:bg-white/[0.05]" style={{ backgroundColor: "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-secondary)" }}>
             <RefreshCw className="w-3.5 h-3.5" />
           </button>

@@ -255,6 +255,8 @@ async def health():
 async def get_filter_options(
     request: Request,
     customer: Optional[str] = None,
+    start: Optional[str] = None,
+    end: Optional[str] = None,
 ):
     """Get available filter options for the frontend dropdowns."""
     from sqlalchemy import distinct, select
@@ -268,13 +270,17 @@ async def get_filter_options(
         customer = user_customer  # Override any requested customer
 
     async with async_session() as db:
-        # Get unique values for each filter
+        # Get unique customers — scoped to date range if provided
+        cust_q = (
+            select(distinct(Ticket.customer))
+            .where(Ticket.customer != None)
+        )
+        if start:
+            cust_q = cust_q.where(Ticket.created_time >= start)
+        if end:
+            cust_q = cust_q.where(Ticket.created_time <= end + "T23:59:59")
         customers = (
-            await db.execute(
-                select(distinct(Ticket.customer))
-                .where(Ticket.customer != None)
-                .order_by(Ticket.customer)
-            )
+            await db.execute(cust_q.order_by(Ticket.customer))
         ).scalars().all()
 
         priorities = (
@@ -301,13 +307,17 @@ async def get_filter_options(
             )
         ).scalars().all()
 
-        # Asset names — cascade with customer filter
+        # Asset names — cascade with customer and date filters
         asset_q = (
             select(distinct(Ticket.asset_name))
             .where(Ticket.asset_name != None, Ticket.asset_name != "")
         )
         if customer:
             asset_q = asset_q.where(Ticket.customer == customer)
+        if start:
+            asset_q = asset_q.where(Ticket.created_time >= start)
+        if end:
+            asset_q = asset_q.where(Ticket.created_time <= end + "T23:59:59")
         asset_names = (
             await db.execute(asset_q.order_by(Ticket.asset_name))
         ).scalars().all()

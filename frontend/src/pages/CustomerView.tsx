@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { ResponsiveGridLayout, useContainerWidth, getCompactor } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
@@ -418,6 +418,7 @@ function CustomerToolbar({
   onSetAsDefault,
   onSaveToNewProfile,
   onDeleteProfile,
+  locked,
 }: {
   customer: string;
   onCustomerChange: (v: string) => void;
@@ -434,6 +435,7 @@ function CustomerToolbar({
   onSetAsDefault: () => void;
   onSaveToNewProfile: (name: string) => void;
   onDeleteProfile: (id: string) => void;
+  locked?: boolean;
 }) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [showSaveNew, setShowSaveNew] = useState(false);
@@ -456,24 +458,30 @@ function CustomerToolbar({
 
       <div className="flex items-center gap-2 flex-wrap">
         {/* Customer switch */}
-        <div className="relative">
-          <select
-            value={customer}
-            onChange={(e) => onCustomerChange(e.target.value)}
-            className="appearance-none pl-3 pr-8 py-1.5 rounded-lg text-xs font-medium cursor-pointer"
-            style={{
-              backgroundColor: "color-mix(in srgb, var(--theme-surface-raised) 80%, transparent)",
-              color: "var(--theme-text-secondary)",
-              border: "1px solid var(--theme-surface-border)",
-            }}
-          >
-            <option value="">Select Customer...</option>
-            {customers.map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
-          <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none" style={{ color: "var(--theme-text-muted)" }} />
-        </div>
+        {locked ? (
+          <span className="px-3 py-1.5 rounded-lg text-xs font-medium" style={{ color: "var(--theme-text-secondary)" }}>
+            {customer}
+          </span>
+        ) : (
+          <div className="relative">
+            <select
+              value={customer}
+              onChange={(e) => onCustomerChange(e.target.value)}
+              className="appearance-none pl-3 pr-8 py-1.5 rounded-lg text-xs font-medium cursor-pointer"
+              style={{
+                backgroundColor: "color-mix(in srgb, var(--theme-surface-raised) 80%, transparent)",
+                color: "var(--theme-text-secondary)",
+                border: "1px solid var(--theme-surface-border)",
+              }}
+            >
+              <option value="">Select Customer...</option>
+              {customers.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none" style={{ color: "var(--theme-text-muted)" }} />
+          </div>
+        )}
 
         {/* Period selector */}
         <div className="relative">
@@ -628,8 +636,12 @@ function CustomerToolbar({
 
 /* main page */
 
-export function CustomerView() {
-  const [customer, setCustomer] = useState("");
+interface CustomerViewProps {
+  customerScope?: string;
+}
+
+export function CustomerView({ customerScope }: CustomerViewProps) {
+  const [customer, setCustomer] = useState(customerScope || "");
   const [periodDays, setPeriodDays] = useState(30);
   const [addOpen, setAddOpen] = useState(false);
   const [editWidgetState, setEditWidgetState] = useState<WidgetConfig | null>(null);
@@ -641,6 +653,10 @@ export function CustomerView() {
   } = useCustomerDashboard();
 
   const { width: containerWidth, containerRef } = useContainerWidth({ initialWidth: 1200 });
+
+  useEffect(() => {
+    if (customerScope) setCustomer(customerScope);
+  }, [customerScope]);
 
   const range = useMemo(() => getDateRange(periodDays), [periodDays]);
 
@@ -795,6 +811,7 @@ export function CustomerView() {
             onSetAsDefault={setAsDefault}
             onSaveToNewProfile={saveToNewProfile}
             onDeleteProfile={deleteProfile}
+            locked={!!customerScope}
           />
 
           <ResponsiveGridLayout

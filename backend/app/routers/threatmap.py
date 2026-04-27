@@ -7,6 +7,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, func, and_
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.requests import Request
 
 from app.database import get_db
 from app.models import Ticket, AssetLocation, SiemLocation, TopologyNode, TopologyLink
@@ -23,6 +24,15 @@ from app.models import User
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/threatmap", tags=["Threat Map"])
+
+
+def enforce_customer_scope(request: Request, customer: Optional[str]) -> Optional[str]:
+    """Force customer-role users to only see their own data."""
+    user_role = getattr(request.state, "user_role", None)
+    user_customer = getattr(request.state, "user_customer", None)
+    if user_role == "customer" and user_customer:
+        return user_customer
+    return customer
 
 
 def _parse_time(value: Optional[str]):
@@ -47,6 +57,7 @@ def _parse_time(value: Optional[str]):
 
 @router.get("/attacks", response_model=list[AttackArc])
 async def get_attacks(
+    request: Request,
     customer: Optional[str] = None,
     start: Optional[str] = None,
     end: Optional[str] = None,
@@ -54,6 +65,7 @@ async def get_attacks(
     db: AsyncSession = Depends(get_db),
 ):
     """Get recent attacks with geolocation data for threat map visualization."""
+    customer = enforce_customer_scope(request, customer)
 
     # Build query for tickets with IP addresses
     filters = [Ticket.ip_address.isnot(None), Ticket.ip_address != ""]
@@ -152,6 +164,7 @@ def _short_subject(subject: Optional[str]) -> Optional[str]:
 
 @router.get("/feed")
 async def get_attack_feed(
+    request: Request,
     customer: Optional[str] = None,
     start: Optional[str] = None,
     end: Optional[str] = None,
@@ -160,6 +173,7 @@ async def get_attack_feed(
     db: AsyncSession = Depends(get_db),
 ):
     """Get recent tickets for the live feed ticker. Shows ALL tickets, not just ones with IPs."""
+    customer = enforce_customer_scope(request, customer)
     filters: list = []
     if customer:
         filters.append(Ticket.customer == customer)
@@ -207,10 +221,12 @@ async def get_attack_feed(
 
 @router.get("/assets", response_model=list[AssetLocationOut])
 async def get_asset_locations(
+    request: Request,
     customer: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
 ):
     """Get all configured asset locations, optionally filtered by customer."""
+    customer = enforce_customer_scope(request, customer)
     q = select(AssetLocation)
     if customer:
         q = q.where(AssetLocation.customer == customer)
@@ -305,10 +321,12 @@ async def delete_asset_location(
 
 @router.get("/siems", response_model=list[SiemLocationOut])
 async def get_siem_locations(
+    request: Request,
     customer: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
 ):
     """Get SIEM locations. If customer is given, returns that customer's + shared (NULL customer)."""
+    customer = enforce_customer_scope(request, customer)
     q = select(SiemLocation)
     if customer:
         q = q.where((SiemLocation.customer == customer) | (SiemLocation.customer.is_(None)))
@@ -356,10 +374,12 @@ async def delete_siem_location(
 
 @router.get("/ticket-assets")
 async def get_ticket_assets(
+    request: Request,
     customer: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
 ):
     """Get distinct asset names from tickets to help configure locations."""
+    customer = enforce_customer_scope(request, customer)
     q = select(Ticket.asset_name, func.count(Ticket.id).label("count")).where(
         Ticket.asset_name.isnot(None), Ticket.asset_name != ""
     ).group_by(Ticket.asset_name).order_by(func.count(Ticket.id).desc())

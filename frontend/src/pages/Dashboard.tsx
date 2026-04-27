@@ -76,7 +76,10 @@ export function Dashboard() {
   const topAlerts = useFetch(() => api.getTopAlerts(f), deps);
   const mttd = useFetch(() => api.getMttd(f), deps);
   const analysts = useFetch(() => api.getAnalysts(f), deps);
-  const filterOptions = useFetch(() => api.getFilterOptions({ customer: filters.customer || undefined }), [filters.customer]);
+  const filterOptions = useFetch(
+    () => api.getFilterOptions({ customer: filters.customer || undefined, start: filters.start, end: filters.end }),
+    [filters.customer, filters.start, filters.end]
+  );
   const syncStatus = useFetch(() => api.getSyncStatus(), [syncing]);
 
   const firstError = summary.error || volume.error || validation.error || priority.error || customers.error || topAlerts.error || mttd.error || analysts.error || null;

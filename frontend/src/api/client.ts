@@ -190,7 +190,7 @@ export const api = {
 
   // ── Filters ──
   getFilterOptions: (f: Filters = {}) =>
-    request<FilterOptions>(`/filters/options${qs({ customer: f.customer })}`),
+    request<FilterOptions>(`/filters/options${qs({ customer: f.customer, start: f.start, end: f.end })}`),
 
   // ── Polling for new tickets ──
   getRecentTickets: (since: string) =>

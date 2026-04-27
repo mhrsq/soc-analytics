@@ -216,6 +216,14 @@ function AppShell() {
   }, []);
 
   const isAdmin = currentUser?.role === "superadmin" || currentUser?.role === "admin";
+  const isCustomer = currentUser?.role === "customer";
+  const customerScope = isCustomer ? currentUser?.customer || undefined : undefined;
+
+  useEffect(() => {
+    if (isCustomer && page !== "customer" && page !== "threatmap") {
+      setPage("customer");
+    }
+  }, [isCustomer, page]);
 
   useEffect(() => {
     const titles: Record<Page, string> = {
@@ -262,30 +270,34 @@ function AppShell() {
             </div>
             {/* Page Toggle */}
             <div className="flex ml-2 sm:ml-4 rounded-lg overflow-hidden" style={{ border: "1px solid var(--theme-surface-border)" }}>
-              <button
-                onClick={() => setPage("dashboard")}
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-medium transition-all"
-                style={{
-                  backgroundColor: page === "dashboard" ? "color-mix(in srgb, var(--theme-accent) 15%, transparent)" : "transparent",
-                  color: page === "dashboard" ? "var(--theme-accent)" : "var(--theme-text-muted)",
-                }}
-                aria-label="Main Dashboard"
-              >
-                <LayoutDashboard className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Main Dashboard</span>
-              </button>
-              <button
-                onClick={() => setPage("manager")}
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-medium transition-all"
-                style={{
-                  backgroundColor: page === "manager" ? "color-mix(in srgb, var(--theme-accent) 15%, transparent)" : "transparent",
-                  color: page === "manager" ? "var(--theme-accent)" : "var(--theme-text-muted)",
-                }}
-                aria-label="Manager View"
-              >
-                <Users className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Manager</span>
-              </button>
+              {!isCustomer && (
+                <button
+                  onClick={() => setPage("dashboard")}
+                  className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-medium transition-all"
+                  style={{
+                    backgroundColor: page === "dashboard" ? "color-mix(in srgb, var(--theme-accent) 15%, transparent)" : "transparent",
+                    color: page === "dashboard" ? "var(--theme-accent)" : "var(--theme-text-muted)",
+                  }}
+                  aria-label="Main Dashboard"
+                >
+                  <LayoutDashboard className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Main Dashboard</span>
+                </button>
+              )}
+              {!isCustomer && (
+                <button
+                  onClick={() => setPage("manager")}
+                  className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-medium transition-all"
+                  style={{
+                    backgroundColor: page === "manager" ? "color-mix(in srgb, var(--theme-accent) 15%, transparent)" : "transparent",
+                    color: page === "manager" ? "var(--theme-accent)" : "var(--theme-text-muted)",
+                  }}
+                  aria-label="Manager View"
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Manager</span>
+                </button>
+              )}
               <button
                 onClick={() => setPage("customer")}
                 className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-medium transition-all"
@@ -381,11 +393,11 @@ function AppShell() {
 
       {/* Main Content */}
       {page === "threatmap" ? (
-        <ThreatsPage />
+        <ThreatsPage customerScope={customerScope} />
       ) : (
         <>
           <main className="mx-auto px-3 sm:px-6 pb-6">
-            {page === "dashboard" ? <Dashboard /> : page === "manager" ? <ManagerView /> : page === "customer" ? <CustomerView /> : page === "users" ? <UserManagement /> : <Dashboard />}
+            {page === "dashboard" ? <Dashboard /> : page === "manager" ? <ManagerView /> : page === "customer" ? <CustomerView customerScope={customerScope} /> : page === "users" ? <UserManagement /> : <Dashboard />}
           </main>
         </>
       )}

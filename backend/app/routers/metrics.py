@@ -5,6 +5,7 @@ from typing import Optional, Union
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.requests import Request
 
 from app.database import get_db
 from app.schemas import (
@@ -20,6 +21,15 @@ from app.schemas import (
 from app.services.analytics_service import AnalyticsService
 
 router = APIRouter(prefix="/api/metrics", tags=["metrics"])
+
+
+def enforce_customer_scope(request: Request, customer: Optional[str]) -> Optional[str]:
+    """Force customer-role users to only see their own data."""
+    user_role = getattr(request.state, "user_role", None)
+    user_customer = getattr(request.state, "user_customer", None)
+    if user_role == "customer" and user_customer:
+        return user_customer
+    return customer
 
 
 def _parse_asset_names(raw: Optional[str]) -> Optional[list[str]]:
@@ -54,6 +64,7 @@ def _parse_time(value: Optional[str]) -> Optional[Union[date, datetime]]:
 
 @router.get("/summary", response_model=MetricsSummary)
 async def get_summary(
+    request: Request,
     start: Optional[str] = Query(None, description="Start date/datetime (ISO)"),
     end: Optional[str] = Query(None, description="End date/datetime (ISO)"),
     customer: Optional[str] = Query(None, description="Filter by customer"),
@@ -61,12 +72,14 @@ async def get_summary(
     db: AsyncSession = Depends(get_db),
 ):
     """Get KPI summary metrics."""
+    customer = enforce_customer_scope(request, customer)
     svc = AnalyticsService(db)
     return await svc.get_summary(_parse_time(start), _parse_time(end), customer, _parse_asset_names(asset_name))
 
 
 @router.get("/volume", response_model=list[VolumePoint])
 async def get_volume_trend(
+    request: Request,
     start: Optional[str] = Query(None),
     end: Optional[str] = Query(None),
     customer: Optional[str] = Query(None),
@@ -77,6 +90,7 @@ async def get_volume_trend(
     - ≤2 days → hourly aggregation
     - >2 days → daily aggregation
     """
+    customer = enforce_customer_scope(request, customer)
     parsed_start = _parse_time(start)
     parsed_end = _parse_time(end)
     # Auto-detect granularity based on range
@@ -92,6 +106,7 @@ async def get_volume_trend(
 
 @router.get("/validation", response_model=ValidationBreakdown)
 async def get_validation_breakdown(
+    request: Request,
     start: Optional[str] = Query(None),
     end: Optional[str] = Query(None),
     customer: Optional[str] = Query(None),
@@ -99,12 +114,14 @@ async def get_validation_breakdown(
     db: AsyncSession = Depends(get_db),
 ):
     """Get TP/FP/Not Specified breakdown."""
+    customer = enforce_customer_scope(request, customer)
     svc = AnalyticsService(db)
     return await svc.get_validation_breakdown(_parse_time(start), _parse_time(end), customer, _parse_asset_names(asset_name))
 
 
 @router.get("/priority", response_model=list[PriorityItem])
 async def get_priority_distribution(
+    request: Request,
     start: Optional[str] = Query(None),
     end: Optional[str] = Query(None),
     customer: Optional[str] = Query(None),
@@ -112,6 +129,7 @@ async def get_priority_distribution(
     db: AsyncSession = Depends(get_db),
 ):
     """Get ticket count by priority."""
+    customer = enforce_customer_scope(request, customer)
     svc = AnalyticsService(db)
     return await svc.get_priority_distribution(_parse_time(start), _parse_time(end), customer, _parse_asset_names(asset_name))
 
@@ -130,6 +148,7 @@ async def get_customer_distribution(
 
 @router.get("/top-alerts", response_model=list[AlertRuleItem])
 async def get_top_alerts(
+    request: Request,
     limit: int = Query(10, ge=1, le=50),
     start: Optional[str] = Query(None),
     end: Optional[str] = Query(None),
@@ -138,12 +157,14 @@ async def get_top_alerts(
     db: AsyncSession = Depends(get_db),
 ):
     """Get most triggered Wazuh alert rules."""
+    customer = enforce_customer_scope(request, customer)
     svc = AnalyticsService(db)
     return await svc.get_top_alerts(limit, _parse_time(start), _parse_time(end), customer, _parse_asset_names(asset_name))
 
 
 @router.get("/mttd", response_model=list[MttdPoint])
 async def get_mttd_trend(
+    request: Request,
     start: Optional[str] = Query(None),
     end: Optional[str] = Query(None),
     customer: Optional[str] = Query(None),
@@ -151,6 +172,7 @@ async def get_mttd_trend(
     db: AsyncSession = Depends(get_db),
 ):
     """Get MTTD trend over time."""
+    customer = enforce_customer_scope(request, customer)
     svc = AnalyticsService(db)
     return await svc.get_mttd_trend(_parse_time(start), _parse_time(end), customer, _parse_asset_names(asset_name))
 
@@ -169,6 +191,7 @@ async def get_analyst_performance(
 
 @router.get("/asset-exposure")
 async def get_asset_exposure(
+    request: Request,
     start: Optional[str] = Query(None),
     end: Optional[str] = Query(None),
     customer: Optional[str] = Query(None),
@@ -177,6 +200,7 @@ async def get_asset_exposure(
     db: AsyncSession = Depends(get_db),
 ):
     """Get assets ranked by alert count — used in Customer View."""
+    customer = enforce_customer_scope(request, customer)
     svc = AnalyticsService(db)
     return await svc.get_asset_exposure(
         _parse_time(start), _parse_time(end), customer, _parse_asset_names(asset_name), limit
