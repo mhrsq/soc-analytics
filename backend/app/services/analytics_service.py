@@ -609,7 +609,6 @@ class AnalyticsService:
             )
             .where(
                 *filters,
-                Ticket.sla_met == False,
                 Ticket.mttd_seconds != None,
                 group_expr != None,
             )

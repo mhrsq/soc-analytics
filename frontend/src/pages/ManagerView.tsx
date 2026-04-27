@@ -317,15 +317,13 @@ export function ManagerView() {
             <TeamTrendChart selectedAnalysts={data.map((a) => a.analyst)} granularity="weekly" />
           </Card>
 
-          {/* P0 Analytics Widgets */}
+          {/* P0 Analytics Widgets — 2 rows, each split 50/50 */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
             <SLATrendChart data={slaTrend.data} loading={slaTrend.loading} />
             <FPRateTrendChart data={fpTrend.data} loading={fpTrend.loading} />
           </div>
-          <div className="mt-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
             <CustomerSlaHeatmap data={customerSla.data} loading={customerSla.loading} />
-          </div>
-          <div className="mt-4">
             <SlaBreachAnalysis start={range.start} end={range.end} />
           </div>
         </>
