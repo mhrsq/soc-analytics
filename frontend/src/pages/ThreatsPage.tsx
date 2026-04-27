@@ -381,9 +381,9 @@ export function ThreatsPage() {
 
   return (
     <div className="relative w-full flex flex-col h-[calc(100vh-3rem)] sm:h-[calc(100vh-3.5rem)]" style={{ background: "var(--theme-surface-base)" }}>
-      {/* ── Top bar ── */}
-      <div className="absolute top-4 left-4 right-4 z-[1000] flex items-center justify-between">
-        <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg" style={{ backgroundColor: "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)" }}>
+      {/* ── Top bar — normal flow ── */}
+      <div className="flex-shrink-0 flex items-center justify-between flex-wrap gap-2 px-3 py-2 z-20" style={{ borderBottom: "1px solid var(--theme-surface-border)", background: "var(--theme-nav-bg)" }}>
+        <div className="flex items-center gap-3">
           <Shield className="w-4 h-4" style={{ color: "var(--theme-text-secondary)" }} />
           <h2 className="text-sm font-semibold" style={{ color: "var(--theme-text-primary)" }}>Threats & Infrastructure</h2>
           <div className="h-4 w-px" style={{ backgroundColor: "var(--theme-surface-border)" }} />
@@ -440,18 +440,11 @@ export function ThreatsPage() {
       </div>
 
       {/* ── Error alert ── */}
-      <ErrorAlert error={loadError} onRetry={loadData} />
+      {loadError && <ErrorAlert error={loadError} onRetry={loadData} className="mx-3 mt-2" />}
 
-      {/* ── Loading spinner (initial load only) ── */}
-      {loading && nodes.length === 0 && attacks.length === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center z-[500] pointer-events-none">
-          <Spinner className="w-8 h-8" />
-        </div>
-      )}
-
-      {/* ── Replay panel (below top bar) ── */}
+      {/* ── Replay panel — normal flow, shows below top bar ── */}
       {replayOpen && mode === "map" && (
-        <div className="absolute top-16 left-4 z-[1000] px-4 py-3 rounded-lg flex items-center gap-3 text-xs" style={{ backgroundColor: "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)" }}>
+        <div className="flex-shrink-0 flex items-center gap-3 flex-wrap px-3 py-2 text-xs" style={{ borderBottom: "1px solid var(--theme-surface-border)", background: "var(--theme-nav-bg)" }}>
           <span style={{ color: "var(--theme-text-muted)" }}>From</span>
           <input type="datetime-local" value={replayStart} onChange={e => setReplayStart(e.target.value)} className="px-2 py-1 rounded text-xs" style={{ backgroundColor: "var(--theme-card-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-primary)" }} />
           <span style={{ color: "var(--theme-text-muted)" }}>To</span>
@@ -472,13 +465,23 @@ export function ThreatsPage() {
         </div>
       )}
 
-      {/* ── Attack Map Mode (full-screen, replaces everything) ── */}
-      {mode === "attack" && (
-        <AttackMap customer={customer} />
-      )}
+      {/* ── Content area: flex-1 holds all modes ── */}
+      <div className="flex-1 min-h-0 relative">
+
+        {/* ── Loading spinner (initial load only) ── */}
+        {loading && nodes.length === 0 && attacks.length === 0 && (
+          <div className="absolute inset-0 flex items-center justify-center z-[500] pointer-events-none">
+            <Spinner className="w-8 h-8" />
+          </div>
+        )}
+
+        {/* ── Attack Map Mode ── */}
+        {mode === "attack" && (
+          <AttackMap customer={customer} />
+        )}
 
       {/* ── Main content area (Sites + Topology modes) ── */}
-      {mode !== "attack" && (<><div className="flex-1 relative">
+      {mode !== "attack" && (<><div className="flex-1 relative" style={{ height: "100%" }}>
         {/* MAP MODE */}
         {mode === "map" && (
           <MapContainer center={[-2, 118]} zoom={5} minZoom={3} maxZoom={14} zoomControl={false} attributionControl={false} style={{ width: "100%", height: "100%", background: "var(--theme-surface-base)" }}>
@@ -537,7 +540,7 @@ export function ThreatsPage() {
 
         {/* Graph: Link edit panel */}
         {mode === "graph" && selectedEdge && (
-          <div className="absolute top-16 left-4 z-[1000] w-56 rounded-lg overflow-hidden" style={{ backgroundColor: "var(--theme-surface-base)", border: "1px solid var(--theme-surface-border)" }}>
+          <div className="absolute top-3 left-4 z-[1000] w-56 rounded-lg overflow-hidden" style={{ backgroundColor: "var(--theme-surface-base)", border: "1px solid var(--theme-surface-border)" }}>
             <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: "1px solid var(--theme-surface-border)" }}>
               <div className="flex items-center gap-1.5">
                 <Palette className="w-3 h-3" style={{ color: "var(--theme-text-secondary)" }} />
@@ -595,7 +598,7 @@ export function ThreatsPage() {
 
         {/* Site detail panel */}
         {selectedSite && (
-          <div className="absolute top-16 right-4 z-[1000] w-72 rounded-lg overflow-hidden" style={{ backgroundColor: "var(--theme-surface-base)", border: "1px solid var(--theme-surface-border)" }}>
+          <div className="absolute top-3 right-4 z-[1000] w-72 rounded-lg overflow-hidden" style={{ backgroundColor: "var(--theme-surface-base)", border: "1px solid var(--theme-surface-border)" }}>
             <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid var(--theme-surface-border)" }}>
               <h3 className="text-sm font-medium" style={{ color: "var(--theme-text-primary)" }}>{selectedSite.label}</h3>
               <button onClick={() => setSelectedSite(null)} className="p-1 rounded hover:bg-white/[0.05]" style={{ color: "var(--theme-text-muted)" }}><X className="w-4 h-4" /></button>
@@ -694,6 +697,8 @@ export function ThreatsPage() {
         </div>
       )}
       </>)}
+
+      </div>{/* end flex-1 content area */}
 
       {/* ── Alert/Info dialog (replaces alert()) ── */}
       <ConfirmDialog

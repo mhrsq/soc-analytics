@@ -243,7 +243,7 @@ export function AttackMap({ customer }: Props) {
   }, [selectedGeo, events]);
 
   return (
-    <div className="relative w-full flex flex-col" style={{ height: "calc(100vh - 56px)", background: "var(--theme-surface-base)" }}>
+    <div className="relative w-full h-full flex flex-col" style={{ background: "var(--theme-surface-base)" }}>
 
       {/* ── Header bar — normal flow, not absolute ── */}
       <div
