@@ -54,7 +54,9 @@ export function SyncStatusPanel({ open, onClose }: Props) {
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <div
         className="relative w-full max-w-lg rounded-lg shadow-2xl border overflow-hidden"
-        style={{ backgroundColor: "#1e1e26", borderColor: "var(--theme-surface-border)" }}
+        role="dialog"
+        aria-modal="true"
+        style={{ backgroundColor: "var(--theme-card-bg)", borderColor: "var(--theme-surface-border)" }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -129,7 +131,7 @@ export function SyncStatusPanel({ open, onClose }: Props) {
               <span className="font-mono text-[10px]" style={{ color: "var(--theme-text-secondary)" }}>{sdp?.api_key_masked}</span>
             </div>
             {sdp?.error && (
-              <div className="p-2 rounded text-[10px] text-red-400 break-all" style={{ backgroundColor: "color-mix(in srgb, var(--theme-surface-card) 80%, red 20%)" }}>
+              <div className="p-2 rounded text-[10px] text-red-400 break-all" style={{ backgroundColor: "color-mix(in srgb, var(--theme-card-bg) 80%, red 20%)" }}>
                 {sdp.error}
               </div>
             )}

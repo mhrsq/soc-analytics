@@ -196,12 +196,12 @@ export function AIChatWidget({ activePage, filters: filtersProp }: Props) {
         <button onClick={openChat}
           className="fixed bottom-6 right-6 z-[9999] w-14 h-14 rounded-full flex items-center justify-center transition-all hover:scale-105 active:scale-95"
           style={{
-            background: "linear-gradient(135deg, #1b1b21 0%, #141418 100%)",
-            border: `1px solid ${hasUnread ? "#10b981" : "#26262e"}`,
+            background: "linear-gradient(135deg, var(--theme-surface-raised) 0%, var(--theme-card-bg) 100%)",
+            border: `1px solid ${hasUnread ? "#10b981" : "var(--theme-surface-border)"}`,
             animation: hasUnread ? "fabNotify 2s ease-in-out infinite" : "fabBreathe 3s ease-in-out infinite",
           }}
           title="SOC AI Assistant (Ctrl+K)">
-          <Sparkles className="w-6 h-6" style={{ color: hasUnread ? "#10b981" : "#9b9ba8" }} />
+          <Sparkles className="w-6 h-6" style={{ color: hasUnread ? "#10b981" : "var(--theme-text-secondary)" }} />
           {hasUnread && (
             <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full animate-pulse" style={{ backgroundColor: "#10b981" }} />
           )}
@@ -214,8 +214,8 @@ export function AIChatWidget({ activePage, filters: filtersProp }: Props) {
     ? "fixed inset-2 sm:inset-4 z-[9999] rounded-xl"
     : "fixed bottom-2 right-2 left-2 sm:left-auto sm:bottom-6 sm:right-6 z-[9999] sm:w-[420px] rounded-xl";
   const panelStyle: React.CSSProperties = isFullscreen
-    ? { top: 8, bottom: 8, left: 8, right: 8, height: "auto", backgroundColor: "#0a0a0c", border: "1px solid #26262e", boxShadow: "0 8px 48px rgba(0,0,0,0.8)" }
-    : { height: "max(400px, min(640px, calc(100vh - 80px)))", backgroundColor: "#0a0a0c", border: "1px solid #26262e", boxShadow: "0 8px 48px rgba(0,0,0,0.6)" };
+    ? { top: 8, bottom: 8, left: 8, right: 8, height: "auto", backgroundColor: "var(--theme-surface-base)", border: "1px solid var(--theme-surface-border)", boxShadow: "0 8px 48px rgba(0,0,0,0.8)" }
+    : { height: "max(400px, min(640px, calc(100vh - 80px)))", backgroundColor: "var(--theme-surface-base)", border: "1px solid var(--theme-surface-border)", boxShadow: "0 8px 48px rgba(0,0,0,0.6)" };
 
   // ── Chat Panel ──
   return (
@@ -223,19 +223,19 @@ export function AIChatWidget({ activePage, filters: filtersProp }: Props) {
       style={panelStyle}>
 
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 shrink-0" style={{ borderBottom: "1px solid #1d1d23" }}>
+      <div className="flex items-center justify-between px-4 py-3 shrink-0" style={{ borderBottom: "1px solid var(--theme-surface-border)" }}>
         <div className="flex items-center gap-2.5">
           {showHistory && (
-            <button onClick={() => setShowHistory(false)} className="p-1 rounded-md hover:bg-white/[0.05]" style={{ color: "#646471" }}>
+            <button onClick={() => setShowHistory(false)} className="p-1 rounded-md hover:bg-white/[0.05]" style={{ color: "var(--theme-text-muted)" }}>
               <ArrowLeft className="w-4 h-4" />
             </button>
           )}
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: "#1b1b21" }}>
-            <Sparkles className="w-4 h-4" style={{ color: "#9b9ba8" }} />
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: "var(--theme-surface-raised)" }}>
+            <Sparkles className="w-4 h-4" style={{ color: "var(--theme-text-secondary)" }} />
           </div>
           <div>
-            <h3 className="text-sm font-medium" style={{ color: "#e8e8ec" }}>{showHistory ? "Chat History" : "SOC AI Assistant"}</h3>
-            <p className="text-[10px]" style={{ color: "#646471" }}>
+            <h3 className="text-sm font-medium" style={{ color: "var(--theme-text-primary)" }}>{showHistory ? "Chat History" : "SOC AI Assistant"}</h3>
+            <p className="text-[10px]" style={{ color: "var(--theme-text-muted)" }}>
               {showHistory ? `${conversations.length} conversations` : `${activePage || "dashboard"} · Ctrl+K`}
             </p>
           </div>
@@ -243,18 +243,18 @@ export function AIChatWidget({ activePage, filters: filtersProp }: Props) {
         <div className="flex items-center gap-1">
           {!showHistory && (
             <>
-              <button onClick={() => setShowHistory(true)} className="p-1.5 rounded-md hover:bg-white/[0.05]" style={{ color: "#646471" }} title="History">
+              <button onClick={() => setShowHistory(true)} className="p-1.5 rounded-md hover:bg-white/[0.05]" style={{ color: "var(--theme-text-muted)" }} title="History">
                 <MessageSquare className="w-4 h-4" />
               </button>
-              <button onClick={newConversation} className="p-1.5 rounded-md hover:bg-white/[0.05]" style={{ color: "#646471" }} title="New chat">
+              <button onClick={newConversation} className="p-1.5 rounded-md hover:bg-white/[0.05]" style={{ color: "var(--theme-text-muted)" }} title="New chat">
                 <Plus className="w-4 h-4" />
               </button>
             </>
           )}
-          <button onClick={() => setIsFullscreen(f => !f)} className="p-1.5 rounded-md hover:bg-white/[0.05]" style={{ color: "#646471" }} title="Toggle fullscreen">
+          <button onClick={() => setIsFullscreen(f => !f)} className="p-1.5 rounded-md hover:bg-white/[0.05]" style={{ color: "var(--theme-text-muted)" }} title="Toggle fullscreen">
             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
           </button>
-          <button onClick={() => { closeChat(); setIsFullscreen(false); }} className="p-1.5 rounded-md hover:bg-white/[0.05]" style={{ color: "#646471" }}>
+          <button onClick={() => { closeChat(); setIsFullscreen(false); }} className="p-1.5 rounded-md hover:bg-white/[0.05]" style={{ color: "var(--theme-text-muted)" }}>
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -264,17 +264,17 @@ export function AIChatWidget({ activePage, filters: filtersProp }: Props) {
       {showHistory ? (
         <div className="flex-1 overflow-y-auto p-2 space-y-1">
           {conversations.length === 0 ? (
-            <p className="text-xs text-center py-8" style={{ color: "#646471" }}>No conversations yet</p>
+            <p className="text-xs text-center py-8" style={{ color: "var(--theme-text-muted)" }}>No conversations yet</p>
           ) : conversations.map(c => (
             <div key={c.conversation_id} className="group flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-white/[0.03]"
-              style={{ backgroundColor: convId === c.conversation_id ? "#1b1b21" : "transparent" }}
+              style={{ backgroundColor: convId === c.conversation_id ? "var(--theme-surface-raised)" : "transparent" }}
               onClick={() => loadConversation(c.conversation_id)}>
               <div className="flex-1 min-w-0">
-                <p className="text-xs truncate" style={{ color: "#e8e8ec" }}>{c.title}</p>
-                <p className="text-[10px]" style={{ color: "#646471" }}>{c.message_count} messages</p>
+                <p className="text-xs truncate" style={{ color: "var(--theme-text-primary)" }}>{c.title}</p>
+                <p className="text-[10px]" style={{ color: "var(--theme-text-muted)" }}>{c.message_count} messages</p>
               </div>
               <button onClick={(e) => { e.stopPropagation(); deleteConv(c.conversation_id); }}
-                className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-white/[0.05]" style={{ color: "#646471" }}>
+                className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-white/[0.05]" style={{ color: "var(--theme-text-muted)" }}>
                 <Trash2 className="w-3 h-3" />
               </button>
             </div>
@@ -286,14 +286,14 @@ export function AIChatWidget({ activePage, filters: filtersProp }: Props) {
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
             {messages.length === 0 && !loading && (
               <div className="text-center py-8">
-                <Sparkles className="w-8 h-8 mx-auto mb-3" style={{ color: "#3e3e48" }} />
-                <p className="text-sm font-medium" style={{ color: "#9b9ba8" }}>SOC AI Assistant</p>
-                <p className="text-xs mt-1" style={{ color: "#646471" }}>Ask anything about your SOC data.</p>
+                <Sparkles className="w-8 h-8 mx-auto mb-3" style={{ color: "var(--theme-text-dim)" }} />
+                <p className="text-sm font-medium" style={{ color: "var(--theme-text-secondary)" }}>SOC AI Assistant</p>
+                <p className="text-xs mt-1" style={{ color: "var(--theme-text-muted)" }}>Ask anything about your SOC data.</p>
                 <div className="flex flex-wrap justify-center gap-1.5 mt-4">
                   {INITIAL_CHIPS.map(a => (
                     <button key={a.label} onClick={() => sendMessage(a.prompt)}
                       className="px-2.5 py-1.5 rounded-lg text-[11px] font-medium hover:bg-white/[0.05]"
-                      style={{ backgroundColor: "#141418", border: "1px solid #1d1d23", color: "#9b9ba8" }}>
+                      style={{ backgroundColor: "var(--theme-card-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-secondary)" }}>
                       {a.label}
                     </button>
                   ))}
@@ -304,9 +304,9 @@ export function AIChatWidget({ activePage, filters: filtersProp }: Props) {
             {messages.map((msg, i) => (
               <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div className={`max-w-[85%] rounded-lg px-3 py-2 text-[13px] leading-relaxed group/msg relative`}
-                  style={msg.role === "user" ? { backgroundColor: "#1b1b21", color: "#e8e8ec", borderBottomRightRadius: 4 } : { color: "#e8e8ec" }}>
+                  style={msg.role === "user" ? { backgroundColor: "var(--theme-surface-raised)", color: "var(--theme-text-primary)", borderBottomRightRadius: 4 } : { color: "var(--theme-text-primary)" }}>
                   {msg.role === "assistant" ? (
-                    <div className="prose prose-invert prose-sm max-w-none [&_p]:my-1 [&_li]:my-0.5 [&_ul]:my-1 [&_h1]:text-sm [&_h2]:text-sm [&_h3]:text-xs [&_code]:text-[11px] [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:bg-[#1b1b21] [&_table]:text-xs [&_th]:px-2 [&_td]:px-2">
+                    <div className="prose prose-invert prose-sm max-w-none [&_p]:my-1 [&_li]:my-0.5 [&_ul]:my-1 [&_h1]:text-sm [&_h2]:text-sm [&_h3]:text-xs [&_code]:text-[11px] [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:bg-[var(--theme-surface-raised)] [&_table]:text-xs [&_th]:px-2 [&_td]:px-2">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
                       {msg.model_used && <p className="text-[9px] mt-2 opacity-40 font-mono">{msg.model_used}</p>}
                     </div>
@@ -314,7 +314,7 @@ export function AIChatWidget({ activePage, filters: filtersProp }: Props) {
                   {/* Copy button */}
                   <button onClick={() => copyMessage(msg.content, msg.id ?? i)}
                     className="absolute top-1 right-1 p-1 rounded opacity-0 group-hover/msg:opacity-100 transition-opacity hover:bg-white/[0.05]"
-                    style={{ color: "#646471" }} title="Copy">
+                    style={{ color: "var(--theme-text-muted)" }} title="Copy">
                     {copiedId === (msg.id ?? i) ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
                   </button>
                 </div>
@@ -324,11 +324,11 @@ export function AIChatWidget({ activePage, filters: filtersProp }: Props) {
             {loading && (
               <div className="flex items-center gap-2 px-1">
                 <div className="flex gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ backgroundColor: "#646471", animationDelay: "0ms" }} />
-                  <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ backgroundColor: "#646471", animationDelay: "150ms" }} />
-                  <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ backgroundColor: "#646471", animationDelay: "300ms" }} />
+                  <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ backgroundColor: "var(--theme-text-muted)", animationDelay: "0ms" }} />
+                  <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ backgroundColor: "var(--theme-text-muted)", animationDelay: "150ms" }} />
+                  <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ backgroundColor: "var(--theme-text-muted)", animationDelay: "300ms" }} />
                 </div>
-                <span className="text-[11px]" style={{ color: "#646471" }}>Thinking...</span>
+                <span className="text-[11px]" style={{ color: "var(--theme-text-muted)" }}>Thinking...</span>
               </div>
             )}
           </div>
@@ -339,7 +339,7 @@ export function AIChatWidget({ activePage, filters: filtersProp }: Props) {
               {followUpChips.map(c => (
                 <button key={c} onClick={() => sendMessage(c)}
                   className="px-2 py-1 rounded text-[10px] hover:bg-white/[0.05]"
-                  style={{ backgroundColor: "#141418", border: "1px solid #1d1d23", color: "#646471" }}>
+                  style={{ backgroundColor: "var(--theme-card-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-muted)" }}>
                   {c}
                 </button>
               ))}
@@ -347,17 +347,17 @@ export function AIChatWidget({ activePage, filters: filtersProp }: Props) {
           )}
 
           {/* Input */}
-          <div className="px-3 py-3 shrink-0" style={{ borderTop: "1px solid #1d1d23" }}>
-            <div className="flex items-end gap-2 rounded-lg px-3 py-2" style={{ backgroundColor: "#141418", border: "1px solid #1d1d23" }}>
+          <div className="px-3 py-3 shrink-0" style={{ borderTop: "1px solid var(--theme-surface-border)" }}>
+            <div className="flex items-end gap-2 rounded-lg px-3 py-2" style={{ backgroundColor: "var(--theme-card-bg)", border: "1px solid var(--theme-surface-border)" }}>
               <textarea ref={inputRef} value={input}
                 onChange={e => { setInput(e.target.value); autoResize(); }}
                 onKeyDown={handleKeyDown}
                 placeholder="Ask about your SOC data..."
                 rows={1}
-                className="flex-1 bg-transparent text-sm resize-none outline-none placeholder:text-[#3e3e48]"
-                style={{ color: "#e8e8ec", maxHeight: 120 }} />
+                className="flex-1 bg-transparent text-sm resize-none outline-none placeholder:text-[var(--theme-text-dim)]"
+                style={{ color: "var(--theme-text-primary)", maxHeight: 120 }} />
               <button onClick={() => sendMessage(input)} disabled={!input.trim() || loading}
-                className="p-1.5 rounded-md transition-colors disabled:opacity-20" style={{ color: "#9b9ba8" }}>
+                className="p-1.5 rounded-md transition-colors disabled:opacity-20" style={{ color: "var(--theme-text-secondary)" }}>
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               </button>
             </div>

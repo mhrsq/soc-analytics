@@ -3,6 +3,7 @@ import { Calendar, Building2, Check, Clock, Pencil, Plus, RotateCcw, ChevronDown
 import type { FilterOptions } from "../types";
 import type { DashboardProfile } from "../contexts/DashboardContext";
 import { AutoRefreshControl } from "./AutoRefreshControl";
+import { ConfirmDialog } from "./ConfirmDialog";
 
 export type TimePreset = "last15m" | "last1h" | "last24h" | "last7d" | "last30d" | "all" | "custom";
 
@@ -70,6 +71,7 @@ export function FilterBar({ filters, onApply, filterOptions, editMode, onToggleE
   const [profileOpen, setProfileOpen] = useState(false);
   const [newProfileName, setNewProfileName] = useState("");
   const [showSaveNew, setShowSaveNew] = useState(false);
+  const [profileToDelete, setProfileToDelete] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const assetRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -343,7 +345,7 @@ export function FilterBar({ filters, onApply, filterOptions, editMode, onToggleE
         <div className="flex-1" />
 
         {/* ── Profile Selector ── */}
-        <div className="relative hidden sm:block" ref={profileRef}>
+        <div className="relative" ref={profileRef}>
           <button
             onClick={() => setProfileOpen(v => !v)}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-all"
@@ -380,7 +382,7 @@ export function FilterBar({ filters, onApply, filterOptions, editMode, onToggleE
                     {p.isDefault && <Star className="w-2.5 h-2.5 flex-shrink-0" style={{ color: "var(--theme-accent)", fill: "var(--theme-accent)" }} />}
                     {!p.isDefault && profiles.length > 1 && (
                       <span
-                        onClick={(e) => { e.stopPropagation(); onDeleteProfile(p.id); }}
+                        onClick={(e) => { e.stopPropagation(); setProfileToDelete(p.id); }}
                         className="opacity-0 group-hover:opacity-60 hover:!opacity-100 p-0.5 rounded transition-opacity"
                       >
                         <Trash2 className="w-3 h-3 text-red-400" />
@@ -502,6 +504,15 @@ export function FilterBar({ filters, onApply, filterOptions, editMode, onToggleE
           </button>
         </div>
       </div>
+      <ConfirmDialog
+        isOpen={!!profileToDelete}
+        onConfirm={() => { if (profileToDelete) onDeleteProfile(profileToDelete); setProfileToDelete(null); }}
+        onCancel={() => setProfileToDelete(null)}
+        title="Delete Profile"
+        message="Delete this dashboard profile?"
+        confirmLabel="Delete"
+        variant="danger"
+      />
     </div>
   );
 }

@@ -248,6 +248,7 @@ export interface ThemeConfig {
   textPrimary: string;
   textSecondary: string;
   textMuted: string;
+  textDim: string;
   surfaceBase: string;
   surfaceRaised: string;
   surfaceBorder: string;

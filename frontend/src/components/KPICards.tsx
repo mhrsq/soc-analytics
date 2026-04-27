@@ -121,12 +121,12 @@ export function KPICards({ data, loading, onCardClick, volumeData }: Props) {
   ];
 
   return (
-    <div className="h-full grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-px rounded-lg overflow-hidden border" style={{ borderColor: "var(--theme-card-border)", backgroundColor: "var(--theme-card-border)" }}>
+    <div className="h-full grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 lg:grid-cols-7 gap-px rounded-lg overflow-hidden border" style={{ borderColor: "var(--theme-card-border)", backgroundColor: "var(--theme-card-border)" }}>
       {metrics.map((m) => (
         <button
           key={m.key}
           onClick={() => onCardClick?.(m.key)}
-          className="relative flex flex-col justify-center px-3 py-3 text-left transition-colors hover:bg-white/[0.02] cursor-pointer overflow-hidden"
+          className="relative flex flex-col justify-center px-3 py-3 text-left transition-colors hover:bg-white/[0.02] cursor-pointer overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-[var(--theme-accent)]"
           style={{ backgroundColor: "var(--theme-card-bg)" }}
         >
           {m.sparkData && <MiniSparkline data={m.sparkData} color={m.sparkColor} />}
@@ -148,7 +148,7 @@ export function KPICards({ data, loading, onCardClick, volumeData }: Props) {
 
 function KPIStripSkeleton() {
   return (
-    <div className="h-full grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-px rounded-lg overflow-hidden border" style={{ borderColor: "var(--theme-card-border)", backgroundColor: "var(--theme-card-border)" }}>
+    <div className="h-full grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 lg:grid-cols-7 gap-px rounded-lg overflow-hidden border" style={{ borderColor: "var(--theme-card-border)", backgroundColor: "var(--theme-card-border)" }}>
       {Array.from({ length: 7 }).map((_, i) => (
         <div key={i} className="flex flex-col justify-center px-3 py-3 gap-1.5" style={{ backgroundColor: "var(--theme-card-bg)" }}>
           <div className="skeleton h-2.5 w-16 rounded" />

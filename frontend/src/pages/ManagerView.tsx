@@ -8,6 +8,7 @@ import { TicketDetailModal } from "../components/TicketDetailModal";
 import { TeamTrendChart } from "../components/AnalystTrendChart";
 import type { AnalystScore } from "../types";
 import { Users, ChevronDown, BarChart3, AlertTriangle, Minus } from "lucide-react";
+import { ErrorAlert } from "../components/ErrorAlert";
 
 const STORAGE_KEY = "soc-manager-excluded-analysts";
 function loadExcluded(): Set<string> {
@@ -56,9 +57,10 @@ export function ManagerView() {
   const [selectedAnalyst, setSelectedAnalyst] = useState<string | null>(null);
   const [ticketId, setTicketId] = useState<number | null>(null);
   const [excluded] = useState<Set<string>>(loadExcluded);
+  const [backfillMsg, setBackfillMsg] = useState<string | null>(null);
 
   const range = useMemo(() => getDateRange(periodMonths), [periodMonths]);
-  const { data: rawData, loading } = useFetch<AnalystScore[]>(
+  const { data: rawData, loading, error } = useFetch<AnalystScore[]>(
     () => api.getAnalystScores({ start: range.start, end: range.end }),
     [range.start, range.end]
   );
@@ -101,6 +103,8 @@ export function ManagerView() {
           <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none" style={{ color: "var(--theme-text-muted)" }} />
         </div>
       </div>
+
+      <ErrorAlert error={error} />
 
       {loading ? (
         <div className="flex items-center justify-center py-20"><Spinner /></div>
@@ -227,19 +231,30 @@ export function ManagerView() {
                   Weekly
                 </span>
               </div>
-              <button
-                onClick={async () => {
-                  try {
-                    const res = await fetch("/api/analysts/snapshots/backfill?weeks=26", { method: "POST", headers: { Authorization: `Bearer ${localStorage.getItem("soc_token")}` } });
-                    const data = await res.json();
-                    alert(data.message || "Backfill triggered");
-                  } catch { alert("Backfill failed"); }
-                }}
-                className="text-[10px] px-2 py-1 rounded transition-colors hover:bg-white/[0.05]"
-                style={{ color: "var(--theme-text-muted)", border: "1px solid var(--theme-surface-border)" }}
-              >
-                Backfill snapshots
-              </button>
+              <div className="flex items-center gap-2">
+                {backfillMsg && (
+                  <span className="text-[10px]" style={{ color: "var(--theme-text-secondary)" }}>
+                    {backfillMsg}
+                  </span>
+                )}
+                <button
+                  onClick={async () => {
+                    try {
+                      const res = await fetch("/api/analysts/snapshots/backfill?weeks=26", { method: "POST", headers: { Authorization: `Bearer ${localStorage.getItem("soc_token")}` } });
+                      const data = await res.json();
+                      setBackfillMsg(data.message || "Backfill triggered");
+                      setTimeout(() => setBackfillMsg(null), 5000);
+                    } catch (e) {
+                      setBackfillMsg("Backfill failed: " + (e instanceof Error ? e.message : "Unknown error"));
+                      setTimeout(() => setBackfillMsg(null), 5000);
+                    }
+                  }}
+                  className="text-[10px] px-2 py-1 rounded transition-colors hover:bg-white/[0.05]"
+                  style={{ color: "var(--theme-text-muted)", border: "1px solid var(--theme-surface-border)" }}
+                >
+                  Backfill snapshots
+                </button>
+              </div>
             </div>
             <TeamTrendChart selectedAnalysts={data.map((a) => a.analyst)} granularity="weekly" />
           </Card>

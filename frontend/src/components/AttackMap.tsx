@@ -8,6 +8,7 @@ import { ComposableMap, Geographies, Geography, ZoomableGroup, Marker } from "re
 import { Shield, RefreshCw, Globe, MapPin, TrendingUp, Zap, ZoomIn, ZoomOut, Crosshair } from "lucide-react";
 import { api } from "../api/client";
 import type { AttackMapEvent, AttackMapData, AttackMapCountry } from "../types";
+import { ErrorAlert } from "./ErrorAlert";
 
 const GEO_URL = "/geo/countries-110m.json";
 
@@ -93,6 +94,7 @@ export function AttackMap({ customer }: Props) {
   const [zoom, setZoom] = useState(1);
   const [center, setCenter] = useState<[number, number]>([20, 10]);
   const [lastUpdate, setLastUpdate] = useState<string>("");
+  const [loadError, setLoadError] = useState<string | null>(null);
   const arcIdCounter = useRef(0);
   const seenIds = useRef(new Set<string>());
   const animRef = useRef<number | null>(null);
@@ -102,7 +104,9 @@ export function AttackMap({ customer }: Props) {
     try {
       const data = await api.getAttackMapData(24);
       setMapData(data);
-    } catch {}
+    } catch (e) {
+      setLoadError(e instanceof Error ? e.message : "Failed to load attack map data");
+    }
   }, []);
 
   useEffect(() => {
@@ -145,7 +149,9 @@ export function AttackMap({ customer }: Props) {
           const arr = Array.from(seenIds.current);
           seenIds.current = new Set(arr.slice(-300));
         }
-      } catch {}
+      } catch (e) {
+        setLoadError(e instanceof Error ? e.message : "Failed to load attack map events");
+      }
     };
     poll();
     const id = setInterval(poll, 3000);
@@ -203,17 +209,24 @@ export function AttackMap({ customer }: Props) {
   }, [events]);
 
   return (
-    <div className="relative w-full flex flex-col" style={{ height: "calc(100vh - 56px)", background: "#0a0a0c" }}>
+    <div className="relative w-full flex flex-col" style={{ height: "calc(100vh - 56px)", background: "var(--theme-surface-base)" }}>
+
+      {/* Error alert */}
+      {loadError && (
+        <div className="absolute top-16 left-3 right-3 z-30">
+          <ErrorAlert error={loadError} onRetry={loadSummary} />
+        </div>
+      )}
 
       {/* ── Header ── */}
       <div className="absolute top-3 left-3 right-3 z-20 flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ backgroundColor: "rgba(10,10,12,0.92)", border: "1px solid #26262e" }}>
-          <Globe className="w-4 h-4" style={{ color: "#9b9ba8" }} />
-          <h2 className="text-sm font-semibold" style={{ color: "#e8e8ec" }}>Live Attack Map</h2>
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ backgroundColor: "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)" }}>
+          <Globe className="w-4 h-4" style={{ color: "var(--theme-text-secondary)" }} />
+          <h2 className="text-sm font-semibold" style={{ color: "var(--theme-text-primary)" }}>Live Attack Map</h2>
           <div className="flex items-center gap-1.5 ml-2">
             <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: "#ef4444" }} />
             <span className="text-[10px] font-mono" style={{ color: "#ef4444" }}>Live</span>
-            <span className="text-[10px] font-mono ml-1" style={{ color: "#3e3e48" }}>{lastUpdate ? timeAgo(lastUpdate) : "—"}</span>
+            <span className="text-[10px] font-mono ml-1" style={{ color: "var(--theme-text-dim)" }}>{lastUpdate ? timeAgo(lastUpdate) : "—"}</span>
           </div>
         </div>
 
@@ -225,11 +238,11 @@ export function AttackMap({ customer }: Props) {
             { icon: TrendingUp, label: "Top Source", value: mapData?.top_source || "—" },
             { icon: Zap, label: "Unique IPs", value: fmtCount(mapData?.unique_ips || 0) },
           ].map(kpi => (
-            <div key={kpi.label} className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ backgroundColor: "rgba(10,10,12,0.92)", border: "1px solid #26262e" }}>
-              <kpi.icon className="w-3.5 h-3.5" style={{ color: "#646471" }} />
+            <div key={kpi.label} className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ backgroundColor: "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)" }}>
+              <kpi.icon className="w-3.5 h-3.5" style={{ color: "var(--theme-text-muted)" }} />
               <div>
-                <div className="text-[9px] uppercase tracking-wider" style={{ color: "#646471" }}>{kpi.label}</div>
-                <div className="text-sm font-semibold font-mono" style={{ color: "#e8e8ec" }}>{kpi.value}</div>
+                <div className="text-[9px] uppercase tracking-wider" style={{ color: "var(--theme-text-muted)" }}>{kpi.label}</div>
+                <div className="text-sm font-semibold font-mono" style={{ color: "var(--theme-text-primary)" }}>{kpi.value}</div>
               </div>
             </div>
           ))}
@@ -240,7 +253,7 @@ export function AttackMap({ customer }: Props) {
       <div className="flex-1 relative overflow-hidden">
         <ComposableMap
           projectionConfig={{ scale: 147, center: [0, 0] }}
-          style={{ width: "100%", height: "100%", background: "#0a0a0c" }}
+          style={{ width: "100%", height: "100%", background: "var(--theme-surface-base)" }}
         >
           <ZoomableGroup zoom={zoom} center={center} onMoveEnd={({ coordinates, zoom: z }) => { setCenter(coordinates as [number, number]); setZoom(z); }} minZoom={1} maxZoom={8}>
             {/* Country polygons */}
@@ -252,12 +265,12 @@ export function AttackMap({ customer }: Props) {
                   <Geography
                     key={geo.rsmKey}
                     geography={geo}
-                    fill={count > 0 ? heatColor(count, maxCountryCount) : "#141418"}
-                    stroke="#26262e"
+                    fill={count > 0 ? heatColor(count, maxCountryCount) : "var(--theme-card-bg)"}
+                    stroke="var(--theme-surface-border)"
                     strokeWidth={0.3}
                     style={{
                       default: { outline: "none" },
-                      hover: { fill: count > 0 ? heatColor(count * 1.5, maxCountryCount) : "#1b1b21", outline: "none" },
+                      hover: { fill: count > 0 ? heatColor(count * 1.5, maxCountryCount) : "var(--theme-surface-raised)", outline: "none" },
                       pressed: { outline: "none" },
                     }}
                   />
@@ -340,14 +353,14 @@ export function AttackMap({ customer }: Props) {
             { icon: ZoomOut, action: () => setZoom(z => Math.max(z / 1.5, 1)) },
             { icon: Crosshair, action: () => { setZoom(1); setCenter([20, 10]); } },
           ].map((btn, i) => (
-            <button key={i} onClick={btn.action} className="p-1.5 rounded-lg" style={{ backgroundColor: "rgba(10,10,12,0.9)", border: "1px solid #26262e", color: "#9b9ba8" }}>
+            <button key={i} onClick={btn.action} className="p-1.5 rounded-lg" style={{ backgroundColor: "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-secondary)" }}>
               <btn.icon className="w-3.5 h-3.5" />
             </button>
           ))}
         </div>
 
         {/* Threat gradient legend */}
-        <div className="absolute bottom-24 left-3 z-10 px-2 py-1.5 rounded-lg text-[9px]" style={{ backgroundColor: "rgba(10,10,12,0.92)", border: "1px solid #26262e", color: "#646471" }}>
+        <div className="absolute bottom-24 left-3 z-10 px-2 py-1.5 rounded-lg text-[9px]" style={{ backgroundColor: "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-muted)" }}>
           <div className="mb-1">Threat</div>
           <div className="flex items-center gap-1">
             <span>Low</span>
@@ -358,7 +371,7 @@ export function AttackMap({ customer }: Props) {
 
         {/* Protocol legend */}
         {protocolLegend.length > 0 && (
-          <div className="absolute bottom-24 right-3 z-10 px-2 py-1.5 rounded-lg text-[9px]" style={{ backgroundColor: "rgba(10,10,12,0.92)", border: "1px solid #26262e", color: "#646471" }}>
+          <div className="absolute bottom-24 right-3 z-10 px-2 py-1.5 rounded-lg text-[9px]" style={{ backgroundColor: "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-muted)" }}>
             <div className="mb-1">Protocol</div>
             <div className="flex flex-wrap gap-x-2 gap-y-0.5">
               {protocolLegend.map(p => (
@@ -373,19 +386,19 @@ export function AttackMap({ customer }: Props) {
       </div>
 
       {/* ── Bottom panel: Countries + Live Feed ── */}
-      <div className="h-44 flex border-t shrink-0" style={{ backgroundColor: "#0a0a0c", borderColor: "#1d1d23" }}>
+      <div className="h-44 flex border-t shrink-0" style={{ backgroundColor: "var(--theme-surface-base)", borderColor: "var(--theme-surface-border)" }}>
         {/* Top Attacking Countries */}
-        <div className="w-72 shrink-0 border-r overflow-y-auto" style={{ borderColor: "#1d1d23" }}>
-          <div className="sticky top-0 px-3 py-1.5 text-[10px] uppercase tracking-wider font-medium" style={{ backgroundColor: "#0a0a0c", borderBottom: "1px solid #1d1d23", color: "#646471" }}>
+        <div className="w-72 shrink-0 border-r overflow-y-auto" style={{ borderColor: "var(--theme-surface-border)" }}>
+          <div className="sticky top-0 px-3 py-1.5 text-[10px] uppercase tracking-wider font-medium" style={{ backgroundColor: "var(--theme-surface-base)", borderBottom: "1px solid var(--theme-surface-border)", color: "var(--theme-text-muted)" }}>
             <TrendingUp className="w-3 h-3 inline mr-1" />Top Attacking Countries
             <span className="ml-1 font-mono">{mapData?.active_countries || 0}</span>
           </div>
           {mapData?.countries.slice(0, 15).map((c, i) => (
             <div key={c.country} className="flex items-center gap-2 px-3 py-1 text-[11px] hover:bg-white/[0.02]">
-              <span className="w-4 font-mono shrink-0" style={{ color: "#3e3e48" }}>{i + 1}</span>
-              <span className="truncate" style={{ color: "#e8e8ec" }}>{c.country}</span>
-              <span className="ml-auto font-mono shrink-0" style={{ color: "#9b9ba8" }}>{fmtCount(c.count)}</span>
-              <span className="text-[9px] w-10 text-right" style={{ color: "#3e3e48" }}>
+              <span className="w-4 font-mono shrink-0" style={{ color: "var(--theme-text-dim)" }}>{i + 1}</span>
+              <span className="truncate" style={{ color: "var(--theme-text-primary)" }}>{c.country}</span>
+              <span className="ml-auto font-mono shrink-0" style={{ color: "var(--theme-text-secondary)" }}>{fmtCount(c.count)}</span>
+              <span className="text-[9px] w-10 text-right" style={{ color: "var(--theme-text-dim)" }}>
                 {mapData ? (c.count / mapData.total_events * 100).toFixed(1) + "%" : ""}
               </span>
             </div>
@@ -394,7 +407,7 @@ export function AttackMap({ customer }: Props) {
 
         {/* Live Attack Feed */}
         <div className="flex-1 overflow-y-auto">
-          <div className="sticky top-0 z-10 px-3 py-1.5 text-[10px] uppercase tracking-wider font-medium flex items-center gap-1.5" style={{ backgroundColor: "#0a0a0c", borderBottom: "1px solid #1d1d23", color: "#646471" }}>
+          <div className="sticky top-0 z-10 px-3 py-1.5 text-[10px] uppercase tracking-wider font-medium flex items-center gap-1.5" style={{ backgroundColor: "var(--theme-surface-base)", borderBottom: "1px solid var(--theme-surface-border)", color: "var(--theme-text-muted)" }}>
             <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: "#ef4444" }} />
             Live Attack Feed
             <span className="ml-auto font-mono">{events.length} events</span>
@@ -402,12 +415,12 @@ export function AttackMap({ customer }: Props) {
           {events.map((e, i) => (
             <div key={`${e.id}-${i}`} className="flex items-center gap-2 px-3 py-1 text-[11px] hover:bg-white/[0.02]">
               <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: getProtoColor(e.protocol) }} />
-              <span className="font-mono w-28 shrink-0 truncate" style={{ color: "#9b9ba8" }}>{e.source_ip}</span>
-              <span style={{ color: "#3e3e48" }}>→</span>
-              <span className="font-mono shrink-0" style={{ color: "#646471" }}>:{e.port}</span>
+              <span className="font-mono w-28 shrink-0 truncate" style={{ color: "var(--theme-text-secondary)" }}>{e.source_ip}</span>
+              <span style={{ color: "var(--theme-text-dim)" }}>→</span>
+              <span className="font-mono shrink-0" style={{ color: "var(--theme-text-muted)" }}>:{e.port}</span>
               <span className="text-[10px] px-1 rounded shrink-0" style={{ backgroundColor: getProtoColor(e.protocol) + "20", color: getProtoColor(e.protocol) }}>{e.protocol}</span>
-              <span className="truncate" style={{ color: "#3e3e48" }}>{e.agent_name}</span>
-              <span className="ml-auto font-mono shrink-0 text-[10px]" style={{ color: "#3e3e48" }}>{timeAgo(e.time)}</span>
+              <span className="truncate" style={{ color: "var(--theme-text-dim)" }}>{e.agent_name}</span>
+              <span className="ml-auto font-mono shrink-0 text-[10px]" style={{ color: "var(--theme-text-dim)" }}>{timeAgo(e.time)}</span>
             </div>
           ))}
         </div>

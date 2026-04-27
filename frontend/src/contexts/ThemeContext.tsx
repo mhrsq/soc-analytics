@@ -27,6 +27,7 @@ const PRESETS: Record<ThemePreset, ThemeConfig> = {
     textPrimary: "#e8e8ec",
     textSecondary: "#9b9ba8",
     textMuted: "#646471",
+    textDim: "#3e3e48",
     surfaceBase: "#0a0a0c",
     surfaceRaised: "#1b1b21",
     surfaceBorder: "#26262e",
@@ -42,6 +43,7 @@ const PRESETS: Record<ThemePreset, ThemeConfig> = {
     textPrimary: "#e4e4e7",
     textSecondary: "#a1a1aa",
     textMuted: "#52525b",
+    textDim: "#3f3f46",
     surfaceBase: "#09090b",
     surfaceRaised: "#18181b",
     surfaceBorder: "#27272a",
@@ -57,6 +59,7 @@ const PRESETS: Record<ThemePreset, ThemeConfig> = {
     textPrimary: "#0f172a",
     textSecondary: "#475569",
     textMuted: "#94a3b8",
+    textDim: "#cbd5e1",
     surfaceBase: "#f8fafc",
     surfaceRaised: "#ffffff",
     surfaceBorder: "#e2e8f0",
@@ -72,6 +75,7 @@ const PRESETS: Record<ThemePreset, ThemeConfig> = {
     textPrimary: "#e2e8f0",
     textSecondary: "#8899aa",
     textMuted: "#4d6070",
+    textDim: "#2a3848",
     surfaceBase: "#0a0c10",
     surfaceRaised: "#141a22",
     surfaceBorder: "#1e2836",
@@ -87,6 +91,7 @@ const PRESETS: Record<ThemePreset, ThemeConfig> = {
     textPrimary: "#e2e8e4",
     textSecondary: "#88a898",
     textMuted: "#4d6858",
+    textDim: "#2a3e30",
     surfaceBase: "#090b0a",
     surfaceRaised: "#141a16",
     surfaceBorder: "#1e2a22",
@@ -102,6 +107,7 @@ const PRESETS: Record<ThemePreset, ThemeConfig> = {
     textPrimary: "#e8e4e0",
     textSecondary: "#a8988a",
     textMuted: "#685848",
+    textDim: "#3e3428",
     surfaceBase: "#0b0a09",
     surfaceRaised: "#1a1614",
     surfaceBorder: "#2a2420",
@@ -117,6 +123,7 @@ const PRESETS: Record<ThemePreset, ThemeConfig> = {
     textPrimary: "#e8e8ec",
     textSecondary: "#9b9ba8",
     textMuted: "#646471",
+    textDim: "#3e3e48",
     surfaceBase: "#0a0a0c",
     surfaceRaised: "#1b1b21",
     surfaceBorder: "#26262e",
@@ -176,6 +183,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     root.style.setProperty("--theme-text-primary", theme.textPrimary);
     root.style.setProperty("--theme-text-secondary", theme.textSecondary);
     root.style.setProperty("--theme-text-muted", theme.textMuted);
+    root.style.setProperty("--theme-text-dim", theme.textDim);
     root.style.setProperty("--theme-surface-base", theme.surfaceBase);
     root.style.setProperty("--theme-surface-raised", theme.surfaceRaised);
     root.style.setProperty("--theme-surface-border", theme.surfaceBorder);

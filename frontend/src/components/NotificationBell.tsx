@@ -14,10 +14,10 @@ function timeAgo(dateStr: string | null): string {
 }
 
 function priorityColor(p: string) {
-  if (p === "Critical") return "bg-cyber-red/20 text-cyber-red";
-  if (p === "High") return "bg-cyber-orange/20 text-cyber-orange";
-  if (p === "Medium") return "bg-cyber-yellow/20 text-cyber-yellow";
-  return "bg-cyber-green/20 text-cyber-green";
+  if (p === "Critical") return "bg-signal-red/20 text-signal-red";
+  if (p === "High") return "bg-signal-amber/20 text-signal-amber";
+  if (p === "Medium") return "bg-signal-amber/20 text-signal-amber";
+  return "bg-signal-green/20 text-signal-green";
 }
 
 export function NotificationBell() {
@@ -60,18 +60,18 @@ export function NotificationBell() {
       >
         {soundEnabled ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[16px] h-4 px-1 text-[9px] font-bold rounded-full bg-cyber-red text-white animate-pulse">
+          <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[16px] h-4 px-1 text-[9px] font-bold rounded-full bg-signal-red text-white animate-pulse">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
         {isPolling && (
-          <span className="absolute bottom-0 right-0 w-1.5 h-1.5 rounded-full bg-cyber-blue animate-ping" />
+          <span className="absolute bottom-0 right-0 w-1.5 h-1.5 rounded-full animate-ping" style={{ backgroundColor: "var(--theme-accent)" }} />
         )}
       </button>
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 max-h-[480px] flex flex-col rounded-xl shadow-2xl shadow-black/40 animate-fade-in-up z-50 overflow-hidden" style={{ backgroundColor: "var(--theme-surface-raised)", border: "1px solid var(--theme-surface-border)" }}>
+        <div role="dialog" aria-modal="true" className="absolute right-0 top-full mt-2 w-80 max-h-[480px] flex flex-col rounded-xl shadow-2xl shadow-black/40 animate-fade-in-up z-50 overflow-hidden" style={{ backgroundColor: "var(--theme-surface-raised)", border: "1px solid var(--theme-surface-border)" }}>
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid var(--theme-surface-border)" }}>
             <span className="text-xs font-semibold" style={{ color: "var(--theme-text-secondary)" }}>Notifications</span>
@@ -95,7 +95,7 @@ export function NotificationBell() {
               {notifications.length > 0 && (
                 <button
                   onClick={clearAll}
-                  className="p-1 rounded transition-colors hover:text-cyber-red"
+                  className="p-1 rounded transition-colors hover:text-signal-red"
                   style={{ color: "var(--theme-text-muted)" }}
                   title="Clear all"
                 >
@@ -215,7 +215,7 @@ export function NotificationBell() {
                       href={`https://sdp-ioc.mtm.id:8050/WorkOrder.do?woMode=viewWO&woID=${n.id}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-1 rounded hover:text-cyber-blue transition-colors"
+                      className="p-1 rounded hover:opacity-80 transition-colors"
                       style={{ color: "var(--theme-text-muted)" }}
                       title="Open in SDP"
                     >
@@ -223,7 +223,7 @@ export function NotificationBell() {
                     </a>
                     <button
                       onClick={() => dismissNotification(n.id)}
-                      className="p-1 rounded hover:text-cyber-red transition-colors"
+                      className="p-1 rounded hover:text-signal-red transition-colors"
                       style={{ color: "var(--theme-text-muted)" }}
                       title="Dismiss"
                     >

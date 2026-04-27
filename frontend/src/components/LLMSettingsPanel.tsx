@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { api } from "../api/client";
 import type { LlmProvider, LlmProviderCreate, LlmTestResult } from "../types";
+import { ErrorAlert } from "./ErrorAlert";
 
 const PROVIDERS = [
   { value: "openai", label: "OpenAI", placeholder: "gpt-4o, gpt-4.1, gpt-5.2" },
@@ -35,14 +36,15 @@ export function LLMSettingsPanel({ open, onClose }: Props) {
   const [testing, setTesting] = useState<number | null>(null);
   const [testResult, setTestResult] = useState<{ id: number; result: LlmTestResult } | null>(null);
   const [deleting, setDeleting] = useState<number | null>(null);
+  const [opError, setOpError] = useState<string | null>(null);
 
   const fetchProviders = useCallback(async () => {
     setLoading(true);
     try {
       const list = await api.getLlmProviders();
       setProviders(list);
-    } catch {
-      /* silent */
+    } catch (e) {
+      setOpError(e instanceof Error ? e.message : "Operation failed");
     } finally {
       setLoading(false);
     }
@@ -79,39 +81,42 @@ export function LLMSettingsPanel({ open, onClose }: Props) {
   };
 
   const handleDelete = async (id: number) => {
+    setOpError(null);
     setDeleting(id);
     try {
       await api.deleteLlmProvider(id);
       setProviders((p) => p.filter((x) => x.id !== id));
-    } catch {
-      /* silent */
+    } catch (e) {
+      setOpError(e instanceof Error ? e.message : "Operation failed");
     } finally {
       setDeleting(null);
     }
   };
 
   const handleSetDefault = async (id: number) => {
+    setOpError(null);
     try {
       await api.updateLlmProvider(id, { is_default: true });
       fetchProviders();
-    } catch {
-      /* silent */
+    } catch (e) {
+      setOpError(e instanceof Error ? e.message : "Operation failed");
     }
   };
 
   const handleToggleActive = async (id: number, active: boolean) => {
+    setOpError(null);
     try {
       await api.updateLlmProvider(id, { is_active: active });
       fetchProviders();
-    } catch {
-      /* silent */
+    } catch (e) {
+      setOpError(e instanceof Error ? e.message : "Operation failed");
     }
   };
 
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[80] flex justify-end" onClick={onClose}>
+    <div role="dialog" aria-modal="true" className="fixed inset-0 z-[80] flex justify-end" onClick={onClose}>
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
       <div
         className="relative w-full max-w-md h-full flex flex-col shadow-2xl animate-fade-in-up overflow-hidden"
@@ -143,6 +148,7 @@ export function LLMSettingsPanel({ open, onClose }: Props) {
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+          <ErrorAlert error={opError} className="mb-3" />
           {/* Providers list */}
           {loading ? (
             <div className="flex items-center justify-center py-12">

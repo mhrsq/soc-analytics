@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { api, type AuthUser } from "../api/client";
 import { Card } from "./Card";
+import { ConfirmDialog } from "./ConfirmDialog";
 import {
   Users,
   Plus,
@@ -64,6 +65,7 @@ export function UserManagement() {
   const [form, setForm] = useState<UserFormData>(emptyForm);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<AuthUser | null>(null);
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -145,13 +147,15 @@ export function UserManagement() {
     }
   };
 
-  const handleDelete = async (u: AuthUser) => {
-    if (!confirm(`Delete user "${u.username}"? This cannot be undone.`)) return;
+  const handleConfirmDelete = async () => {
+    if (!userToDelete) return;
     try {
-      await api.deleteUser(u.id);
+      await api.deleteUser(userToDelete.id);
       await fetchUsers();
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to delete user");
+    } finally {
+      setUserToDelete(null);
     }
   };
 
@@ -276,7 +280,7 @@ export function UserManagement() {
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
                         <button
-                          onClick={() => handleDelete(u)}
+                          onClick={() => setUserToDelete(u)}
                           className="p-1.5 rounded-lg hover:opacity-80"
                           style={{ color: "#EF4444" }}
                           title="Delete"
@@ -295,7 +299,7 @@ export function UserManagement() {
 
       {/* Create/Edit Modal */}
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" role="dialog" aria-modal="true">
           <div
             className="w-full max-w-md rounded-xl p-6 shadow-2xl"
             style={{ backgroundColor: "var(--theme-card-bg)", border: "1px solid var(--theme-card-border)" }}
@@ -442,6 +446,16 @@ export function UserManagement() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={!!userToDelete}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setUserToDelete(null)}
+        title="Delete User"
+        message={`Delete user "${userToDelete?.username}"? This cannot be undone.`}
+        confirmLabel="Delete"
+        variant="danger"
+      />
     </div>
   );
 }

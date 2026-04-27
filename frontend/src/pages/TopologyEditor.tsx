@@ -12,6 +12,8 @@ import "reactflow/dist/style.css";
 import { Server, Shield, Monitor, Database, Cloud, Radio, Router as RouterIcon, Cpu, Plus, Trash2, Save, X, MapPin } from "lucide-react";
 import { api } from "../api/client";
 import type { TopologyNode, TopologyLink } from "../types";
+import { ErrorAlert } from "../components/ErrorAlert";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 
 // ── Node type config ──
 const NODE_CONFIG: Record<string, { label: string; color: string; icon: typeof Server }> = {
@@ -34,12 +36,12 @@ function TopoNode({ data }: { data: { label: string; nodeType: string; hostname:
   return (
     <div
       className="rounded-lg px-3 py-2 min-w-[120px] text-center border"
-      style={{ backgroundColor: "#141418", borderColor: cfg.color + "40", boxShadow: `0 0 8px ${cfg.color}15` }}
+      style={{ backgroundColor: "var(--theme-card-bg)", borderColor: cfg.color + "40", boxShadow: `0 0 8px ${cfg.color}15` }}
     >
       <Icon className="w-5 h-5 mx-auto mb-1" style={{ color: cfg.color }} />
-      <div className="text-xs font-medium truncate" style={{ color: "#e8e8ec" }}>{data.label}</div>
-      {data.hostname && <div className="text-[9px] font-mono truncate" style={{ color: "#646471" }}>{data.hostname}</div>}
-      {data.customer && <div className="text-[9px] truncate" style={{ color: "#646471" }}>{data.customer}</div>}
+      <div className="text-xs font-medium truncate" style={{ color: "var(--theme-text-primary)" }}>{data.label}</div>
+      {data.hostname && <div className="text-[9px] font-mono truncate" style={{ color: "var(--theme-text-muted)" }}>{data.hostname}</div>}
+      {data.customer && <div className="text-[9px] truncate" style={{ color: "var(--theme-text-muted)" }}>{data.customer}</div>}
     </div>
   );
 }
@@ -55,12 +57,15 @@ export function TopologyEditor() {
   const [editNode, setEditNode] = useState<TopologyNode | null>(null);
   const [assets, setAssets] = useState<{ asset_name: string; count: number }[]>([]);
   const [customers, setCustomers] = useState<string[]>([]);
+  const [opError, setOpError] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   // Form state
   const [form, setForm] = useState({ label: "", node_type: "server", hostname: "", customer: "", lat: "", lng: "" });
 
   // Load data
   const loadData = useCallback(async () => {
+    setOpError(null);
     try {
       const [nodes, links, assetData, filterOpts] = await Promise.all([
         api.getTopologyNodes(),
@@ -77,7 +82,7 @@ export function TopologyEditor() {
       setRfNodes(nodes.map(n => ({
         id: String(n.id),
         type: "topology",
-        position: { x: n.pos_x || Math.random() * 600, y: n.pos_y || Math.random() * 400 },
+        position: { x: n.pos_x || ((n.id * 2654435761 >>> 0) % 600), y: n.pos_y || ((n.id * 2654435761 * 7 >>> 0) % 400) },
         data: { label: n.label, nodeType: n.node_type, hostname: n.hostname || "", customer: n.customer || "" },
       })));
       setRfEdges(links.map(l => ({
@@ -85,12 +90,15 @@ export function TopologyEditor() {
         source: String(l.source_id),
         target: String(l.target_id),
         label: l.label || l.link_type,
-        style: { stroke: l.link_type === "fiber" ? "#60a5fa" : l.link_type === "vpn" ? "#a78bfa" : "#3e3e48", strokeWidth: 1.5 },
+        style: { stroke: l.link_type === "fiber" ? "#60a5fa" : l.link_type === "vpn" ? "#a78bfa" : "var(--theme-text-dim)", strokeWidth: 1.5 },
         animated: l.link_type === "vpn" || l.link_type === "internet",
-        labelStyle: { fill: "#646471", fontSize: 9 },
-        labelBgStyle: { fill: "#0a0a0c", fillOpacity: 0.8 },
+        labelStyle: { fill: "var(--theme-text-muted)", fontSize: 9 },
+        labelBgStyle: { fill: "var(--theme-surface-base)", fillOpacity: 0.8 },
       })));
-    } catch (e) { console.error("Failed to load topology:", e); }
+    } catch (e) {
+      console.error("Failed to load topology:", e);
+      setOpError(e instanceof Error ? e.message : "Operation failed");
+    }
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
@@ -100,21 +108,29 @@ export function TopologyEditor() {
   const onEdgesChange: OnEdgesChange = useCallback((changes) => setRfEdges(eds => applyEdgeChanges(changes, eds)), []);
   const onConnect: OnConnect = useCallback(async (conn) => {
     if (!conn.source || !conn.target) return;
+    setOpError(null);
     try {
       const link = await api.createTopologyLink({ source_id: Number(conn.source), target_id: Number(conn.target), link_type: "lan" });
       setRfEdges(eds => addEdge({
         ...conn, id: String(link.id), label: "lan",
-        style: { stroke: "#3e3e48", strokeWidth: 1.5 },
-        labelStyle: { fill: "#646471", fontSize: 9 },
-        labelBgStyle: { fill: "#0a0a0c", fillOpacity: 0.8 },
+        style: { stroke: "var(--theme-text-dim)", strokeWidth: 1.5 },
+        labelStyle: { fill: "var(--theme-text-muted)", fontSize: 9 },
+        labelBgStyle: { fill: "var(--theme-surface-base)", fillOpacity: 0.8 },
       }, eds));
-    } catch {}
+    } catch (e) {
+      setOpError(e instanceof Error ? e.message : "Operation failed");
+    }
   }, []);
 
   // Save positions on drag end
   const savePositions = useCallback(async () => {
+    setOpError(null);
     const positions = rfNodes.map(n => ({ id: Number(n.id), pos_x: n.position.x, pos_y: n.position.y }));
-    try { await api.updateTopologyPositions(positions); } catch {}
+    try {
+      await api.updateTopologyPositions(positions);
+    } catch (e) {
+      setOpError(e instanceof Error ? e.message : "Operation failed");
+    }
   }, [rfNodes]);
 
   // Node click → edit
@@ -130,6 +146,7 @@ export function TopologyEditor() {
   // Create node
   const createNode = async () => {
     if (!form.label.trim()) return;
+    setOpError(null);
     try {
       const node = await api.createTopologyNode({
         label: form.label, node_type: form.node_type, hostname: form.hostname || undefined,
@@ -139,12 +156,15 @@ export function TopologyEditor() {
       setShowPanel(null);
       setForm({ label: "", node_type: "server", hostname: "", customer: "", lat: "", lng: "" });
       await loadData();
-    } catch {}
+    } catch (e) {
+      setOpError(e instanceof Error ? e.message : "Operation failed");
+    }
   };
 
   // Update node
   const updateNode = async () => {
     if (!editNode) return;
+    setOpError(null);
     try {
       await api.updateTopologyNode(editNode.id, {
         label: form.label, node_type: form.node_type, hostname: form.hostname || undefined,
@@ -154,22 +174,45 @@ export function TopologyEditor() {
       setShowPanel(null);
       setEditNode(null);
       await loadData();
-    } catch {}
+    } catch (e) {
+      setOpError(e instanceof Error ? e.message : "Operation failed");
+    }
   };
 
-  // Delete node
-  const deleteNode = async () => {
-    if (!editNode || !confirm(`Delete "${editNode.label}"?`)) return;
+  // Delete node — triggered by ConfirmDialog's onConfirm
+  const doDeleteNode = async () => {
+    if (!editNode) return;
+    setOpError(null);
     try {
       await api.deleteTopologyNode(editNode.id);
       setShowPanel(null);
       setEditNode(null);
       await loadData();
-    } catch {}
+    } catch (e) {
+      setOpError(e instanceof Error ? e.message : "Operation failed");
+    }
   };
 
   return (
-    <div className="relative w-full flex" style={{ height: "calc(100vh - 56px)", background: "#0a0a0c" }}>
+    <div className="relative w-full flex" style={{ height: "calc(100vh - 56px)", background: "var(--theme-surface-base)" }}>
+      {/* Error alert */}
+      {opError && (
+        <div className="absolute top-14 left-4 right-4 z-20">
+          <ErrorAlert error={opError} />
+        </div>
+      )}
+
+      {/* Confirm delete dialog */}
+      <ConfirmDialog
+        isOpen={confirmDelete}
+        onConfirm={doDeleteNode}
+        onCancel={() => setConfirmDelete(false)}
+        title="Delete Node"
+        message={`Delete "${editNode?.label}"? This will also remove all links connected to this node.`}
+        confirmLabel="Delete"
+        variant="danger"
+      />
+
       {/* Graph Canvas */}
       <div className="flex-1">
         <ReactFlow
@@ -182,21 +225,21 @@ export function TopologyEditor() {
           onNodeDragStop={savePositions}
           nodeTypes={nodeTypes}
           fitView
-          style={{ background: "#0a0a0c" }}
+          style={{ background: "var(--theme-surface-base)" }}
           defaultEdgeOptions={{ type: "default" }}
         >
-          <Background gap={32} size={1} color="#1d1d23" />
-          <Controls position="top-left" style={{ background: "#141418", border: "1px solid #26262e", borderRadius: 8 }} />
-          <MiniMap style={{ background: "#141418", border: "1px solid #26262e", borderRadius: 8 }} nodeColor={(n) => NODE_CONFIG[n.data?.nodeType]?.color || "#60a5fa"} />
+          <Background gap={32} size={1} color="var(--theme-surface-border)" />
+          <Controls position="top-left" style={{ background: "var(--theme-card-bg)", border: "1px solid var(--theme-surface-border)", borderRadius: 8 }} />
+          <MiniMap style={{ background: "var(--theme-card-bg)", border: "1px solid var(--theme-surface-border)", borderRadius: 8 }} nodeColor={(n) => NODE_CONFIG[n.data?.nodeType]?.color || "#60a5fa"} />
         </ReactFlow>
 
         {/* Empty state */}
         {topoNodes.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="text-center">
-              <Server className="w-10 h-10 mx-auto mb-3 opacity-20" style={{ color: "#646471" }} />
-              <p className="text-sm" style={{ color: "#646471" }}>No topology nodes yet</p>
-              <p className="text-xs mt-1" style={{ color: "#3e3e48" }}>Click "Add Node" to start building your network</p>
+              <Server className="w-10 h-10 mx-auto mb-3 opacity-20" style={{ color: "var(--theme-text-muted)" }} />
+              <p className="text-sm" style={{ color: "var(--theme-text-muted)" }}>No topology nodes yet</p>
+              <p className="text-xs mt-1" style={{ color: "var(--theme-text-dim)" }}>Click "Add Node" to start building your network</p>
             </div>
           </div>
         )}
@@ -204,23 +247,23 @@ export function TopologyEditor() {
 
       {/* Toolbar */}
       <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
-        <span className="text-xs font-mono px-2 py-1 rounded" style={{ backgroundColor: "#141418", border: "1px solid #26262e", color: "#646471" }}>
+        <span className="text-xs font-mono px-2 py-1 rounded" style={{ backgroundColor: "var(--theme-card-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-muted)" }}>
           {topoNodes.length} nodes · {topoLinks.length} links
         </span>
         <button onClick={() => { setShowPanel("add"); setEditNode(null); setForm({ label: "", node_type: "server", hostname: "", customer: "", lat: "", lng: "" }); }}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors hover:bg-white/[0.05]"
-          style={{ backgroundColor: "#141418", border: "1px solid #26262e", color: "#e8e8ec" }}>
+          style={{ backgroundColor: "var(--theme-card-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-primary)" }}>
           <Plus className="w-3.5 h-3.5" /> Add Node
         </button>
         <button onClick={savePositions}
           className="p-1.5 rounded-lg transition-colors hover:bg-white/[0.05]"
-          style={{ backgroundColor: "#141418", border: "1px solid #26262e", color: "#9b9ba8" }} title="Save positions">
+          style={{ backgroundColor: "var(--theme-card-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-secondary)" }} title="Save positions">
           <Save className="w-3.5 h-3.5" />
         </button>
       </div>
 
       {/* Node palette (left) */}
-      <div className="absolute top-16 left-4 z-10 flex flex-col gap-1 p-2 rounded-lg" style={{ backgroundColor: "#141418", border: "1px solid #26262e" }}>
+      <div className="absolute top-16 left-4 z-10 flex flex-col gap-1 p-2 rounded-lg" style={{ backgroundColor: "var(--theme-card-bg)", border: "1px solid var(--theme-surface-border)" }}>
         {Object.entries(NODE_CONFIG).map(([type, cfg]) => {
           const Icon = cfg.icon;
           return (
@@ -228,7 +271,7 @@ export function TopologyEditor() {
               className="flex items-center gap-2 px-2 py-1.5 rounded text-[10px] transition-colors hover:bg-white/[0.05]"
               style={{ color: cfg.color }} title={cfg.label}>
               <Icon className="w-3.5 h-3.5" />
-              <span style={{ color: "#9b9ba8" }}>{cfg.label}</span>
+              <span style={{ color: "var(--theme-text-secondary)" }}>{cfg.label}</span>
             </button>
           );
         })}
@@ -236,34 +279,34 @@ export function TopologyEditor() {
 
       {/* Side Panel (add/edit) */}
       {showPanel && (
-        <div className="w-72 border-l shrink-0 overflow-y-auto" style={{ backgroundColor: "#0a0a0c", borderColor: "#1d1d23" }}>
-          <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid #1d1d23" }}>
-            <h3 className="text-sm font-medium" style={{ color: "#e8e8ec" }}>{showPanel === "add" ? "Add Node" : "Edit Node"}</h3>
-            <button onClick={() => { setShowPanel(null); setEditNode(null); }} className="p-1 rounded hover:bg-white/[0.05]" style={{ color: "#646471" }}>
+        <div className="w-72 border-l shrink-0 overflow-y-auto" style={{ backgroundColor: "var(--theme-surface-base)", borderColor: "var(--theme-surface-border)" }}>
+          <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid var(--theme-surface-border)" }}>
+            <h3 className="text-sm font-medium" style={{ color: "var(--theme-text-primary)" }}>{showPanel === "add" ? "Add Node" : "Edit Node"}</h3>
+            <button onClick={() => { setShowPanel(null); setEditNode(null); }} className="p-1 rounded hover:bg-white/[0.05]" style={{ color: "var(--theme-text-muted)" }}>
               <X className="w-4 h-4" />
             </button>
           </div>
           <div className="p-4 space-y-3">
             <Field label="Label" value={form.label} onChange={v => setForm(f => ({ ...f, label: v }))} placeholder="e.g. Web Server 1" />
             <div>
-              <label className="text-[10px] uppercase tracking-wider font-medium block mb-1" style={{ color: "#646471" }}>Type</label>
+              <label className="text-[10px] uppercase tracking-wider font-medium block mb-1" style={{ color: "var(--theme-text-muted)" }}>Type</label>
               <select value={form.node_type} onChange={e => setForm(f => ({ ...f, node_type: e.target.value }))}
-                className="w-full text-xs px-3 py-2 rounded-lg" style={{ backgroundColor: "#141418", border: "1px solid #26262e", color: "#e8e8ec" }}>
+                className="w-full text-xs px-3 py-2 rounded-lg" style={{ backgroundColor: "var(--theme-card-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-primary)" }}>
                 {Object.entries(NODE_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-[10px] uppercase tracking-wider font-medium block mb-1" style={{ color: "#646471" }}>Hostname</label>
+              <label className="text-[10px] uppercase tracking-wider font-medium block mb-1" style={{ color: "var(--theme-text-muted)" }}>Hostname</label>
               <select value={form.hostname} onChange={e => setForm(f => ({ ...f, hostname: e.target.value }))}
-                className="w-full text-xs px-3 py-2 rounded-lg" style={{ backgroundColor: "#141418", border: "1px solid #26262e", color: "#e8e8ec" }}>
+                className="w-full text-xs px-3 py-2 rounded-lg" style={{ backgroundColor: "var(--theme-card-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-primary)" }}>
                 <option value="">Select asset...</option>
                 {assets.map(a => <option key={a.asset_name} value={a.asset_name}>{a.asset_name} ({a.count})</option>)}
               </select>
             </div>
             <div>
-              <label className="text-[10px] uppercase tracking-wider font-medium block mb-1" style={{ color: "#646471" }}>Customer</label>
+              <label className="text-[10px] uppercase tracking-wider font-medium block mb-1" style={{ color: "var(--theme-text-muted)" }}>Customer</label>
               <select value={form.customer} onChange={e => setForm(f => ({ ...f, customer: e.target.value }))}
-                className="w-full text-xs px-3 py-2 rounded-lg" style={{ backgroundColor: "#141418", border: "1px solid #26262e", color: "#e8e8ec" }}>
+                className="w-full text-xs px-3 py-2 rounded-lg" style={{ backgroundColor: "var(--theme-card-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-primary)" }}>
                 <option value="">None</option>
                 {customers.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
@@ -272,24 +315,24 @@ export function TopologyEditor() {
               <Field label="Latitude" value={form.lat} onChange={v => setForm(f => ({ ...f, lat: v }))} placeholder="-6.2" type="number" />
               <Field label="Longitude" value={form.lng} onChange={v => setForm(f => ({ ...f, lng: v }))} placeholder="106.8" type="number" />
             </div>
-            <p className="text-[9px] flex items-center gap-1" style={{ color: "#3e3e48" }}>
+            <p className="text-[9px] flex items-center gap-1" style={{ color: "var(--theme-text-dim)" }}>
               <MapPin className="w-3 h-3" /> Coordinates are used by the Threat Map
             </p>
 
             {showPanel === "add" ? (
               <button onClick={createNode} disabled={!form.label.trim()}
                 className="w-full py-2 rounded-lg text-xs font-medium transition-colors disabled:opacity-30"
-                style={{ backgroundColor: "#1b1b21", color: "#e8e8ec", border: "1px solid #26262e" }}>
+                style={{ backgroundColor: "var(--theme-surface-raised)", color: "var(--theme-text-primary)", border: "1px solid var(--theme-surface-border)" }}>
                 Create Node
               </button>
             ) : (
               <div className="flex gap-2">
                 <button onClick={updateNode} className="flex-1 py-2 rounded-lg text-xs font-medium"
-                  style={{ backgroundColor: "#1b1b21", color: "#e8e8ec", border: "1px solid #26262e" }}>
+                  style={{ backgroundColor: "var(--theme-surface-raised)", color: "var(--theme-text-primary)", border: "1px solid var(--theme-surface-border)" }}>
                   Save
                 </button>
-                <button onClick={deleteNode} className="px-3 py-2 rounded-lg text-xs transition-colors hover:bg-red-500/10"
-                  style={{ color: "#ef4444", border: "1px solid #26262e" }}>
+                <button onClick={() => setConfirmDelete(true)} className="px-3 py-2 rounded-lg text-xs transition-colors hover:bg-red-500/10"
+                  style={{ color: "#ef4444", border: "1px solid var(--theme-surface-border)" }}>
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -304,9 +347,9 @@ export function TopologyEditor() {
 function Field({ label, value, onChange, placeholder, type = "text" }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; type?: string }) {
   return (
     <div>
-      <label className="text-[10px] uppercase tracking-wider font-medium block mb-1" style={{ color: "#646471" }}>{label}</label>
+      <label className="text-[10px] uppercase tracking-wider font-medium block mb-1" style={{ color: "var(--theme-text-muted)" }}>{label}</label>
       <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
-        className="w-full text-xs px-3 py-2 rounded-lg outline-none focus:ring-1" style={{ backgroundColor: "#141418", border: "1px solid #26262e", color: "#e8e8ec" }} />
+        className="w-full text-xs px-3 py-2 rounded-lg outline-none focus:ring-1" style={{ backgroundColor: "var(--theme-card-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-primary)" }} />
     </div>
   );
 }

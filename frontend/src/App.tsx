@@ -15,6 +15,7 @@ import { LLMSettingsPanel } from "./components/LLMSettingsPanel";
 import { SyncStatusPanel } from "./components/SyncStatusPanel";
 import { AIChatWidget } from "./components/AIChatWidget";
 import { api, type AuthUser } from "./api/client";
+import { ConfirmDialog } from "./components/ConfirmDialog";
 import type { SDPConnectionStatus } from "./types";
 
 type Page = "dashboard" | "manager" | "customer" | "threatmap" | "users";
@@ -127,7 +128,7 @@ function SDPStatusIndicator() {
         <div
           className="absolute top-full right-0 mt-2 w-72 rounded-lg p-3 shadow-xl z-50 text-xs border"
           style={{
-            backgroundColor: "var(--theme-surface-card)",
+            backgroundColor: "var(--theme-card-bg)",
             borderColor: "var(--theme-surface-border)",
             color: "var(--theme-text-secondary)",
           }}
@@ -162,7 +163,7 @@ function SDPStatusIndicator() {
                 </div>
               )}
               {status.error && (
-                <div className="mt-1 p-1.5 rounded text-[10px] break-all" style={{ backgroundColor: "color-mix(in srgb, var(--theme-surface-card) 80%, red 20%)" }}>
+                <div className="mt-1 p-1.5 rounded text-[10px] break-all" style={{ backgroundColor: "color-mix(in srgb, var(--theme-card-bg) 80%, red 20%)" }}>
                   {status.error}
                 </div>
               )}
@@ -180,6 +181,7 @@ function AppShell() {
   const [syncOpen, setSyncOpen] = useState(false);
   const [page, setPage] = useState<Page>("dashboard");
   const [authChecked, setAuthChecked] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // Auth: read user from localStorage (set by Nginx login page)
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => {
@@ -214,6 +216,17 @@ function AppShell() {
   }, []);
 
   const isAdmin = currentUser?.role === "superadmin" || currentUser?.role === "admin";
+
+  useEffect(() => {
+    const titles: Record<Page, string> = {
+      dashboard: "Dashboard",
+      manager: "Manager View",
+      customer: "Client View",
+      threatmap: "Threats",
+      users: "User Management",
+    };
+    document.title = `${titles[page]} — SOC Analytics`;
+  }, [page]);
 
   // Show nothing while verifying auth
   if (!authChecked) {
@@ -256,6 +269,7 @@ function AppShell() {
                   backgroundColor: page === "dashboard" ? "color-mix(in srgb, var(--theme-accent) 15%, transparent)" : "transparent",
                   color: page === "dashboard" ? "var(--theme-accent)" : "var(--theme-text-muted)",
                 }}
+                aria-label="Main Dashboard"
               >
                 <LayoutDashboard className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Main Dashboard</span>
@@ -267,6 +281,7 @@ function AppShell() {
                   backgroundColor: page === "manager" ? "color-mix(in srgb, var(--theme-accent) 15%, transparent)" : "transparent",
                   color: page === "manager" ? "var(--theme-accent)" : "var(--theme-text-muted)",
                 }}
+                aria-label="Manager View"
               >
                 <Users className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Manager</span>
@@ -278,6 +293,7 @@ function AppShell() {
                   backgroundColor: page === "customer" ? "color-mix(in srgb, var(--theme-accent) 15%, transparent)" : "transparent",
                   color: page === "customer" ? "var(--theme-accent)" : "var(--theme-text-muted)",
                 }}
+                aria-label="Client View"
               >
                 <Building2 className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Client View</span>
@@ -289,6 +305,7 @@ function AppShell() {
                   backgroundColor: page === "threatmap" ? "color-mix(in srgb, var(--theme-accent) 15%, transparent)" : "transparent",
                   color: page === "threatmap" ? "var(--theme-accent)" : "var(--theme-text-muted)",
                 }}
+                aria-label="Threats"
               >
                 <Globe className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Threats</span>
@@ -301,6 +318,7 @@ function AppShell() {
                     backgroundColor: page === "users" ? "color-mix(in srgb, var(--theme-accent) 15%, transparent)" : "transparent",
                     color: page === "users" ? "var(--theme-accent)" : "var(--theme-text-muted)",
                   }}
+                  aria-label="User Management"
                 >
                   <Shield className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">Users</span>
@@ -316,6 +334,7 @@ function AppShell() {
               className="p-1.5 rounded transition-colors hover:bg-white/[0.05]"
               style={{ color: "var(--theme-text-muted)" }}
               title="Sync Status"
+              aria-label="Sync Status"
             >
               <Database className="w-3.5 h-3.5" />
             </button>
@@ -326,6 +345,7 @@ function AppShell() {
               className="p-1.5 rounded transition-colors hover:bg-white/[0.05]"
               style={{ color: "var(--theme-text-muted)" }}
               title="Settings"
+              aria-label="Settings"
             >
               <Settings2 className="w-3.5 h-3.5" />
             </button>
@@ -334,6 +354,7 @@ function AppShell() {
               className="p-1.5 rounded transition-colors hover:bg-white/[0.05]"
               style={{ color: "var(--theme-text-muted)" }}
               title="Theme"
+              aria-label="Theme"
             >
               <Palette className="w-3.5 h-3.5" />
             </button>
@@ -341,10 +362,11 @@ function AppShell() {
               <>
                 <div className="h-4 w-px" style={{ backgroundColor: "var(--theme-surface-border)" }} />
                 <button
-                  onClick={handleLogout}
+                  onClick={() => setShowLogoutConfirm(true)}
                   className="flex items-center gap-1.5 px-2 py-1 rounded transition-colors hover:bg-white/[0.05]"
                   style={{ color: "var(--theme-text-muted)" }}
                   title="Logout"
+                  aria-label="Logout"
                 >
                   <span className="text-[11px] hidden md:inline">
                     {currentUser.display_name || currentUser.username}
@@ -375,6 +397,17 @@ function AppShell() {
 
       {/* AI Chat Widget — floating FAB */}
       <AIChatWidget activePage={page} />
+
+      <ConfirmDialog
+        isOpen={showLogoutConfirm}
+        onConfirm={handleLogout}
+        onCancel={() => setShowLogoutConfirm(false)}
+        title="Logout"
+        message="Are you sure you want to logout?"
+        confirmLabel="Logout"
+        cancelLabel="Stay"
+        variant="info"
+      />
     </div>
   );
 }

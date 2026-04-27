@@ -100,7 +100,7 @@ function drawGauge(canvas: HTMLCanvasElement, value: number) {
   // Target label
   const targetLabelR = outerR + Math.max(10, radius * 0.18);
   const tLabelFont = Math.max(8, radius * 0.14);
-  ctx.font = `600 ${tLabelFont}px Lato, sans-serif`;
+  ctx.font = `600 ${tLabelFont}px IBM Plex Sans, sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillStyle = "rgba(255,255,255,0.7)";
@@ -113,7 +113,7 @@ function drawGauge(canvas: HTMLCanvasElement, value: number) {
   // ── Tick marks ──
   const ticks = [0, 25, 50, 75, 100];
   const tickFont = Math.max(8, radius * 0.15);
-  ctx.font = `500 ${tickFont}px Lato, sans-serif`;
+  ctx.font = `500 ${tickFont}px IBM Plex Sans, sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ticks.forEach(t => {
@@ -150,7 +150,7 @@ function drawGauge(canvas: HTMLCanvasElement, value: number) {
 
   // ── Sub-label ──
   const subFont = Math.max(8, radius * 0.13);
-  ctx.font = `400 ${subFont}px Lato, sans-serif`;
+  ctx.font = `400 ${subFont}px IBM Plex Sans, sans-serif`;
   ctx.fillStyle = "rgba(160,180,200,0.55)";
   ctx.fillText(`Target: ${TARGET}%  SLA Compliance`, cx, cy + radius * 0.45);
 }

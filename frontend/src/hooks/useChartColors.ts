@@ -1,8 +1,10 @@
 import { useMemo } from "react";
+import { useTheme } from "../contexts/ThemeContext";
 
 /** Reads CSS custom-property theme tokens and returns concrete hex values
  *  that Recharts SVG elements can consume (they don't support var()). */
 export function useChartColors() {
+  const { theme } = useTheme();
   return useMemo(() => {
     const s = getComputedStyle(document.documentElement);
     return {
@@ -12,7 +14,8 @@ export function useChartColors() {
       raised: s.getPropertyValue("--theme-surface-raised").trim() || "#1a3a52",
       accent: s.getPropertyValue("--theme-accent").trim() || "#3b82f6",
     };
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [theme]);
 }
 
 export function useTooltipStyle() {

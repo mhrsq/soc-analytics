@@ -28,6 +28,7 @@ import { TicketDetailModal } from "../components/TicketDetailModal";
 import { KPIDetailModal } from "../components/KPIDetailModal";
 import type { KPIKey } from "../components/KPIDetailModal";
 import { Spinner } from "../components/Spinner";
+import { ErrorAlert } from "../components/ErrorAlert";
 
 export function Dashboard() {
   // Default to last 24h
@@ -77,6 +78,8 @@ export function Dashboard() {
   const analysts = useFetch(() => api.getAnalysts(f), deps);
   const filterOptions = useFetch(() => api.getFilterOptions({ customer: filters.customer || undefined }), [filters.customer]);
   const syncStatus = useFetch(() => api.getSyncStatus(), [syncing]);
+
+  const firstError = summary.error || volume.error || validation.error || priority.error || customers.error || topAlerts.error || mttd.error || analysts.error || null;
 
   const handleSync = useCallback(async () => {
     setSyncing(true);
@@ -218,6 +221,8 @@ export function Dashboard() {
 
   return (
     <div className="space-y-4">
+      <ErrorAlert error={firstError} className="mb-4" />
+
       {/* Sync Banner */}
       <SyncBanner syncStatus={syncStatus.data} />
 

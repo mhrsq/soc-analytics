@@ -11,6 +11,8 @@ import { WidgetWrapper } from "../components/WidgetWrapper";
 import { AddWidgetModal } from "../components/AddWidgetModal";
 import { EditWidgetModal } from "../components/EditWidgetModal";
 import { ChartRenderer } from "../components/ChartRenderer";
+import { ErrorAlert } from "../components/ErrorAlert";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 import type { WidgetConfig, ChartType, DataSource } from "../types";
 import type {
   MetricsSummary,
@@ -436,6 +438,7 @@ function CustomerToolbar({
   const [profileOpen, setProfileOpen] = useState(false);
   const [showSaveNew, setShowSaveNew] = useState(false);
   const [newProfileName, setNewProfileName] = useState("");
+  const [confirmDeleteProfile, setConfirmDeleteProfile] = useState(false);
 
   const activeProfile = profiles.find(p => p.id === activeProfileId);
 
@@ -561,7 +564,7 @@ function CustomerToolbar({
               )}
               {profiles.length > 1 && (
                 <button
-                  onClick={() => { onDeleteProfile(activeProfileId || ""); setProfileOpen(false); }}
+                  onClick={() => { setProfileOpen(false); setConfirmDeleteProfile(true); }}
                   className="w-full text-left px-3 py-1.5 text-xs hover:opacity-80 text-red-400"
                 >
                   <Trash2 className="w-3 h-3 inline mr-1.5" />Delete Profile
@@ -570,6 +573,19 @@ function CustomerToolbar({
             </div>
           )}
         </div>
+
+        <ConfirmDialog
+          isOpen={confirmDeleteProfile}
+          onConfirm={() => {
+            onDeleteProfile(activeProfileId || "");
+            setConfirmDeleteProfile(false);
+          }}
+          onCancel={() => setConfirmDeleteProfile(false)}
+          title="Delete Profile"
+          message="Delete this dashboard profile? This cannot be undone."
+          confirmLabel="Delete"
+          variant="danger"
+        />
 
         {/* Edit Mode */}
         <button
@@ -640,6 +656,8 @@ export function CustomerView() {
   const volume = useFetch(() => (customer ? api.getVolume(f) : Promise.resolve(null)), deps);
   const priority = useFetch(() => (customer ? api.getPriority(f) : Promise.resolve(null)), deps);
   const topAlerts = useFetch(() => (customer ? api.getTopAlerts(f) : Promise.resolve(null)), deps);
+
+  const firstError = summary.error || volume.error || priority.error || topAlerts.error || null;
 
   const handleCustomerChange = useCallback((val: string) => {
     setCustomer(val);
@@ -759,6 +777,8 @@ export function CustomerView() {
         </div>
       ) : (
         <div className="px-4 py-4 sm:py-6">
+          <ErrorAlert error={firstError} className="mb-4" />
+
           <CustomerToolbar
             customer={customer}
             onCustomerChange={handleCustomerChange}

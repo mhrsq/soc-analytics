@@ -7,6 +7,8 @@ import { MapContainer, TileLayer, CircleMarker, Polyline, Tooltip, useMap } from
 import { Shield, RefreshCw, Crosshair, Clock } from "lucide-react";
 import { api } from "../api/client";
 import type { AttackArc, TopologyNode } from "../types";
+import { ErrorAlert } from "../components/ErrorAlert";
+import { Spinner } from "../components/Spinner";
 import "leaflet/dist/leaflet.css";
 
 // ── Priority colors (design guide) ──
@@ -120,11 +122,13 @@ export function ThreatMapView() {
   const [customer, setCustomer] = useState<string>("");
   const [customers, setCustomers] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const feedRef = useRef<HTMLDivElement>(null);
 
   // Load data
   const loadData = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
     try {
       const [attackData, nodeData, feedData, filterOpts] = await Promise.all([
         api.getAttacks({ customer: customer || undefined, limit: 500 }),
@@ -138,7 +142,10 @@ export function ThreatMapView() {
       setNodes(nodeData);
       setFeed(feedData);
       setCustomers(filterOpts.customers || []);
-    } catch (e) { console.error("Failed to load threat map:", e); }
+    } catch (e) {
+      console.error("Failed to load threat map:", e);
+      setLoadError(e instanceof Error ? e.message : "Failed to load threat map data");
+    }
     setLoading(false);
   }, [customer]);
 
@@ -186,7 +193,21 @@ export function ThreatMapView() {
   }, [attacks]);
 
   return (
-    <div className="relative w-full flex flex-col" style={{ height: "calc(100vh - 56px)", background: "#0a0a0c" }}>
+    <div className="relative w-full flex flex-col" style={{ height: "calc(100vh - 56px)", background: "var(--theme-surface-base)" }}>
+      {/* Error alert */}
+      {loadError && (
+        <div className="absolute top-16 left-4 right-4 z-[1001]">
+          <ErrorAlert error={loadError} onRetry={loadData} />
+        </div>
+      )}
+
+      {/* Loading state */}
+      {loading && attacks.length === 0 && nodes.length === 0 && (
+        <div className="absolute inset-0 z-[1001] flex items-center justify-center" style={{ background: "var(--theme-surface-base)" }}>
+          <Spinner />
+        </div>
+      )}
+
       {/* Map */}
       <div className="flex-1 relative">
         <MapContainer
@@ -196,7 +217,7 @@ export function ThreatMapView() {
           maxZoom={14}
           zoomControl={false}
           attributionControl={false}
-          style={{ width: "100%", height: "100%", background: "#0a0a0c" }}
+          style={{ width: "100%", height: "100%", background: "var(--theme-surface-base)" }}
         >
           <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" subdomains="abcd" />
           <FitBounds sites={sites} attacks={externalArcs} />
@@ -274,13 +295,13 @@ export function ThreatMapView() {
 
         {/* Overlay: Stats bar */}
         <div className="absolute top-4 left-4 right-4 z-[1000] flex items-center justify-between">
-          <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg" style={{ backgroundColor: "rgba(10,10,12,0.92)", border: "1px solid #26262e" }}>
+          <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg" style={{ backgroundColor: "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)" }}>
             <div className="flex items-center gap-2">
-              <Shield className="w-4 h-4" style={{ color: "#9b9ba8" }} />
-              <h2 className="text-sm font-semibold" style={{ color: "#e8e8ec" }}>Threat Map</h2>
+              <Shield className="w-4 h-4" style={{ color: "var(--theme-text-secondary)" }} />
+              <h2 className="text-sm font-semibold" style={{ color: "var(--theme-text-primary)" }}>Threat Map</h2>
             </div>
-            <div className="h-4 w-px" style={{ backgroundColor: "#26262e" }} />
-            <div className="flex items-center gap-3 text-[11px] font-mono" style={{ color: "#9b9ba8" }}>
+            <div className="h-4 w-px" style={{ backgroundColor: "var(--theme-surface-border)" }} />
+            <div className="flex items-center gap-3 text-[11px] font-mono" style={{ color: "var(--theme-text-secondary)" }}>
               <span>{totalAttacks} attacks</span>
               {internalCount > 0 && <span style={{ color: "#f59e0b" }}>{internalCount} internal</span>}
               {externalCount > 0 && <span style={{ color: "#60a5fa" }}>{externalCount} external</span>}
@@ -294,7 +315,7 @@ export function ThreatMapView() {
               value={customer}
               onChange={(e) => setCustomer(e.target.value)}
               className="appearance-none text-xs px-3 py-2 pr-8 rounded-lg cursor-pointer"
-              style={{ backgroundColor: "rgba(10,10,12,0.92)", border: "1px solid #26262e", color: "#e8e8ec" }}
+              style={{ backgroundColor: "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-primary)" }}
             >
               <option value="">All Customers</option>
               {customers.map(c => <option key={c} value={c}>{c}</option>)}
@@ -302,7 +323,7 @@ export function ThreatMapView() {
             <button
               onClick={loadData}
               className="p-2 rounded-lg transition-colors hover:bg-white/[0.05]"
-              style={{ backgroundColor: "rgba(10,10,12,0.92)", border: "1px solid #26262e", color: "#9b9ba8" }}
+              style={{ backgroundColor: "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-secondary)" }}
             >
               <RefreshCw className="w-3.5 h-3.5" />
             </button>
@@ -310,8 +331,8 @@ export function ThreatMapView() {
         </div>
 
         {/* Overlay: Legend */}
-        <div className="absolute bottom-2 left-4 z-[1000] px-3 py-2 rounded-lg text-[10px]" style={{ backgroundColor: "rgba(10,10,12,0.92)", border: "1px solid #26262e" }}>
-          <div className="flex items-center gap-3" style={{ color: "#646471" }}>
+        <div className="absolute bottom-2 left-4 z-[1000] px-3 py-2 rounded-lg text-[10px]" style={{ backgroundColor: "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)" }}>
+          <div className="flex items-center gap-3" style={{ color: "var(--theme-text-muted)" }}>
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#60a5fa" }} />Site</span>
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#f59e0b" }} />Under attack</span>
             <span className="flex items-center gap-1"><span className="w-3 h-px" style={{ backgroundColor: "#ef4444" }} />P1 arc</span>
@@ -324,29 +345,29 @@ export function ThreatMapView() {
       <div
         ref={feedRef}
         className="h-36 overflow-y-auto border-t shrink-0"
-        style={{ backgroundColor: "#0a0a0c", borderColor: "#1d1d23" }}
+        style={{ backgroundColor: "var(--theme-surface-base)", borderColor: "var(--theme-surface-border)" }}
       >
-        <div className="sticky top-0 z-10 px-4 py-1.5 text-[10px] uppercase tracking-wider font-medium flex items-center gap-2" style={{ backgroundColor: "#0a0a0c", borderBottom: "1px solid #1d1d23", color: "#646471" }}>
+        <div className="sticky top-0 z-10 px-4 py-1.5 text-[10px] uppercase tracking-wider font-medium flex items-center gap-2" style={{ backgroundColor: "var(--theme-surface-base)", borderBottom: "1px solid var(--theme-surface-border)", color: "var(--theme-text-muted)" }}>
           <Clock className="w-3 h-3" />
           Live Attack Feed
           <span className="ml-auto font-mono">{feed.length} events</span>
         </div>
         {feed.length === 0 ? (
-          <p className="text-xs text-center py-6" style={{ color: "#3e3e48" }}>No recent attacks</p>
+          <p className="text-xs text-center py-6" style={{ color: "var(--theme-text-dim)" }}>No recent attacks</p>
         ) : (
-          <div className="divide-y" style={{ borderColor: "#1d1d23" }}>
+          <div className="divide-y" style={{ borderColor: "var(--theme-surface-border)" }}>
             {feed.map(f => (
               <div key={f.id} className="flex items-center gap-3 px-4 py-1.5 text-[11px] hover:bg-white/[0.02] transition-colors">
-                <span className="font-mono w-14 shrink-0" style={{ color: "#3e3e48" }}>
+                <span className="font-mono w-14 shrink-0" style={{ color: "var(--theme-text-dim)" }}>
                   {f.time ? new Date(f.time).toLocaleTimeString("id-ID", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "—"}
                 </span>
                 <span className="w-1.5 h-1.5 rounded-sm shrink-0" style={{ backgroundColor: getPrioColor(f.priority) }} />
-                <span className="truncate" style={{ color: "#9b9ba8" }}>
+                <span className="truncate" style={{ color: "var(--theme-text-secondary)" }}>
                   {f.rule_name || f.subject || f.category || "Alert"}
                 </span>
-                <span style={{ color: "#3e3e48" }}>→</span>
-                <span className="font-mono truncate" style={{ color: "#e8e8ec" }}>{f.asset || "—"}</span>
-                {f.customer && <span className="shrink-0" style={{ color: "#3e3e48" }}>{f.customer}</span>}
+                <span style={{ color: "var(--theme-text-dim)" }}>→</span>
+                <span className="font-mono truncate" style={{ color: "var(--theme-text-primary)" }}>{f.asset || "—"}</span>
+                {f.customer && <span className="shrink-0" style={{ color: "var(--theme-text-dim)" }}>{f.customer}</span>}
                 {f.validation && (
                   <span className="shrink-0 text-[9px] px-1 py-0.5 rounded font-medium" style={{
                     backgroundColor: f.validation === "True Positive" ? "rgba(16,185,129,0.1)" : "rgba(155,155,168,0.08)",

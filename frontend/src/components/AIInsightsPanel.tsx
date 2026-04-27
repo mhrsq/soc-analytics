@@ -135,9 +135,9 @@ export function AIInsightsPanel({ customer, startDate, endDate }: Props) {
             onClick={generate}
             disabled={loading}
             className="group flex items-center gap-1.5 px-4 py-2 text-xs font-medium rounded-lg
-              bg-gradient-to-r from-cyber-purple/20 to-cyber-blue/20
-              border border-cyber-purple/30 text-cyber-purple
-              hover:from-cyber-purple/30 hover:to-cyber-blue/30 hover:border-cyber-purple/50
+              bg-gradient-to-r from-[#a855f7]/20 to-[color:var(--theme-accent)]/20
+              border border-[#a855f7]/30 text-[#a855f7]
+              hover:from-[#a855f7]/30 hover:to-[color:var(--theme-accent)]/30 hover:border-[#a855f7]/50
               disabled:opacity-50 disabled:cursor-not-allowed
               transition-all duration-300"
           >
@@ -167,15 +167,15 @@ export function AIInsightsPanel({ customer, startDate, endDate }: Props) {
         <div className="flex flex-col items-center justify-center py-12 gap-3">
           <div className="relative">
             <Spinner />
-            <Zap className="absolute inset-0 m-auto w-4 h-4 text-cyber-purple animate-pulse" />
+            <Zap className="absolute inset-0 m-auto w-4 h-4 animate-pulse" style={{ color: "#a855f7" }} />
           </div>
           <p className="text-xs animate-pulse" style={{ color: "var(--theme-text-muted)" }}>Analyzing ticket patterns...</p>
         </div>
       ) : error ? (
-        <div className="flex items-center gap-3 py-6 px-4 bg-cyber-red/5 rounded-lg border border-cyber-red/15">
-          <AlertTriangle className="w-5 h-5 text-cyber-red flex-shrink-0" />
+        <div className="flex items-center gap-3 py-6 px-4 bg-signal-red/5 rounded-lg border border-signal-red/15">
+          <AlertTriangle className="w-5 h-5 text-signal-red flex-shrink-0" />
           <div>
-            <p className="text-sm font-medium text-cyber-red">Analysis Failed</p>
+            <p className="text-sm font-medium text-signal-red">Analysis Failed</p>
             <p className="text-xs mt-0.5" style={{ color: "var(--theme-text-muted)" }}>{error}</p>
           </div>
         </div>
@@ -196,8 +196,8 @@ export function AIInsightsPanel({ customer, startDate, endDate }: Props) {
         <div className="space-y-4 stagger-children">
           {/* Summary */}
           <div className="flex items-start gap-3 p-4 rounded-lg" style={{ backgroundColor: "color-mix(in srgb, var(--theme-accent) 5%, var(--theme-surface-raised))", border: "1px solid var(--theme-surface-border)" }}>
-            <div className="p-1.5 rounded-md bg-cyber-blue/10">
-              <FileText className="w-4 h-4 text-cyber-blue" />
+            <div className="p-1.5 rounded-md" style={{ backgroundColor: "color-mix(in srgb, var(--theme-accent) 10%, transparent)" }}>
+              <FileText className="w-4 h-4" style={{ color: "var(--theme-accent)" }} />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[11px] font-semibold mb-1.5" style={{ color: "var(--theme-text-muted)" }}>
@@ -211,9 +211,9 @@ export function AIInsightsPanel({ customer, startDate, endDate }: Props) {
 
           {/* Anomalies */}
           {insight.anomalies.length > 0 && (
-            <div className="flex items-start gap-3 p-4 rounded-lg bg-cyber-orange/5 border border-cyber-orange/15">
-              <div className="p-1.5 rounded-md bg-cyber-orange/10">
-                <AlertTriangle className="w-4 h-4 text-cyber-orange" />
+            <div className="flex items-start gap-3 p-4 rounded-lg bg-signal-amber/5 border border-signal-amber/15">
+              <div className="p-1.5 rounded-md bg-signal-amber/10">
+                <AlertTriangle className="w-4 h-4 text-signal-amber" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[11px] font-semibold mb-1.5" style={{ color: "var(--theme-text-muted)" }}>
@@ -226,7 +226,7 @@ export function AIInsightsPanel({ customer, startDate, endDate }: Props) {
                       className="text-sm leading-relaxed flex items-start gap-2"
                       style={{ color: "var(--theme-text-secondary)" }}
                     >
-                      <span className="w-1 h-1 rounded-full bg-cyber-orange mt-2 flex-shrink-0" />
+                      <span className="w-1 h-1 rounded-full bg-signal-amber mt-2 flex-shrink-0" />
                       <span className="prose-ai flex-1 min-w-0"><Md>{a}</Md></span>
                     </li>
                   ))}
@@ -239,7 +239,7 @@ export function AIInsightsPanel({ customer, startDate, endDate }: Props) {
           {(insight.rec_people?.length > 0 || insight.rec_process?.length > 0 || insight.rec_technology?.length > 0) ? (
             <div className="space-y-3">
               <p className="text-[11px] font-semibold uppercase tracking-wider flex items-center gap-1.5" style={{ color: "var(--theme-text-muted)" }}>
-                <Lightbulb className="w-3.5 h-3.5 text-cyber-green" />
+                <Lightbulb className="w-3.5 h-3.5 text-signal-green" />
                 Rekomendasi
               </p>
               {[
@@ -275,9 +275,9 @@ export function AIInsightsPanel({ customer, startDate, endDate }: Props) {
             </div>
           ) : insight.recommendations.length > 0 ? (
             /* Legacy flat recommendations fallback */
-            <div className="flex items-start gap-3 p-4 rounded-lg bg-cyber-green/5 border border-cyber-green/15">
-              <div className="p-1.5 rounded-md bg-cyber-green/10">
-                <Lightbulb className="w-4 h-4 text-cyber-green" />
+            <div className="flex items-start gap-3 p-4 rounded-lg bg-signal-green/5 border border-signal-green/15">
+              <div className="p-1.5 rounded-md bg-signal-green/10">
+                <Lightbulb className="w-4 h-4 text-signal-green" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[11px] font-semibold mb-1.5" style={{ color: "var(--theme-text-muted)" }}>
@@ -290,7 +290,7 @@ export function AIInsightsPanel({ customer, startDate, endDate }: Props) {
                       className="text-sm leading-relaxed flex items-start gap-2"
                       style={{ color: "var(--theme-text-secondary)" }}
                     >
-                      <span className="w-1 h-1 rounded-full bg-cyber-green mt-2 flex-shrink-0" />
+                      <span className="w-1 h-1 rounded-full bg-signal-green mt-2 flex-shrink-0" />
                       <span className="prose-ai flex-1 min-w-0"><Md>{r}</Md></span>
                     </li>
                   ))}

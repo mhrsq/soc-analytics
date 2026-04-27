@@ -6,20 +6,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
 import type { ChartType } from "../types";
-
-const COLORS = ["#60a5fa", "#10b981", "#ef4444", "#f59e0b", "#9b9ba8", "#a78bfa", "#646471", "#3e3e48"];
-
-function useChartColors() {
-  return useMemo(() => {
-    const s = getComputedStyle(document.documentElement);
-    return {
-      grid: s.getPropertyValue("--theme-surface-border").trim() || "#334e68",
-      tick: s.getPropertyValue("--theme-text-muted").trim() || "#829ab1",
-      label: s.getPropertyValue("--theme-text-secondary").trim() || "#d9e2ec",
-      raised: s.getPropertyValue("--theme-surface-raised").trim() || "#1a3a52",
-    };
-  }, []);
-}
+import { useChartColors } from "../hooks/useChartColors";
 
 interface Props {
   chartType: ChartType;
@@ -51,6 +38,10 @@ function getKeys(data: unknown[]): { categoryKey: string; valueKeys: string[] } 
 
 export function ChartRenderer({ chartType, data, height = "100%", onClick }: Props) {
   const cc = useChartColors();
+  const COLORS = useMemo(
+    () => [cc.accent, "#10b981", "#ef4444", "#f59e0b", cc.label, "#a78bfa", cc.tick, cc.grid],
+    [cc.accent, cc.label, cc.tick, cc.grid],
+  );
 
   if (!data || data.length === 0) {
     return (
@@ -152,8 +143,8 @@ export function ChartRenderer({ chartType, data, height = "100%", onClick }: Pro
           <PieChart>
             <Pie data={pieData as Record<string, unknown>[]} dataKey="value" nameKey="name"
               cx="50%" cy="50%"
-              innerRadius={chartType === "donut" ? height * 0.2 : 0}
-              outerRadius={height * 0.35} paddingAngle={2} strokeWidth={0}
+                      innerRadius={chartType === "donut" ? (typeof height === "number" ? height * 0.2 : 60) : 0}
+              outerRadius={typeof height === "number" ? height * 0.35 : 110} paddingAngle={2} strokeWidth={0}
               onClick={(e) => handleClick(e)} cursor="pointer"
             >
               {(pieData as unknown[]).map((_, i) => (

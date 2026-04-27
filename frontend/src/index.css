@@ -5,7 +5,7 @@
 @layer base {
   * {
     scrollbar-width: thin;
-    scrollbar-color: #2a2a2e transparent;
+    scrollbar-color: var(--theme-surface-border, #2a2a2e) transparent;
   }
 
   *::-webkit-scrollbar {
@@ -18,7 +18,7 @@
   }
 
   *::-webkit-scrollbar-thumb {
-    background-color: #2a2a2e;
+    background-color: var(--theme-surface-border, #2a2a2e);
     border-radius: 3px;
   }
 
