@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { api } from "../api/client";
 import { useFetch } from "../hooks/useFetch";
 import { Card } from "../components/Card";
@@ -14,6 +14,9 @@ import { MomKpiCards } from "../components/MomKpiCards";
 import { IncidentFunnel } from "../components/IncidentFunnel";
 import { QueueHealth } from "../components/QueueHealth";
 import { ShiftPerformanceChart } from "../components/ShiftPerformanceChart";
+import { PostureScoreCard } from "../components/PostureScoreCard";
+import { FPPatternChart } from "../components/FPPatternChart";
+import { ClassifierPanel } from "../components/ClassifierPanel";
 import type { AnalystScore } from "../types";
 import { Users, ChevronDown, BarChart3, AlertTriangle, Minus } from "lucide-react";
 import { ErrorAlert } from "../components/ErrorAlert";
@@ -94,6 +97,16 @@ export function ManagerView() {
   const funnel = useFetch(() => api.getIncidentFunnel({ start: range.start, end: range.end }), [range.start, range.end]);
   const queueHealth = useFetch(() => api.getQueueHealth({}), []);
   const shiftPerf = useFetch(() => api.getShiftPerformance({ start: range.start, end: range.end }), [range.start, range.end]);
+
+  const fpPatterns = useFetch(() => api.getFpPatterns({ start: range.start, end: range.end }), [range.start, range.end]);
+  const posture = useFetch(() => api.getPostureScore({ start: range.start, end: range.end }), [range.start, range.end]);
+
+  const isAdmin = useMemo(() => {
+    try {
+      const u = JSON.parse(localStorage.getItem("soc_user") || "{}");
+      return u.role === "superadmin" || u.role === "admin";
+    } catch { return false; }
+  }, []);
 
   const data = useMemo(() => {
     if (!rawData) return null;
@@ -347,6 +360,17 @@ export function ManagerView() {
           <div className="mt-4">
             <ShiftPerformanceChart data={shiftPerf.data} loading={shiftPerf.loading} />
           </div>
+
+          {/* P2 Analytics */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+            <PostureScoreCard data={posture.data} loading={posture.loading} />
+            <FPPatternChart data={fpPatterns.data} loading={fpPatterns.loading} />
+          </div>
+          {isAdmin && (
+            <div className="mt-4">
+              <ClassifierPanel isAdmin={isAdmin} />
+            </div>
+          )}
         </>
       )}
 

@@ -60,6 +60,28 @@ Focus on:
         )
         return result.scalar_one_or_none()
 
+    async def classify_attack_category(self, subject: str) -> str:
+        """Use LLM to classify a ticket subject into an attack category."""
+        provider = await self._get_provider()
+        if not provider:
+            return "Other"
+
+        prompt = f"""Klasifikasikan ticket security berikut ke dalam salah satu kategori:
+Brute Force, Account Manipulation, Malware, Web Exploitation, Unauthorized Access,
+PowerShell Execution, Network IDS/IPS, O365/Cloud Identity, Windows Security Event,
+Agent Issue, Web Attack, Threat Intelligence, Spam, CVE/Vulnerability, SIEM Issue,
+Operational/Non-Alert, Other
+
+Subject: {subject}
+
+Jawab HANYA dengan nama kategori saja, tanpa penjelasan."""
+
+        try:
+            result = await self._call_llm(provider, prompt)
+            return result.strip().split('\n')[0].strip()
+        except Exception:
+            return "Other"
+
     async def generate_insights(
         self,
         metrics: dict,

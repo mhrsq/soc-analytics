@@ -583,6 +583,41 @@ export interface ShiftPerformance {
 }
 
 // ── Attack Map (Wazuh) ──
+// ── P2 Analytics (Manager View) ──
+
+export interface FpPatternItem {
+  category: string;
+  total: number;
+  fp_count: number;
+  tp_count: number;
+  fp_rate: number;
+}
+
+export interface PostureScore {
+  score: number;
+  mttd_sla_pct: number;
+  mttr_sla_pct: number;
+  fp_rate: number;
+  resolution_rate: number;
+  incident_rate: number;
+  grade: string;
+}
+
+export interface ClassifierStats {
+  total: number;
+  classified: number;
+  unclassified: number;
+  classification_rate: number;
+  breakdown: { category: string; count: number }[];
+}
+
+export interface ClassifierRunResult {
+  total_processed: number;
+  regex_classified: number;
+  llm_classified: number;
+  skipped: number;
+}
+
 export interface AttackMapEvent {
   id: string;
   time: string;

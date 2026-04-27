@@ -79,6 +79,10 @@ import type {
   IncidentFunnelStep,
   QueueBucket,
   ShiftPerformance,
+  FpPatternItem,
+  PostureScore,
+  ClassifierStats,
+  ClassifierRunResult,
 } from "../types";
 
 interface Filters {
@@ -141,6 +145,24 @@ export const api = {
 
   getShiftPerformance: (f: Filters = {}) =>
     request<ShiftPerformance[]>(`/metrics/shift-performance${qs(f)}`),
+
+  getFpPatterns: (f: Filters = {}) =>
+    request<FpPatternItem[]>(`/metrics/fp-patterns${qs(f)}`),
+
+  getPostureScore: (f: Filters = {}) =>
+    request<PostureScore>(`/metrics/posture-score${qs(f)}`),
+
+  // ── Classifier (admin only) ──
+  getClassifierStats: () =>
+    request<ClassifierStats>(`/classifier/stats`),
+
+  runClassifier: (params: { limit?: number; use_llm?: boolean; customer?: string } = {}) => {
+    const p: Record<string, string> = {};
+    if (params.limit !== undefined) p.limit = String(params.limit);
+    if (params.use_llm !== undefined) p.use_llm = String(params.use_llm);
+    if (params.customer !== undefined) p.customer = params.customer;
+    return request<ClassifierRunResult>(`/classifier/run${qs(p)}`, { method: "POST" });
+  },
 
   // ── Sync ──
   getSyncStatus: () => request<SyncStatus>("/sync/status"),

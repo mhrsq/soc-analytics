@@ -830,6 +830,139 @@ class AnalyticsService:
             for row in result.all()
         ]
 
+    async def get_fp_patterns(
+        self,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None,
+        customer: Optional[str] = None,
+        asset_names: Optional[list[str]] = None,
+    ) -> list[dict]:
+        """Get FP rate breakdown by attack_category (excluding 'Other')."""
+        filters = self._build_filters(start_date, end_date, customer, asset_names)
+
+        category_expr = func.coalesce(Ticket.attack_category, "Unclassified")
+        q = (
+            select(
+                category_expr.label("category"),
+                func.count().label("total"),
+                func.sum(case((Ticket.validation == "False Positive", 1), else_=0)).label("fp_count"),
+                func.sum(case((Ticket.validation == "True Positive", 1), else_=0)).label("tp_count"),
+                (
+                    100.0
+                    * func.sum(case((Ticket.validation == "False Positive", 1), else_=0))
+                    / func.nullif(func.count(), 0)
+                ).label("fp_rate"),
+            )
+            .where(
+                *filters,
+                Ticket.attack_category != "Other",
+                Ticket.attack_category != None,
+                Ticket.attack_category != "",
+            )
+            .group_by(category_expr)
+            .having(func.count() >= 5)
+            .order_by(
+                (
+                    100.0
+                    * func.sum(case((Ticket.validation == "False Positive", 1), else_=0))
+                    / func.nullif(func.count(), 0)
+                ).desc(),
+                func.count().desc(),
+            )
+            .limit(20)
+        )
+        result = await self.session.execute(q)
+        return [
+            {
+                "category": row.category,
+                "total": row.total,
+                "fp_count": int(row.fp_count or 0),
+                "tp_count": int(row.tp_count or 0),
+                "fp_rate": round(row.fp_rate, 1) if row.fp_rate is not None else 0.0,
+            }
+            for row in result.all()
+        ]
+
+    async def get_posture_score(
+        self,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None,
+        customer: Optional[str] = None,
+        asset_names: Optional[list[str]] = None,
+    ) -> dict:
+        """Compute security posture score (0-100) from key SOC metrics."""
+        filters = self._build_filters(start_date, end_date, customer, asset_names)
+
+        q = select(
+            func.count(Ticket.id).label("total"),
+            # MTTD SLA
+            func.sum(case((Ticket.sla_met == True, 1), else_=0)).label("mttd_sla_met"),
+            func.count().filter(Ticket.mttd_seconds != None).label("mttd_measured"),
+            # MTTR SLA
+            func.sum(case((Ticket.mttr_sla_met == True, 1), else_=0)).label("mttr_sla_met"),
+            func.count().filter(Ticket.mttr_seconds != None).label("mttr_measured"),
+            # FP
+            func.sum(case((Ticket.validation == "False Positive", 1), else_=0)).label("fp_count"),
+            # Resolved
+            func.sum(
+                case(
+                    (Ticket.status.in_(["Resolved", "Closed"]), 1),
+                    else_=0,
+                )
+            ).label("resolved"),
+            # Security Incidents
+            func.sum(case((Ticket.case_type == "Security Incident", 1), else_=0)).label("incidents"),
+        ).where(*filters)
+
+        row = (await self.session.execute(q)).one()
+        total = row.total or 0
+
+        mttd_sla_pct = (
+            round(int(row.mttd_sla_met or 0) / int(row.mttd_measured) * 100, 1)
+            if row.mttd_measured and int(row.mttd_measured) > 0
+            else 0.0
+        )
+        mttr_sla_pct = (
+            round(int(row.mttr_sla_met or 0) / int(row.mttr_measured) * 100, 1)
+            if row.mttr_measured and int(row.mttr_measured) > 0
+            else 0.0
+        )
+        fp_rate = round(int(row.fp_count or 0) / total * 100, 1) if total > 0 else 0.0
+        resolution_rate = round(int(row.resolved or 0) / total * 100, 1) if total > 0 else 0.0
+        incident_rate = round(int(row.incidents or 0) / total, 4) if total > 0 else 0.0
+
+        # Composite score
+        score = (
+            (mttd_sla_pct * 0.30)
+            + (mttr_sla_pct * 0.25)
+            + ((100 - fp_rate) * 0.20)
+            + (resolution_rate * 0.15)
+            + (max(0, 100 - incident_rate * 100) * 0.10)
+        )
+        score = round(score, 1)
+
+        # Grade
+        if score >= 90:
+            grade = "S"
+        elif score >= 75:
+            grade = "A"
+        elif score >= 60:
+            grade = "B"
+        elif score >= 40:
+            grade = "C"
+        else:
+            grade = "D"
+
+        return {
+            "score": score,
+            "mttd_sla_pct": mttd_sla_pct,
+            "mttr_sla_pct": mttr_sla_pct,
+            "fp_rate": fp_rate,
+            "resolution_rate": resolution_rate,
+            "incident_rate": round(incident_rate * 100, 2),  # as percentage for display
+            "grade": grade,
+        }
+
     def _build_filters(
         self,
         start_date: Optional[date] = None,

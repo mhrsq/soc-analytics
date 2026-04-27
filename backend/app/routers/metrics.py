@@ -13,11 +13,13 @@ from app.schemas import (
     AlertRuleItem,
     CustomerItem,
     CustomerSlaCell,
+    FpPatternItem,
     FpTrendPoint,
     IncidentFunnelStep,
     MetricsSummary,
     MomKpi,
     MttdPoint,
+    PostureScore,
     PriorityItem,
     QueueBucket,
     ShiftPerformance,
@@ -334,3 +336,40 @@ async def get_shift_performance(
     customer = enforce_customer_scope(request, customer)
     svc = AnalyticsService(db)
     return await svc.get_shift_performance(_parse_time(start), _parse_time(end), customer, _parse_asset_names(asset_name))
+
+
+# --- P2 Analytics Widgets ---
+
+
+@router.get("/fp-patterns", response_model=list[FpPatternItem])
+async def get_fp_patterns(
+    request: Request,
+    start: Optional[str] = Query(None),
+    end: Optional[str] = Query(None),
+    customer: Optional[str] = Query(None),
+    asset_name: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """FP rate breakdown by attack category (minimum 5 tickets, excludes 'Other')."""
+    customer = enforce_customer_scope(request, customer)
+    svc = AnalyticsService(db)
+    return await svc.get_fp_patterns(
+        _parse_time(start), _parse_time(end), customer, _parse_asset_names(asset_name)
+    )
+
+
+@router.get("/posture-score", response_model=PostureScore)
+async def get_posture_score(
+    request: Request,
+    start: Optional[str] = Query(None),
+    end: Optional[str] = Query(None),
+    customer: Optional[str] = Query(None),
+    asset_name: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """Security posture composite score (0-100) with grade S/A/B/C/D."""
+    customer = enforce_customer_scope(request, customer)
+    svc = AnalyticsService(db)
+    return await svc.get_posture_score(
+        _parse_time(start), _parse_time(end), customer, _parse_asset_names(asset_name)
+    )

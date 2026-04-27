@@ -557,3 +557,23 @@ class ShiftPerformance(BaseModel):
     avg_mttd_min: Optional[float]
     mttd_sla_pct: Optional[float]
     avg_mttr_min: Optional[float]
+
+
+# --- P2 Analytics Widgets ---
+
+class FpPatternItem(BaseModel):
+    category: str
+    total: int
+    fp_count: int
+    tp_count: int
+    fp_rate: float
+
+
+class PostureScore(BaseModel):
+    score: float          # 0-100 composite
+    mttd_sla_pct: float
+    mttr_sla_pct: float
+    fp_rate: float
+    resolution_rate: float
+    incident_rate: float
+    grade: str            # S/A/B/C/D

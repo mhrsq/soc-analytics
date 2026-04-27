@@ -12,6 +12,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.config import get_settings
 from app.routers import ai, analysts, auth, chat, dashboard, metrics, sync, tickets, llm, threatmap
+from app.routers.classifier import router as classifier_router
 from app.services.auth_service import decode_token
 
 settings = get_settings()
@@ -239,6 +240,7 @@ app.include_router(llm.router)
 app.include_router(threatmap.router)
 app.include_router(dashboard.router)
 app.include_router(chat.router)
+app.include_router(classifier_router)
 
 
 @app.get("/api/health")
