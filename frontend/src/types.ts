@@ -717,3 +717,47 @@ export interface AttackMapData {
   protocols: { port: string; protocol: string; count: number }[];
   agents: { name: string; count: number }[];
 }
+
+// ── WhatsApp Bot ──
+
+export interface WaBotConfig {
+  id: number;
+  enabled: boolean;
+  fonnte_token: string | null;
+  sla_target_pct: number;
+  schedule_hour: number;
+  escalation_auto: boolean;
+  streak_threshold_kind: number;
+  streak_threshold_toxic: number;
+  min_tickets_threshold: number;
+  updated_at: string;
+}
+
+export interface WaAnalystMapping {
+  id: number;
+  technician: string;
+  phone: string;
+  mode_override: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface WaStreak {
+  technician: string;
+  streak_count: number;
+  last_check_date: string | null;
+  last_sla_pct: number | null;
+  last_message_sent: string | null;
+}
+
+export interface WaMessageLog {
+  id: number;
+  technician: string;
+  phone: string;
+  tone: string;
+  sla_pct: number;
+  streak_count: number;
+  message_preview: string;
+  status: string;
+  sent_at: string;
+}

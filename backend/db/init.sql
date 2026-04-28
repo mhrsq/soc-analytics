@@ -281,3 +281,52 @@ VALUES
     ('admin', '$2b$12$3erSpNd9jh2mNlcsaaSpluh3PMi9u.uZf096RdRfCoi4SWHab/cHS', 'Super Admin', 'superadmin', NULL, true),
     ('cmwi', '$2b$12$DGx9aX/tKpny0GkrUJDjjupqIJSKw1GhzN4UfqBACuq5/uu5mcwkC', 'CMWI User', 'customer', 'CMWI', true)
 ON CONFLICT (username) DO NOTHING;
+
+-- ── WhatsApp Bot ──
+
+CREATE TABLE IF NOT EXISTS wa_bot_config (
+    id                      SERIAL PRIMARY KEY,
+    enabled                 BOOLEAN DEFAULT false,
+    fonnte_token            TEXT,
+    sla_target_pct          FLOAT DEFAULT 99.0,
+    schedule_hour           INTEGER DEFAULT 8,
+    escalation_auto         BOOLEAN DEFAULT true,
+    streak_threshold_kind   INTEGER DEFAULT 2,
+    streak_threshold_toxic  INTEGER DEFAULT 3,
+    min_tickets_threshold   INTEGER DEFAULT 3,
+    updated_at              TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Insert default config row
+INSERT INTO wa_bot_config (enabled) VALUES (false) ON CONFLICT DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS wa_analyst_mapping (
+    id          SERIAL PRIMARY KEY,
+    technician  VARCHAR(200) UNIQUE NOT NULL,
+    phone       VARCHAR(30) NOT NULL,
+    mode_override VARCHAR(20),
+    is_active   BOOLEAN DEFAULT true,
+    created_at  TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS analyst_wa_streaks (
+    technician          VARCHAR(200) PRIMARY KEY,
+    streak_count        INTEGER DEFAULT 0,
+    last_check_date     DATE,
+    last_sla_pct        FLOAT,
+    last_message_sent   TIMESTAMP WITH TIME ZONE,
+    updated_at          TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS wa_message_log (
+    id              SERIAL PRIMARY KEY,
+    technician      VARCHAR(200),
+    phone           VARCHAR(30),
+    tone            VARCHAR(20),
+    sla_pct         FLOAT,
+    streak_count    INTEGER,
+    message_preview TEXT,
+    status          VARCHAR(20),
+    fonnte_response TEXT,
+    sent_at         TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);

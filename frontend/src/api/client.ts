@@ -89,6 +89,10 @@ import type {
   MonthlyReportResponse,
   ThreatBriefResponse,
   SlaPrediction,
+  WaBotConfig,
+  WaAnalystMapping,
+  WaStreak,
+  WaMessageLog,
 } from "../types";
 
 interface Filters {
@@ -270,6 +274,37 @@ export const api = {
 
   testLlmProvider: (id: number) =>
     request<LlmTestResult>(`/llm/providers/${id}/test`, { method: "POST" }),
+
+  // ── WA Bot ──
+  getWaBotConfig: () => request<WaBotConfig>("/wa-bot/config"),
+
+  updateWaBotConfig: (data: Partial<WaBotConfig>) =>
+    request<{ ok: boolean }>("/wa-bot/config", { method: "PATCH", body: JSON.stringify(data) }),
+
+  getWaMappings: () => request<WaAnalystMapping[]>("/wa-bot/mappings"),
+
+  createWaMapping: (data: { technician: string; phone: string; mode_override?: string }) =>
+    request<{ ok: boolean }>("/wa-bot/mappings", { method: "POST", body: JSON.stringify(data) }),
+
+  updateWaMapping: (id: number, data: Partial<WaAnalystMapping>) =>
+    request<{ ok: boolean }>(`/wa-bot/mappings/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+
+  deleteWaMapping: (id: number) =>
+    request<{ ok: boolean }>(`/wa-bot/mappings/${id}`, { method: "DELETE" }),
+
+  getWaTechnicians: () => request<string[]>("/wa-bot/available-technicians"),
+
+  getWaStreaks: () => request<WaStreak[]>("/wa-bot/streaks"),
+
+  getWaLogs: (limit?: number) => request<WaMessageLog[]>(`/wa-bot/logs${limit ? `?limit=${limit}` : ""}`),
+
+  triggerWaBot: () => request<{ ok: boolean; message: string }>("/wa-bot/trigger", { method: "POST" }),
+
+  testWaSend: (phone: string, message?: string) =>
+    request<{ status_code: number; body: string }>("/wa-bot/test-send", {
+      method: "POST",
+      body: JSON.stringify({ phone, message }),
+    }),
 
   // ── Tickets ──
   getTickets: (params: Record<string, string | undefined> = {}) =>

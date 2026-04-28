@@ -14,6 +14,7 @@ from app.config import get_settings
 from app.routers import ai, analysts, auth, chat, dashboard, metrics, sync, tickets, llm, threatmap
 from app.routers.classifier import router as classifier_router
 from app.routers.reports import router as reports_router
+from app.routers.wa_bot import router as wa_bot_router
 from app.services.auth_service import decode_token
 
 settings = get_settings()
@@ -29,6 +30,7 @@ logger = logging.getLogger(__name__)
 scheduler_task = None
 full_sync_task = None
 snapshot_task = None
+wa_bot_task = None
 
 
 async def _periodic_sync():
@@ -157,25 +159,54 @@ async def _daily_full_sync():
             logger.error(f"Daily full sync error: {type(e).__name__}: {repr(e)}")
 
 
+async def _daily_wa_bot():
+    """Background task: send WA reminders daily at 08:00 WIB."""
+    from datetime import datetime, timezone, timedelta
+    from app.database import async_session
+    from app.services.wa_bot_service import run_daily_reminders
+
+    WIB = timezone(timedelta(hours=7))
+    await asyncio.sleep(15)  # wait for app to start
+
+    while True:
+        now_wib = datetime.now(WIB)
+        # Next 08:00 WIB
+        next_run = now_wib.replace(hour=8, minute=0, second=0, microsecond=0)
+        if next_run <= now_wib:
+            next_run += timedelta(days=1)
+        wait_seconds = (next_run - now_wib).total_seconds()
+
+        logger.info(f"WA Bot scheduler: next run in {wait_seconds/3600:.1f}h (next: {next_run.strftime('%Y-%m-%d %H:%M WIB')})")
+        await asyncio.sleep(wait_seconds)
+
+        try:
+            logger.info("WA Bot: running daily reminders")
+            async with async_session() as db:
+                await run_daily_reminders(db)
+        except Exception as e:
+            logger.error(f"WA Bot daily task error: {e}")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan: startup and shutdown."""
-    global scheduler_task, full_sync_task, snapshot_task
+    global scheduler_task, full_sync_task, snapshot_task, wa_bot_task
 
     logger.info("SOC Analytics Dashboard starting up")
     logger.info(f"SDP URL: {settings.SDP_BASE_URL}")
     logger.info(f"Sync interval: {settings.SYNC_INTERVAL_MINUTES} minutes")
     logger.info(f"AI enabled: {bool(settings.CLAUDE_API_KEY)}")
 
-    # Start periodic sync + daily full sync + weekly snapshot
+    # Start periodic sync + daily full sync + weekly snapshot + WA bot
     scheduler_task = asyncio.create_task(_periodic_sync())
     full_sync_task = asyncio.create_task(_daily_full_sync())
     snapshot_task = asyncio.create_task(_weekly_snapshot())
+    wa_bot_task = asyncio.create_task(_daily_wa_bot())
 
     yield
 
     # Shutdown
-    for task in (scheduler_task, full_sync_task, snapshot_task):
+    for task in (scheduler_task, full_sync_task, snapshot_task, wa_bot_task):
         if task:
             task.cancel()
             try:
@@ -243,6 +274,7 @@ app.include_router(dashboard.router)
 app.include_router(chat.router)
 app.include_router(classifier_router)
 app.include_router(reports_router)
+app.include_router(wa_bot_router)
 
 
 @app.get("/api/health")

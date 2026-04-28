@@ -4,7 +4,7 @@ import { ManagerView } from "./pages/ManagerView";
 import { CustomerView } from "./pages/CustomerView";
 import { ThreatsPage } from "./pages/ThreatsPage";
 import { UserManagement } from "./components/UserManagement";
-import { Wifi, WifiOff, Palette, Settings2, LayoutDashboard, Users, Building2, Globe, Shield, LogOut, Network, ServerCrash, Server, KeyRound, Database } from "lucide-react";
+import { Wifi, WifiOff, Palette, Settings2, LayoutDashboard, Users, Building2, Globe, Shield, LogOut, Network, ServerCrash, Server, KeyRound, Database, MessageSquare } from "lucide-react";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import { DashboardProvider } from "./contexts/DashboardContext";
@@ -14,6 +14,7 @@ import { NotificationBell } from "./components/NotificationBell";
 import { ThemePanel } from "./components/ThemePanel";
 import { LLMSettingsPanel } from "./components/LLMSettingsPanel";
 import { SyncStatusPanel } from "./components/SyncStatusPanel";
+import { WaBotPanel } from "./components/WaBotPanel";
 import { AIChatWidget } from "./components/AIChatWidget";
 import { api, type AuthUser } from "./api/client";
 import { ConfirmDialog } from "./components/ConfirmDialog";
@@ -180,6 +181,7 @@ function AppShell() {
   const [themeOpen, setThemeOpen] = useState(false);
   const [llmOpen, setLlmOpen] = useState(false);
   const [syncOpen, setSyncOpen] = useState(false);
+  const [waBotOpen, setWaBotOpen] = useState(false);
   const [page, setPage] = useState<Page>("dashboard");
   const [authChecked, setAuthChecked] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -353,6 +355,17 @@ function AppShell() {
             </button>
             <NotificationBell />
             <div className="h-4 w-px" style={{ backgroundColor: "var(--theme-surface-border)" }} />
+            {currentUser?.role === "superadmin" && (
+              <button
+                onClick={() => setWaBotOpen(true)}
+                className="p-1.5 rounded transition-colors hover:bg-white/[0.05]"
+                style={{ color: "var(--theme-text-muted)" }}
+                title="WhatsApp Bot"
+                aria-label="WhatsApp Bot Settings"
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+              </button>
+            )}
             <button
               onClick={() => { setLlmOpen(true); }}
               className="p-1.5 rounded transition-colors hover:bg-white/[0.05]"
@@ -407,6 +420,7 @@ function AppShell() {
       <ThemePanel open={themeOpen} onClose={() => setThemeOpen(false)} />
       <LLMSettingsPanel open={llmOpen} onClose={() => setLlmOpen(false)} />
       <SyncStatusPanel open={syncOpen} onClose={() => setSyncOpen(false)} />
+      <WaBotPanel open={waBotOpen} onClose={() => setWaBotOpen(false)} />
 
       {/* AI Chat Widget — floating FAB */}
       <AIChatWidget activePage={page} />
