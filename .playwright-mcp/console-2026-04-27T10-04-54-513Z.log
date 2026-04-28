@@ -1,0 +1,10 @@
+[    1344ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[   14104ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[   14900ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[   14916ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[   15664ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/metrics/sla-trend?start=2026-02-28&end=2026-03-30:0
+[   15669ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/metrics/customer-sla-matrix?start=2026-02-28&end=2026-03-30:0
+[   15671ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/metrics/fp-trend?start=2026-02-28&end=2026-03-30:0
+[   15791ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/metrics/fp-trend?start=2026-02-28&end=2026-03-30:0
+[   15816ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/metrics/customer-sla-matrix?start=2026-02-28&end=2026-03-30:0
+[   15816ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/metrics/sla-trend?start=2026-02-28&end=2026-03-30:0

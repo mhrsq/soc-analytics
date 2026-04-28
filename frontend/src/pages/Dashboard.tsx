@@ -23,6 +23,7 @@ import { AnalystTable } from "../components/AnalystTable";
 import { ChartRenderer } from "../components/ChartRenderer";
 import { WidgetWrapper } from "../components/WidgetWrapper";
 import { LiveTicketFeed } from "../components/LiveTicketFeed";
+import { ThreatMapWidget } from "../components/ThreatMapWidget";
 
 import { ExecSummaryCard } from "../components/ExecSummaryCard";
 import { AddWidgetModal } from "../components/AddWidgetModal";
@@ -160,6 +161,7 @@ export function Dashboard() {
       "fp-patterns": null,
       "analyst-table": null,
       "team-trend": null,
+      "threat-map": null,
     };
   }, [volume.data, validation.data, priority.data, customers.data, topAlerts.data, mttd.data, analysts.data, summary.data]);
 
@@ -185,6 +187,7 @@ export function Dashboard() {
     "fp-patterns": false,
     "analyst-table": false,
     "team-trend": false,
+    "threat-map": false,
   };
 
   // Grid layout for react-grid-layout
@@ -230,6 +233,10 @@ export function Dashboard() {
   function renderWidgetContent(widget: WidgetConfig) {
     const data = dataMap[widget.dataSource];
     const loading = loadingMap[widget.dataSource];
+
+    if (widget.dataSource === "threat-map") {
+      return <ThreatMapWidget customer={filters.customer || undefined} bare />;
+    }
 
     // Built-in widgets use original components — unless chart type was changed
     const chartTypeChanged = widget.builtIn && BUILTIN_CHART_TYPES[widget.id] && widget.chartType !== BUILTIN_CHART_TYPES[widget.id];

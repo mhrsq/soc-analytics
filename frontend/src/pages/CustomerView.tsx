@@ -28,6 +28,7 @@ import type {
   FilterOptions,
   WidgetInsightsRequest,
 } from "../types";
+import { ThreatMapWidget } from "../components/ThreatMapWidget";
 import { Building2, ChevronDown } from "lucide-react";
 
 function getDateRange(days: number) {
@@ -167,6 +168,7 @@ export function CustomerView({ customerScope }: CustomerViewProps) {
       "fp-patterns": null,
       "analyst-table": null,
       "team-trend": null,
+      "threat-map": null,
     };
   }, [volume.data, priority.data, topAlerts.data, summary.data]);
 
@@ -192,11 +194,17 @@ export function CustomerView({ customerScope }: CustomerViewProps) {
     "fp-patterns": false,
     "analyst-table": false,
     "team-trend": false,
+    "threat-map": false,
   };
 
   function renderWidgetContent(widget: WidgetConfig) {
     const data = dataMap[widget.dataSource];
     const loading = loadingMap[widget.dataSource];
+
+    if (widget.dataSource === "threat-map") {
+      return <ThreatMapWidget customer={customer || undefined} bare />;
+    }
+
     const chartTypeChanged = widget.builtIn && BUILTIN_CHART_TYPES[widget.id] && widget.chartType !== BUILTIN_CHART_TYPES[widget.id];
 
     if (widget.builtIn && !chartTypeChanged) {

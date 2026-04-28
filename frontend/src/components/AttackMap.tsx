@@ -85,9 +85,23 @@ function fmtCount(n: number): string {
 // ═══════════════════════════════════════════════════════
 interface Props {
   customer?: string;
+  hideHeader?: boolean;
+  hideBottomPanel?: boolean;
+  selectedCountry?: string | null;
+  onCountrySelect?: (name: string | null) => void;
+  onMapDataUpdate?: (data: AttackMapData) => void;
+  onEventsUpdate?: (events: AttackMapEvent[]) => void;
 }
 
-export function AttackMap({ customer }: Props) {
+export function AttackMap({
+  customer,
+  hideHeader,
+  hideBottomPanel,
+  selectedCountry,
+  onCountrySelect,
+  onMapDataUpdate,
+  onEventsUpdate,
+}: Props) {
   const [mapData, setMapData] = useState<AttackMapData | null>(null);
   const [events, setEvents] = useState<AttackMapEvent[]>([]);
   const [arcs, setArcs] = useState<Arc[]>([]);
@@ -97,7 +111,15 @@ export function AttackMap({ customer }: Props) {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [hoveredGeo, setHoveredGeo] = useState<string | null>(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
-  const [selectedGeo, setSelectedGeo] = useState<string | null>(null);
+  const [internalSelectedGeo, setInternalSelectedGeo] = useState<string | null>(null);
+
+  // Controlled vs internal country selection
+  const selectedGeo = selectedCountry !== undefined ? selectedCountry : internalSelectedGeo;
+  const setSelectedGeo = (name: string | null) => {
+    setInternalSelectedGeo(name);
+    onCountrySelect?.(name);
+  };
+
   const arcIdCounter = useRef(0);
   const seenIds = useRef(new Set<string>());
   const animRef = useRef<number | null>(null);
@@ -107,9 +129,11 @@ export function AttackMap({ customer }: Props) {
     try {
       const data = await api.getAttackMapData(24);
       setMapData(data);
+      onMapDataUpdate?.(data);
     } catch (e) {
       setLoadError(e instanceof Error ? e.message : "Failed to load attack map data");
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -123,11 +147,15 @@ export function AttackMap({ customer }: Props) {
     const poll = async () => {
       try {
         const res = await api.getAttackMapEvents(2, 15);
-        const newEvents = res.items.filter(e => !seenIds.current.has(e.id));
-        newEvents.forEach(e => seenIds.current.add(e.id));
+        const newEvents = (res.items as AttackMapEvent[]).filter((e: AttackMapEvent) => !seenIds.current.has(e.id));
+        newEvents.forEach((e: AttackMapEvent) => seenIds.current.add(e.id));
 
         if (newEvents.length > 0) {
-          setEvents(prev => [...newEvents, ...prev].slice(0, 50));
+          setEvents(prev => {
+            const merged: AttackMapEvent[] = [...newEvents, ...prev].slice(0, 50);
+            onEventsUpdate?.(merged);
+            return merged;
+          });
           setLastUpdate(new Date().toISOString());
 
           // Create arcs for new events (max 8 per poll, staggered)
@@ -246,6 +274,7 @@ export function AttackMap({ customer }: Props) {
     <div className="relative w-full h-full flex flex-col" style={{ background: "var(--theme-surface-base)" }}>
 
       {/* ── Header bar — normal flow, not absolute ── */}
+      {!hideHeader && (
       <div
         className="flex-shrink-0 flex items-center justify-between flex-wrap gap-x-3 gap-y-2 px-3 py-2 z-20"
         style={{ borderBottom: "1px solid var(--theme-surface-border)", background: "var(--theme-nav-bg)" }}
@@ -278,6 +307,7 @@ export function AttackMap({ customer }: Props) {
           ))}
         </div>
       </div>
+      )}
 
       {/* ── SVG Map ── */}
       <div className="flex-1 relative overflow-hidden">
@@ -308,7 +338,7 @@ export function AttackMap({ customer }: Props) {
                       setTooltipPos({ x: e.clientX, y: e.clientY });
                     }}
                     onMouseLeave={() => setHoveredGeo(null)}
-                    onClick={() => setSelectedGeo(prev => prev === name ? null : name)}
+                    onClick={() => setSelectedGeo(selectedGeo === name ? null : name)}
                     style={{
                       default: { outline: "none", cursor: "pointer" },
                       hover: { fill: selectedGeo === name ? "rgba(59,130,246,0.5)" : count > 0 ? heatColor(count * 1.5, maxCountryCount) : "var(--theme-surface-raised)", outline: "none", cursor: "pointer" },
@@ -452,8 +482,8 @@ export function AttackMap({ customer }: Props) {
           </div>
         )}
 
-        {/* Country stats panel (inside map div, right side) */}
-        {selectedGeo && countryStats && (
+        {/* Country stats panel — only in standalone mode (no parent controlling) */}
+        {!onCountrySelect && selectedGeo && countryStats && (
           <div
             className="absolute top-2 right-3 w-72 max-h-[calc(100%-2rem)] overflow-y-auto rounded-xl z-30 shadow-2xl"
             style={{
@@ -516,6 +546,7 @@ export function AttackMap({ customer }: Props) {
       </div>
 
       {/* ── Bottom panel: Countries + Live Feed ── */}
+      {!hideBottomPanel && (
       <div className="h-44 flex border-t shrink-0" style={{ backgroundColor: "var(--theme-surface-base)", borderColor: "var(--theme-surface-border)" }}>
         {/* Top Attacking Countries */}
         <div className="w-72 shrink-0 border-r overflow-y-auto" style={{ borderColor: "var(--theme-surface-border)" }}>
@@ -572,6 +603,7 @@ export function AttackMap({ customer }: Props) {
           ))}
         </div>
       </div>
+      )}
     </div>
   );
 }

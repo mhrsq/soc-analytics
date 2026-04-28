@@ -1,0 +1,208 @@
+[    1467ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[    2159ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[    2547ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[  779947ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://100.74.142.3/api/metrics/sla-breach?start=2026-02-28&end=2026-03-30&dimension=analyst:0
+[  780346ms] [LOG] [vite] server connection lost. Polling for restart... @ http://100.74.142.3/@vite/client:963
+[  788308ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[  789169ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[  789358ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[  814171ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[  814741ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[  814905ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[ 1413747ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://100.74.142.3/src/components/LiveTicketFeed.tsx?t=1777286198200:0
+[ 1413747ms] [ERROR] [vite] Failed to reload /src/App.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 1413748ms] [ERROR] [vite] Failed to reload /src/pages/Dashboard.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 1413748ms] [ERROR] [vite] Failed to reload /src/components/LiveTicketFeed.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 1413772ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://100.74.142.3/src/components/SlaBreachAnalysis.tsx?t=1777286198200:0
+[ 1413772ms] [ERROR] [vite] Failed to reload /src/pages/ManagerView.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 1413773ms] [ERROR] [vite] Failed to reload /src/components/SlaBreachAnalysis.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 1413811ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://100.74.142.3/src/components/TicketDetailModal.tsx?t=1777286198200:0
+[ 1413811ms] [ERROR] [vite] Failed to reload /src/components/TicketDetailModal.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 1413845ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://100.74.142.3/src/components/AttackMap.tsx?t=1777286198200:0
+[ 1413846ms] [ERROR] [vite] Failed to reload /src/pages/ThreatsPage.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 1413846ms] [ERROR] [vite] Failed to reload /src/components/AttackMap.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 1413871ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://100.74.142.3/src/components/AnalystAIReview.tsx?t=1777286198200:0
+[ 1413872ms] [ERROR] [vite] Failed to reload /src/components/AnalystAIReview.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 1413910ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://100.74.142.3/src/api/client.ts?t=1777286198200:0
+[ 1413911ms] [ERROR] [vite] Failed to reload /src/contexts/NotificationContext.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 1413911ms] [ERROR] [vite] Failed to reload /src/components/SyncStatusPanel.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 1413911ms] [ERROR] [vite] Failed to reload /src/contexts/DashboardContext.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 1413911ms] [ERROR] [vite] Failed to reload /src/components/LLMSettingsPanel.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 1413911ms] [ERROR] [vite] Failed to reload /src/components/UserManagement.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 1413911ms] [ERROR] [vite] Failed to reload /src/components/AIChatWidget.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 1413911ms] [ERROR] [vite] Failed to reload /src/pages/CustomerView.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 1413945ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://100.74.142.3/src/pages/ManagerView.tsx?t=1777286198243:0
+[ 1413970ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://100.74.142.3/src/components/NotificationBell.tsx?t=1777286198200:0
+[ 1414009ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://100.74.142.3/src/components/MomKpiCards.tsx:0
+[ 1414044ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://100.74.142.3/src/components/IncidentFunnel.tsx:0
+[ 1414069ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://100.74.142.3/src/components/KPIDetailModal.tsx?t=1777286198200:0
+[ 1414069ms] [ERROR] [vite] Failed to reload /src/components/KPIDetailModal.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 1414070ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://100.74.142.3/src/components/QueueHealth.tsx:0
+[ 1414110ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://100.74.142.3/src/components/ShiftPerformanceChart.tsx:0
+[ 1416188ms] [ERROR] [vite] Failed to reload /src/pages/ManagerView.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 1417709ms] [ERROR] [vite] Failed to reload /src/components/NotificationBell.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 1417710ms] [ERROR] [vite] Failed to reload /src/App.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 1417710ms] [ERROR] [vite] Failed to reload /src/App.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 1417710ms] [ERROR] [vite] Failed to reload /src/pages/Dashboard.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 1417710ms] [LOG] [vite] server connection lost. Polling for restart... @ http://100.74.142.3/@vite/client:963
+[ 1422767ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[ 1423562ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[ 1423766ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[ 1454662ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[ 1455298ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[ 1455506ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[ 2176086ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://100.74.142.3/favicon.ico:0
+[ 4386195ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://100.74.142.3/src/components/SlaBreachAnalysis.tsx?t=1777289169410:0
+[ 4386195ms] [ERROR] [vite] Failed to reload /src/components/SlaBreachAnalysis.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 4386195ms] [ERROR] [vite] Failed to reload /src/pages/ManagerView.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 4386196ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://100.74.142.3/src/components/LiveTicketFeed.tsx?t=1777289169410:0
+[ 4386196ms] [ERROR] [vite] Failed to reload /src/pages/Dashboard.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 4386196ms] [ERROR] [vite] Failed to reload /src/components/LiveTicketFeed.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 4386196ms] [ERROR] [vite] Failed to reload /src/App.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 4386279ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://100.74.142.3/src/components/TicketDetailModal.tsx?t=1777289169410:0
+[ 4386279ms] [ERROR] [vite] Failed to reload /src/components/TicketDetailModal.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 4386328ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://100.74.142.3/src/components/KPIDetailModal.tsx?t=1777289169410:0
+[ 4386328ms] [ERROR] [vite] Failed to reload /src/components/KPIDetailModal.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 4388341ms] [ERROR] [vite] Error: send was called before connect
+    at Object.send (http://100.74.142.3/@vite/client:414:17)
+    at HMRClient.send (http://100.74.142.3/@vite/client:136:20)
+    at HMRContext.send (http://100.74.142.3/@vite/client:100:20)
+    at HMRContext.invalidate (http://100.74.142.3/@vite/client:65:10)
+    at http://100.74.142.3/src/contexts/NotificationContext.tsx:322:46
+    at http://100.74.142.3/@vite/client:34:58
+    at http://100.74.142.3/@vite/client:213:11
+    at http://100.74.142.3/@vite/client:186:58
+    at Array.forEach (<anonymous>)
+    at HMRClient.queueUpdate (http://100.74.142.3/@vite/client:186:36) @ http://100.74.142.3/@vite/client:881
+[ 4388342ms] [ERROR] [vite] Error: send was called before connect
+    at Object.send (http://100.74.142.3/@vite/client:414:17)
+    at HMRClient.send (http://100.74.142.3/@vite/client:136:20)
+    at HMRContext.send (http://100.74.142.3/@vite/client:100:20)
+    at HMRContext.invalidate (http://100.74.142.3/@vite/client:65:10)
+    at http://100.74.142.3/src/contexts/DashboardContext.tsx:222:46
+    at http://100.74.142.3/@vite/client:34:58
+    at http://100.74.142.3/@vite/client:213:11
+    at http://100.74.142.3/@vite/client:186:58
+    at Array.forEach (<anonymous>)
+    at HMRClient.queueUpdate (http://100.74.142.3/@vite/client:186:36) @ http://100.74.142.3/@vite/client:881
+[ 4388599ms] Error: useNotifications must be used within NotificationProvider
+    at useNotifications (http://100.74.142.3/src/contexts/NotificationContext.tsx:306:19)
+    at NotificationBell (http://100.74.142.3/src/components/NotificationBell.tsx:53:7)
+    at Object.react_stack_bottom_frame (http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:18509:20)
+    at renderWithHooks (http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:5654:24)
+    at updateFunctionComponent (http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:7475:21)
+    at beginWork (http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:8525:20)
+    at runWithFiberInDEV (http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:997:72)
+    at performUnitOfWork (http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:12561:98)
+    at workLoopSync (http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:12424:43)
+    at renderRootSync (http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:12408:13)
+[ 4388598ms] [WARNING] %s
+
+%s
+ An error occurred in the <NotificationBell> component. Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries. @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:6965
+[ 4389698ms] [ERROR] [vite] Failed to reload /src/App.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 4389699ms] [ERROR] [vite] Failed to reload /src/pages/Dashboard.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 4389699ms] [ERROR] [vite] Failed to reload /src/App.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 4389699ms] [LOG] [vite] server connection lost. Polling for restart... @ http://100.74.142.3/@vite/client:963
+[ 4389838ms] Error: useNotifications must be used within NotificationProvider
+    at useNotifications (http://100.74.142.3/src/contexts/NotificationContext.tsx:306:19)
+    at NotificationBell (http://100.74.142.3/src/components/NotificationBell.tsx?t=1777289169410:53:7)
+    at Object.react_stack_bottom_frame (http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:18509:20)
+    at renderWithHooks (http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:5654:24)
+    at updateFunctionComponent (http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:7475:21)
+    at beginWork (http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:8525:20)
+    at runWithFiberInDEV (http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:997:72)
+    at performUnitOfWork (http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:12561:98)
+    at workLoopSync (http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:12424:43)
+    at renderRootSync (http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:12408:13)
+[ 4389837ms] [WARNING] %s
+
+%s
+ An error occurred in the <NotificationBell> component. Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries. @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:6965
+[ 4394334ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[ 4407090ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[ 4450584ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[ 4470554ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[ 4471128ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[ 4471391ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[ 4729446ms] [LOG] [vite] server connection lost. Polling for restart... @ http://100.74.142.3/@vite/client:963
+[ 4730114ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[ 4730439ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[ 4730491ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[ 5296966ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[ 5297593ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[ 5297706ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[ 5299327ms] [LOG] [vite] server connection lost. Polling for restart... @ http://100.74.142.3/@vite/client:963
+[ 5299402ms] [ERROR] WebSocket connection to 'ws://100.74.142.3/' failed: Error during WebSocket handshake: Unexpected response code: 502 @ http://100.74.142.3/@vite/client:1034
+[ 5305368ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[ 5305941ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[ 5306087ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[ 5322855ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[ 5323151ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[ 5323203ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[ 5364413ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[ 5364707ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[ 5364755ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[ 5435928ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[ 5436056ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[ 5958817ms] [LOG] [vite] server connection lost. Polling for restart... @ http://100.74.142.3/@vite/client:963
+[ 5959421ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[ 5959758ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[ 5959805ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[ 7642268ms] [LOG] [vite] server connection lost. Polling for restart... @ http://100.74.142.3/@vite/client:963
+[ 7643441ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[ 7644098ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[ 7644575ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[ 7826563ms] [LOG] [vite] server connection lost. Polling for restart... @ http://100.74.142.3/@vite/client:963
+[ 7826900ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[ 7827098ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[ 7827212ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[ 7830125ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[ 7858477ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[ 7861718ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[ 7862159ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[ 7862189ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[ 9168279ms] [LOG] [vite] server connection lost. Polling for restart... @ http://100.74.142.3/@vite/client:963
+[ 9168297ms] [ERROR] WebSocket connection to 'ws://100.74.142.3/' failed: Error during WebSocket handshake: Unexpected response code: 502 @ http://100.74.142.3/@vite/client:1034
+[ 9173880ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[ 9174078ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[ 9174210ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[10015929ms] [LOG] [vite] server connection lost. Polling for restart... @ http://100.74.142.3/@vite/client:963
+[10015945ms] [ERROR] WebSocket connection to 'ws://100.74.142.3/' failed: Error during WebSocket handshake: Unexpected response code: 502 @ http://100.74.142.3/@vite/client:1034
+[10021761ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[10022039ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[10022110ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[13469635ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[13494785ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[13498022ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[13498413ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[13498516ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[14655206ms] [LOG] [vite] server connection lost. Polling for restart... @ http://100.74.142.3/@vite/client:963
+[14655228ms] [ERROR] WebSocket connection to 'ws://100.74.142.3/' failed: Error during WebSocket handshake: Unexpected response code: 502 @ http://100.74.142.3/@vite/client:1034
+[14661056ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[14661604ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[14661711ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[14675166ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[14675345ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[14675506ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[14942891ms] [LOG] [vite] server connection lost. Polling for restart... @ http://100.74.142.3/@vite/client:963
+[14942910ms] [ERROR] WebSocket connection to 'ws://100.74.142.3/' failed: Error during WebSocket handshake: Unexpected response code: 502 @ http://100.74.142.3/@vite/client:1034
+[14948800ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[14949321ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[14949456ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[14992426ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[14992607ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[14992720ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[14995597ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/ai/widget-insights:0
+[14995598ms] [ERROR] Widget insights failed Error: API 500: Internal Server Error
+    at request (http://100.74.142.3/src/api/client.ts:22:11)
+    at async http://100.74.142.3/src/pages/Dashboard.tsx:110:22 @ http://100.74.142.3/src/pages/Dashboard.tsx:112
+[16989323ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[17051918ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[17055219ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[17055754ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[17055756ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://100.74.142.3/api/filters/options?start=2026-04-26&end=2026-04-27:0
+[17548201ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
+[17728590ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://100.74.142.3/favicon.ico:0

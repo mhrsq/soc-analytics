@@ -8,3 +8,27 @@
 [  456771ms] [ERROR] WebSocket connection to 'ws://100.74.142.3/' failed: Error during WebSocket handshake: Unexpected response code: 502 @ http://100.74.142.3/@vite/client:1034
 [  461661ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102
 [ 3706603ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://100.74.142.3/favicon.ico:0
+[ 4271009ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://100.74.142.3/src/components/AnalystTrendChart.tsx?t=1777284268631:0
+[ 4271014ms] [ERROR] [vite] Failed to reload /src/pages/ManagerView.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 4271016ms] [ERROR] [vite] Failed to reload /src/components/AnalystTrendChart.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 4271137ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://100.74.142.3/src/components/AttackMap.tsx?t=1777284268631:0
+[ 4271138ms] [ERROR] [vite] Failed to reload /src/components/AttackMap.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 4271326ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://100.74.142.3/src/api/client.ts?t=1777284268631:0
+[ 4271327ms] [ERROR] [vite] Failed to reload /src/App.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 4271327ms] [ERROR] [vite] Failed to reload /src/pages/Dashboard.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 4271327ms] [ERROR] [vite] Failed to reload /src/components/SyncStatusPanel.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 4271327ms] [ERROR] [vite] Failed to reload /src/components/LLMSettingsPanel.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 4271327ms] [ERROR] [vite] Failed to reload /src/components/UserManagement.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 4271327ms] [ERROR] [vite] Failed to reload /src/components/TicketDetailModal.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 4271328ms] [ERROR] [vite] Failed to reload /src/contexts/NotificationContext.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 4271328ms] [ERROR] [vite] Failed to reload /src/contexts/DashboardContext.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 4271328ms] [ERROR] [vite] Failed to reload /src/components/LiveTicketFeed.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 4271328ms] [ERROR] [vite] Failed to reload /src/pages/CustomerView.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 4271328ms] [ERROR] [vite] Failed to reload /src/components/AIChatWidget.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 4271330ms] [ERROR] [vite] Failed to reload /src/pages/ThreatsPage.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 4271331ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://100.74.142.3/src/components/SLATrendChart.tsx:0
+[ 4273901ms] [ERROR] [vite] Failed to reload /src/pages/ManagerView.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 4275511ms] [ERROR] [vite] Failed to reload /src/App.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 4275599ms] [ERROR] [vite] Failed to reload /src/App.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 4275600ms] [ERROR] [vite] Failed to reload /src/pages/Dashboard.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://100.74.142.3/@vite/client:881
+[ 4279923ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://100.74.142.3/node_modules/.vite/deps/react-dom_client.js?v=06bb66e1:20102

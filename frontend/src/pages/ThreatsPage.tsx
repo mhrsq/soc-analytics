@@ -10,8 +10,9 @@ import "reactflow/dist/style.css";
 import "leaflet/dist/leaflet.css";
 import { Shield, RefreshCw, Clock, Globe, Network, Plus, Save, X, Trash2, MapPin, Play, Square, ChevronRight, Server, Monitor, Database, Cloud, Radio, Router as RouterIcon, Cpu, Download, Upload, Camera, Search, Palette, Zap } from "lucide-react";
 import { api } from "../api/client";
-import type { AttackArc, TopologyNode, TopologyLink } from "../types";
+import type { AttackArc, TopologyNode, TopologyLink, AttackMapData, AttackMapEvent } from "../types";
 import { AttackMap } from "../components/AttackMap";
+import { ThreatSidebar } from "../components/ThreatSidebar";
 import { ErrorAlert } from "../components/ErrorAlert";
 import { Spinner } from "../components/Spinner";
 import { ConfirmDialog } from "../components/ConfirmDialog";
@@ -117,6 +118,11 @@ export function ThreatsPage({ customerScope }: ThreatsPageProps) {
   const [selectedSite, setSelectedSite] = useState<Site | null>(null);
   const [alertMsg, setAlertMsg] = useState<string | null>(null);
 
+  // Sidebar state (lifted from AttackMap for sidebar integration)
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const [sidebarMapData, setSidebarMapData] = useState<AttackMapData | null>(null);
+  const [sidebarEvents, setSidebarEvents] = useState<AttackMapEvent[]>([]);
+
   // Replay state
   const [replayOpen, setReplayOpen] = useState(false);
   const [replayStart, setReplayStart] = useState("");
@@ -154,7 +160,7 @@ export function ThreatsPage({ customerScope }: ThreatsPageProps) {
     setLoadError(null);
     try {
       const [atkData, nodeData, linkData, feedData, filterOpts, assetData] = await Promise.all([
-        api.getAttacks({ customer: customer || undefined, limit: 500 }),
+        api.getAttacks({ customer: customer || undefined }, 500),
         api.getTopologyNodes(),
         api.getTopologyLinks(),
         fetch(`/api/threatmap/feed?limit=50${customer ? `&customer=${customer}` : ""}`, { headers: { Authorization: `Bearer ${localStorage.getItem("soc_token")}` } }).then(r => r.json()),
@@ -389,70 +395,52 @@ export function ThreatsPage({ customerScope }: ThreatsPageProps) {
 
   return (
     <div className="relative w-full flex flex-col h-[calc(100vh-3rem)] sm:h-[calc(100vh-3.5rem)]" style={{ background: "var(--theme-surface-base)" }}>
-      {/* ── Top bar — normal flow ── */}
-      <div className="flex-shrink-0 flex items-center justify-between flex-wrap gap-2 px-3 py-2 z-20" style={{ borderBottom: "1px solid var(--theme-surface-border)", background: "var(--theme-nav-bg)" }}>
-        <div className="flex items-center gap-3">
-          <Shield className="w-4 h-4" style={{ color: "var(--theme-text-secondary)" }} />
-          <h2 className="text-sm font-semibold" style={{ color: "var(--theme-text-primary)" }}>Threats & Infrastructure</h2>
-          <div className="h-4 w-px" style={{ backgroundColor: "var(--theme-surface-border)" }} />
-          {/* Mode toggle */}
-          <div className="flex rounded-md overflow-hidden" style={{ border: "1px solid var(--theme-surface-border)" }}>
-            <button onClick={() => setMode("attack")} className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium" style={{ backgroundColor: mode === "attack" ? "var(--theme-surface-raised)" : "transparent", color: mode === "attack" ? "#ef4444" : "var(--theme-text-muted)" }}>
-              <Zap className="w-3 h-3" /> Attack Map
-            </button>
-            <button onClick={() => setMode("map")} className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium" style={{ backgroundColor: mode === "map" ? "var(--theme-surface-raised)" : "transparent", color: mode === "map" ? "var(--theme-text-primary)" : "var(--theme-text-muted)" }}>
-              <Globe className="w-3 h-3" /> Sites
-            </button>
-            <button onClick={() => setMode("graph")} className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium" style={{ backgroundColor: mode === "graph" ? "var(--theme-surface-raised)" : "transparent", color: mode === "graph" ? "var(--theme-text-primary)" : "var(--theme-text-muted)" }}>
-              <Network className="w-3 h-3" /> Topology
-            </button>
-          </div>
-          <div className="h-4 w-px" style={{ backgroundColor: "var(--theme-surface-border)" }} />
+      {/* ── Top bar — minimal: title + context-specific actions + customer filter + refresh ── */}
+      <div className="flex-shrink-0 flex items-center gap-2 px-3 py-2 z-20" style={{ borderBottom: "1px solid var(--theme-surface-border)", background: "var(--theme-nav-bg)" }}>
+        <Shield className="w-4 h-4" style={{ color: "var(--theme-text-secondary)" }} />
+        <span className="text-sm font-semibold mr-auto" style={{ color: "var(--theme-text-primary)" }}>Threats</span>
 
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          {mode === "map" && (
-            <button onClick={() => setReplayOpen(!replayOpen)} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium"
-              style={{ backgroundColor: replayOpen ? "var(--theme-surface-raised)" : "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)", color: replayOpen ? "#f59e0b" : "var(--theme-text-secondary)" }}>
-              <Play className="w-3 h-3" /> Replay
-            </button>
-          )}
-          {mode === "graph" && (
-            <>
-              <button onClick={() => setShowAddNode(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium" style={{ backgroundColor: "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-primary)" }}>
-                <Plus className="w-3 h-3" /> Add Node
-              </button>
-              <button onClick={savePositions} className="p-2 rounded-lg" style={{ backgroundColor: "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-secondary)" }} title="Save positions">
-                <Save className="w-3.5 h-3.5" />
-              </button>
-              <button onClick={exportTopologyJSON} className="p-2 rounded-lg" style={{ backgroundColor: "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-secondary)" }} title="Export JSON">
-                <Download className="w-3.5 h-3.5" />
-              </button>
-              <label className="p-2 rounded-lg cursor-pointer hover:bg-white/[0.05]" style={{ backgroundColor: "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-secondary)" }} title="Import JSON">
-                <Upload className="w-3.5 h-3.5" />
-                <input type="file" accept=".json" className="hidden" onChange={importTopologyJSON} />
-              </label>
-              <button onClick={exportScreenshot} className="p-2 rounded-lg" style={{ backgroundColor: "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-secondary)" }} title="Screenshot PNG">
-                <Camera className="w-3.5 h-3.5" />
-              </button>
-            </>
-          )}
-          {!customerScope && (
-            <select value={customer} onChange={e => setCustomer(e.target.value)} className="text-xs px-3 py-2 pr-8 rounded-lg" style={{ backgroundColor: "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-primary)" }}>
-              <option value="">All Customers</option>
-              {customers.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-          )}
-          <button onClick={loadData} className="p-2 rounded-lg hover:bg-white/[0.05]" style={{ backgroundColor: "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-secondary)" }}>
-            <RefreshCw className="w-3.5 h-3.5" />
+        {mode === "map" && (
+          <button onClick={() => setReplayOpen(!replayOpen)} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium"
+            style={{ backgroundColor: replayOpen ? "var(--theme-surface-raised)" : "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)", color: replayOpen ? "#f59e0b" : "var(--theme-text-secondary)" }}>
+            <Play className="w-3 h-3" /> Replay
           </button>
-        </div>
+        )}
+        {mode === "graph" && (
+          <>
+            <button onClick={() => setShowAddNode(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium" style={{ backgroundColor: "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-primary)" }}>
+              <Plus className="w-3 h-3" /> Add Node
+            </button>
+            <button onClick={savePositions} className="p-2 rounded-lg" style={{ backgroundColor: "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-secondary)" }} title="Save positions">
+              <Save className="w-3.5 h-3.5" />
+            </button>
+            <button onClick={exportTopologyJSON} className="p-2 rounded-lg" style={{ backgroundColor: "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-secondary)" }} title="Export JSON">
+              <Download className="w-3.5 h-3.5" />
+            </button>
+            <label className="p-2 rounded-lg cursor-pointer hover:bg-white/[0.05]" style={{ backgroundColor: "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-secondary)" }} title="Import JSON">
+              <Upload className="w-3.5 h-3.5" />
+              <input type="file" accept=".json" className="hidden" onChange={importTopologyJSON} />
+            </label>
+            <button onClick={exportScreenshot} className="p-2 rounded-lg" style={{ backgroundColor: "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-secondary)" }} title="Screenshot PNG">
+              <Camera className="w-3.5 h-3.5" />
+            </button>
+          </>
+        )}
+        {!customerScope && (
+          <select value={customer} onChange={e => setCustomer(e.target.value)} className="text-xs px-3 py-2 pr-8 rounded-lg" style={{ backgroundColor: "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-primary)" }}>
+            <option value="">All Customers</option>
+            {customers.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        )}
+        <button onClick={loadData} className="p-2 rounded-lg hover:bg-white/[0.05]" style={{ backgroundColor: "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-secondary)" }}>
+          <RefreshCw className="w-3.5 h-3.5" />
+        </button>
       </div>
 
       {/* ── Error alert ── */}
       {loadError && <ErrorAlert error={loadError} onRetry={loadData} className="mx-3 mt-2" />}
 
-      {/* ── Replay panel — normal flow, shows below top bar ── */}
+      {/* ── Replay panel — normal flow, shows below top bar (Sites mode only) ── */}
       {replayOpen && mode === "map" && (
         <div className="flex-shrink-0 flex items-center gap-3 flex-wrap px-3 py-2 text-xs" style={{ borderBottom: "1px solid var(--theme-surface-border)", background: "var(--theme-nav-bg)" }}>
           <span style={{ color: "var(--theme-text-muted)" }}>From</span>
@@ -475,240 +463,236 @@ export function ThreatsPage({ customerScope }: ThreatsPageProps) {
         </div>
       )}
 
-      {/* ── Content area: flex-1 holds all modes ── */}
-      <div className="flex-1 min-h-0 relative">
+      {/* ── Content area: flex-row with left (map) + right (sidebar) ── */}
+      <div className="flex-1 min-h-0 flex">
 
-        {/* ── Loading spinner (initial load only) ── */}
-        {loading && nodes.length === 0 && attacks.length === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center z-[500] pointer-events-none">
-            <Spinner className="w-8 h-8" />
-          </div>
-        )}
+        {/* ── Left pane: map or topology (fills available space) ── */}
+        <div className="flex-1 min-w-0 relative flex flex-col">
 
-        {/* ── Attack Map Mode ── */}
-        {mode === "attack" && (
-          <AttackMap customer={customer} />
-        )}
-
-      {/* ── Main content area (Sites + Topology modes) ── */}
-      {mode !== "attack" && (<><div className="flex-1 relative" style={{ height: "100%" }}>
-        {/* MAP MODE */}
-        {mode === "map" && (
-          <MapContainer center={[-2, 118]} zoom={5} minZoom={3} maxZoom={14} zoomControl={false} attributionControl={false} style={{ width: "100%", height: "100%", background: "var(--theme-surface-base)" }}>
-            <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" subdomains="abcd" />
-            <FitBounds sites={sites} />
-
-            {/* Pulse rings — rendered BEFORE markers so markers are on top and receive events */}
-            {sites.map(site => {
-              const k = `${site.lat.toFixed(2)}_${site.lng.toFixed(2)}`;
-              if ((siteAttackCounts.get(k) || 0) === 0) return null;
-              return [12, 20].map((r, i) => (
-                <CircleMarker key={`p-${site.id}-${i}`} center={[site.lat, site.lng]} radius={r}
-                  pathOptions={{ color: "#f59e0b", fillColor: "transparent", fillOpacity: 0, weight: 1, opacity: 0.3 - i * 0.1, dashArray: "4 4", interactive: false }} />
-              ));
-            })}
-
-            {/* Site markers — on top so they receive click/hover */}
-            {sites.map(site => {
-              const k = `${site.lat.toFixed(2)}_${site.lng.toFixed(2)}`;
-              const ac = siteAttackCounts.get(k) || 0;
-              return (
-                <CircleMarker key={`s-${site.id}`} center={[site.lat, site.lng]} radius={ac > 0 ? Math.min(8 + ac * 0.3, 20) : 6}
-                  pathOptions={{ color: ac > 0 ? "#f59e0b" : "#60a5fa", fillColor: ac > 0 ? "#f59e0b" : "#60a5fa", fillOpacity: ac > 0 ? 0.4 : 0.3, weight: 1.5 }}
-                  eventHandlers={{ click: () => setSelectedSite(site) }}>
-                  <Tooltip><div className="text-xs"><strong>{site.label}</strong>{site.customer && <span className="opacity-60"> · {site.customer}</span>}<br /><span className="opacity-60">{site.nodeCount} assets</span>{ac > 0 && <span className="text-amber-400"> · {ac} attacks</span>}</div></Tooltip>
-                </CircleMarker>
-              );
-            })}
-
-            {/* Replay accumulated arcs — these stay visible */}
-            {replayArcs.map((arc, i) => {
-              // Find target site for this arc
-              const targetSite = sites.find(s => s.customer === arc.customer) || sites[0];
-              if (!targetSite) return null;
-              // Small random offset so arcs don't overlap exactly
-              const offsetLat = targetSite.lat + (Math.random() - 0.5) * 0.05;
-              const offsetLng = targetSite.lng + (Math.random() - 0.5) * 0.05;
-              return (
-                <CircleMarker key={`ra-${arc.id}-${i}`} center={[offsetLat, offsetLng]} radius={3}
-                  pathOptions={{ color: pc(arc.priority), fillColor: pc(arc.priority), fillOpacity: 0.6, weight: 0 }}>
-                  <Tooltip><span className="text-[10px] font-mono">{arc.subject || arc.category} → {arc.asset}</span></Tooltip>
-                </CircleMarker>
-              );
-            })}
-          </MapContainer>
-        )}
-
-        {/* GRAPH MODE */}
-        {mode === "graph" && (
-          <ReactFlow nodes={rfNodes} edges={rfEdges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect}
-            onEdgeClick={onEdgeClick} onNodeDragStop={savePositions} nodeTypes={nodeTypes} fitView style={{ background: "var(--theme-surface-base)" }}>
-            <Background gap={32} size={1} color="var(--theme-surface-border)" />
-            <MiniMap maskColor="rgba(10,10,12,0.8)" style={{ background: "var(--theme-card-bg)", border: "1px solid var(--theme-surface-border)", borderRadius: 8 }} nodeColor={(n) => NODE_CFG[n.data?.nodeType]?.color || "#60a5fa"} />
-          </ReactFlow>
-        )}
-
-        {/* Graph: Link edit panel */}
-        {mode === "graph" && selectedEdge && (
-          <div className="absolute top-3 left-4 z-[1000] w-56 rounded-lg overflow-hidden" style={{ backgroundColor: "var(--theme-surface-base)", border: "1px solid var(--theme-surface-border)" }}>
-            <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: "1px solid var(--theme-surface-border)" }}>
-              <div className="flex items-center gap-1.5">
-                <Palette className="w-3 h-3" style={{ color: "var(--theme-text-secondary)" }} />
-                <span className="text-xs font-medium" style={{ color: "var(--theme-text-primary)" }}>Edit Link</span>
-              </div>
-              <button onClick={() => setSelectedEdge(null)} className="p-0.5 rounded hover:bg-white/[0.05]" style={{ color: "var(--theme-text-muted)" }}><X className="w-3.5 h-3.5" /></button>
+          {/* ── Loading spinner (initial load only) ── */}
+          {loading && nodes.length === 0 && attacks.length === 0 && (
+            <div className="absolute inset-0 flex items-center justify-center z-[500] pointer-events-none">
+              <Spinner className="w-8 h-8" />
             </div>
-            <div className="p-3 space-y-2.5">
-              <div>
-                <label className="text-[10px] uppercase tracking-wider font-medium block mb-1" style={{ color: "var(--theme-text-muted)" }}>Description</label>
-                <input type="text" value={edgeLabelInput} onChange={e => setEdgeLabelInput(e.target.value)} placeholder="e.g. lan, fiber, vpn"
-                  className="w-full text-xs px-2.5 py-1.5 rounded-lg outline-none" style={{ backgroundColor: "var(--theme-card-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-primary)" }} />
-              </div>
-              <div>
-                <label className="text-[10px] uppercase tracking-wider font-medium block mb-1" style={{ color: "var(--theme-text-muted)" }}>Color</label>
-                <div className="flex gap-1.5 flex-wrap">
-                  {["#3e3e48", "#60a5fa", "#a78bfa", "#10b981", "#f59e0b", "#ef4444", "#e8e8ec"].map(c => (
-                    <button key={c} onClick={() => setEdgeColorInput(c)}
-                      className="w-5 h-5 rounded-full border-2 transition-transform hover:scale-110"
-                      style={{ backgroundColor: c, borderColor: edgeColorInput === c ? "#e8e8ec" : "transparent" }} />
-                  ))}
+          )}
+
+          {/* ── Attack Map Mode ── */}
+          {mode === "attack" && (
+            <AttackMap
+              customer={customer}
+              hideHeader
+              hideBottomPanel
+              selectedCountry={selectedCountry}
+              onCountrySelect={setSelectedCountry}
+              onMapDataUpdate={setSidebarMapData}
+              onEventsUpdate={setSidebarEvents}
+            />
+          )}
+
+          {/* ── Sites Map Mode ── */}
+          {mode === "map" && (
+            <div className="flex-1 relative" style={{ height: "100%" }}>
+              <MapContainer center={[-2, 118]} zoom={5} minZoom={3} maxZoom={14} zoomControl={false} attributionControl={false} style={{ width: "100%", height: "100%", background: "var(--theme-surface-base)" }}>
+                <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" subdomains="abcd" />
+                <FitBounds sites={sites} />
+
+                {/* Pulse rings — rendered BEFORE markers so markers are on top and receive events */}
+                {sites.map(site => {
+                  const k = `${site.lat.toFixed(2)}_${site.lng.toFixed(2)}`;
+                  if ((siteAttackCounts.get(k) || 0) === 0) return null;
+                  return [12, 20].map((r, i) => (
+                    <CircleMarker key={`p-${site.id}-${i}`} center={[site.lat, site.lng]} radius={r}
+                      pathOptions={{ color: "#f59e0b", fillColor: "transparent", fillOpacity: 0, weight: 1, opacity: 0.3 - i * 0.1, dashArray: "4 4", interactive: false }} />
+                  ));
+                })}
+
+                {/* Site markers — on top so they receive click/hover */}
+                {sites.map(site => {
+                  const k = `${site.lat.toFixed(2)}_${site.lng.toFixed(2)}`;
+                  const ac = siteAttackCounts.get(k) || 0;
+                  return (
+                    <CircleMarker key={`s-${site.id}`} center={[site.lat, site.lng]} radius={ac > 0 ? Math.min(8 + ac * 0.3, 20) : 6}
+                      pathOptions={{ color: ac > 0 ? "#f59e0b" : "#60a5fa", fillColor: ac > 0 ? "#f59e0b" : "#60a5fa", fillOpacity: ac > 0 ? 0.4 : 0.3, weight: 1.5 }}
+                      eventHandlers={{ click: () => setSelectedSite(site) }}>
+                      <Tooltip><div className="text-xs"><strong>{site.label}</strong>{site.customer && <span className="opacity-60"> · {site.customer}</span>}<br /><span className="opacity-60">{site.nodeCount} assets</span>{ac > 0 && <span className="text-amber-400"> · {ac} attacks</span>}</div></Tooltip>
+                    </CircleMarker>
+                  );
+                })}
+
+                {/* Replay accumulated arcs — these stay visible */}
+                {replayArcs.map((arc, i) => {
+                  const targetSite = sites.find(s => s.customer === arc.customer) || sites[0];
+                  if (!targetSite) return null;
+                  const offsetLat = targetSite.lat + (Math.random() - 0.5) * 0.05;
+                  const offsetLng = targetSite.lng + (Math.random() - 0.5) * 0.05;
+                  return (
+                    <CircleMarker key={`ra-${arc.id}-${i}`} center={[offsetLat, offsetLng]} radius={3}
+                      pathOptions={{ color: pc(arc.priority), fillColor: pc(arc.priority), fillOpacity: 0.6, weight: 0 }}>
+                      <Tooltip><span className="text-[10px] font-mono">{arc.subject || arc.category} → {arc.asset}</span></Tooltip>
+                    </CircleMarker>
+                  );
+                })}
+              </MapContainer>
+
+              {/* Map: Legend */}
+              <div className="absolute bottom-2 left-4 z-[1000] px-3 py-2 rounded-lg text-[10px]" style={{ backgroundColor: "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)" }}>
+                <div className="flex items-center gap-3" style={{ color: "var(--theme-text-muted)" }}>
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#60a5fa" }} />Site</span>
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#f59e0b" }} />Under attack</span>
+                  {replayArcs.length > 0 && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#ef4444" }} />{replayArcs.length} replayed</span>}
                 </div>
               </div>
-              <div className="flex gap-2 pt-1">
-                <button onClick={updateEdge} className="flex-1 py-1.5 rounded-lg text-[11px] font-medium" style={{ backgroundColor: "var(--theme-surface-raised)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-primary)" }}>Save</button>
-                <button onClick={deleteEdge} className="px-3 py-1.5 rounded-lg text-[11px] font-medium" style={{ backgroundColor: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444" }}>
-                  <Trash2 className="w-3 h-3" />
-                </button>
+
+              {/* Site detail panel */}
+              {selectedSite && (
+                <div className="absolute top-2 right-4 z-[1000] w-72 rounded-lg overflow-hidden" style={{ backgroundColor: "var(--theme-surface-base)", border: "1px solid var(--theme-surface-border)" }}>
+                  <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid var(--theme-surface-border)" }}>
+                    <h3 className="text-sm font-medium" style={{ color: "var(--theme-text-primary)" }}>{selectedSite.label}</h3>
+                    <button onClick={() => setSelectedSite(null)} className="p-1 rounded hover:bg-white/[0.05]" style={{ color: "var(--theme-text-muted)" }}><X className="w-4 h-4" /></button>
+                  </div>
+                  <div className="px-4 py-3 space-y-2 text-xs">
+                    {selectedSite.customer && <div className="flex justify-between"><span style={{ color: "var(--theme-text-muted)" }}>Customer</span><span style={{ color: "var(--theme-text-primary)" }}>{selectedSite.customer}</span></div>}
+                    <div className="flex justify-between"><span style={{ color: "var(--theme-text-muted)" }}>Assets</span><span style={{ color: "var(--theme-text-primary)" }}>{selectedSite.nodeCount}</span></div>
+                    <div className="flex justify-between"><span style={{ color: "var(--theme-text-muted)" }}>Location</span><span className="font-mono" style={{ color: "var(--theme-text-muted)" }}>{selectedSite.lat.toFixed(4)}, {selectedSite.lng.toFixed(4)}</span></div>
+                    <div className="flex justify-between"><span style={{ color: "var(--theme-text-muted)" }}>Attacks</span><span style={{ color: "#f59e0b" }}>{siteAttackCounts.get(`${selectedSite.lat.toFixed(2)}_${selectedSite.lng.toFixed(2)}`) || 0}</span></div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── Graph Mode ── */}
+          {mode === "graph" && (
+            <div className="flex-1 relative" style={{ height: "100%" }}>
+              <ReactFlow nodes={rfNodes} edges={rfEdges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect}
+                onEdgeClick={onEdgeClick} onNodeDragStop={savePositions} nodeTypes={nodeTypes} fitView style={{ background: "var(--theme-surface-base)" }}>
+                <Background gap={32} size={1} color="var(--theme-surface-border)" />
+                <MiniMap maskColor="rgba(10,10,12,0.8)" style={{ background: "var(--theme-card-bg)", border: "1px solid var(--theme-surface-border)", borderRadius: 8 }} nodeColor={(n) => NODE_CFG[n.data?.nodeType]?.color || "#60a5fa"} />
+              </ReactFlow>
+
+              {/* Graph: Empty state */}
+              {nodes.length === 0 && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="text-center">
+                    <Network className="w-10 h-10 mx-auto mb-3 opacity-20" style={{ color: "var(--theme-text-muted)" }} />
+                    <p className="text-sm" style={{ color: "var(--theme-text-muted)" }}>No topology nodes yet</p>
+                    <p className="text-xs mt-1" style={{ color: "var(--theme-text-dim)" }}>Click &quot;Add Node&quot; to build your network</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Graph: Link edit panel */}
+              {selectedEdge && (
+                <div className="absolute top-2 left-4 z-[1000] w-56 rounded-lg overflow-hidden" style={{ backgroundColor: "var(--theme-surface-base)", border: "1px solid var(--theme-surface-border)" }}>
+                  <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: "1px solid var(--theme-surface-border)" }}>
+                    <div className="flex items-center gap-1.5">
+                      <Palette className="w-3 h-3" style={{ color: "var(--theme-text-secondary)" }} />
+                      <span className="text-xs font-medium" style={{ color: "var(--theme-text-primary)" }}>Edit Link</span>
+                    </div>
+                    <button onClick={() => setSelectedEdge(null)} className="p-0.5 rounded hover:bg-white/[0.05]" style={{ color: "var(--theme-text-muted)" }}><X className="w-3.5 h-3.5" /></button>
+                  </div>
+                  <div className="p-3 space-y-2.5">
+                    <div>
+                      <label className="text-[10px] uppercase tracking-wider font-medium block mb-1" style={{ color: "var(--theme-text-muted)" }}>Description</label>
+                      <input type="text" value={edgeLabelInput} onChange={e => setEdgeLabelInput(e.target.value)} placeholder="e.g. lan, fiber, vpn"
+                        className="w-full text-xs px-2.5 py-1.5 rounded-lg outline-none" style={{ backgroundColor: "var(--theme-card-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-primary)" }} />
+                    </div>
+                    <div>
+                      <label className="text-[10px] uppercase tracking-wider font-medium block mb-1" style={{ color: "var(--theme-text-muted)" }}>Color</label>
+                      <div className="flex gap-1.5 flex-wrap">
+                        {["#3e3e48", "#60a5fa", "#a78bfa", "#10b981", "#f59e0b", "#ef4444", "#e8e8ec"].map(c => (
+                          <button key={c} onClick={() => setEdgeColorInput(c)}
+                            className="w-5 h-5 rounded-full border-2 transition-transform hover:scale-110"
+                            style={{ backgroundColor: c, borderColor: edgeColorInput === c ? "#e8e8ec" : "transparent" }} />
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex gap-2 pt-1">
+                      <button onClick={updateEdge} className="flex-1 py-1.5 rounded-lg text-[11px] font-medium" style={{ backgroundColor: "var(--theme-surface-raised)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-primary)" }}>Save</button>
+                      <button onClick={deleteEdge} className="px-3 py-1.5 rounded-lg text-[11px] font-medium" style={{ backgroundColor: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444" }}>
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Add Node side panel (graph mode) ── */}
+              {showAddNode && (
+          <div className="absolute top-0 right-0 bottom-0 w-72 z-[1000] border-l overflow-y-auto" style={{ backgroundColor: "var(--theme-surface-base)", borderColor: "var(--theme-surface-border)" }}>
+            <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid var(--theme-surface-border)" }}>
+              <h3 className="text-sm font-medium" style={{ color: "var(--theme-text-primary)" }}>Add Node</h3>
+              <button onClick={() => setShowAddNode(false)} className="p-1 rounded hover:bg-white/[0.05]" style={{ color: "var(--theme-text-muted)" }}><X className="w-4 h-4" /></button>
+            </div>
+            <div className="p-4 space-y-3">
+              <Fld label="Label" value={form.label} onChange={v => setForm(f => ({ ...f, label: v }))} placeholder="e.g. Web Server 1" />
+              <div>
+                <label className="text-[10px] uppercase tracking-wider font-medium block mb-1" style={{ color: "var(--theme-text-muted)" }}>Type</label>
+                <select value={form.node_type} onChange={e => setForm(f => ({ ...f, node_type: e.target.value }))} className="w-full text-xs px-3 py-2 rounded-lg" style={{ backgroundColor: "var(--theme-card-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-primary)" }}>
+                  {Object.entries(NODE_CFG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-[10px] uppercase tracking-wider font-medium block mb-1" style={{ color: "var(--theme-text-muted)" }}>Hostname</label>
+                <div className="relative">
+                  <div className="flex items-center rounded-lg" style={{ backgroundColor: "var(--theme-card-bg)", border: "1px solid var(--theme-surface-border)" }}>
+                    <Search className="w-3 h-3 ml-2 shrink-0" style={{ color: "var(--theme-text-dim)" }} />
+                    <input type="text" value={hostnameSearch || form.hostname} placeholder="Search or type hostname..."
+                      onChange={e => { setHostnameSearch(e.target.value); setForm(f => ({ ...f, hostname: e.target.value })); }}
+                      className="w-full text-xs px-2 py-2 bg-transparent outline-none" style={{ color: "var(--theme-text-primary)" }} />
+                    {form.hostname && <button onClick={() => { setForm(f => ({ ...f, hostname: "" })); setHostnameSearch(""); }} className="p-1 mr-1" style={{ color: "var(--theme-text-muted)" }}><X className="w-3 h-3" /></button>}
+                  </div>
+                  {hostnameSearch && filteredAssets.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 rounded-lg max-h-40 overflow-y-auto z-50" style={{ backgroundColor: "var(--theme-card-bg)", border: "1px solid var(--theme-surface-border)" }}>
+                      <button onClick={() => { setForm(f => ({ ...f, hostname: "" })); setHostnameSearch(""); }} className="w-full text-left px-3 py-1.5 text-xs hover:bg-white/[0.05]" style={{ color: "var(--theme-text-muted)" }}>
+                        None (visual only)
+                      </button>
+                      {filteredAssets.slice(0, 20).map(a => (
+                        <button key={a.asset_name} onClick={() => { setForm(f => ({ ...f, hostname: a.asset_name })); setHostnameSearch(""); }}
+                          className="w-full text-left px-3 py-1.5 text-xs hover:bg-white/[0.05] truncate" style={{ color: "var(--theme-text-primary)" }}>
+                          {a.asset_name} <span style={{ color: "var(--theme-text-muted)" }}>({a.count})</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div>
+                <label className="text-[10px] uppercase tracking-wider font-medium block mb-1" style={{ color: "var(--theme-text-muted)" }}>Customer</label>
+                <select value={form.customer} onChange={e => setForm(f => ({ ...f, customer: e.target.value }))} className="w-full text-xs px-3 py-2 rounded-lg" style={{ backgroundColor: "var(--theme-card-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-primary)" }}>
+                  <option value="">None</option>
+                  {customers.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <Fld label="Lat" value={form.lat} onChange={v => setForm(f => ({ ...f, lat: v }))} placeholder="-6.2" type="number" />
+                <Fld label="Lng" value={form.lng} onChange={v => setForm(f => ({ ...f, lng: v }))} placeholder="106.8" type="number" />
+              </div>
+              <p className="text-[9px] flex items-center gap-1" style={{ color: "var(--theme-text-dim)" }}><MapPin className="w-3 h-3" /> Coords used by Map mode</p>
+              <button onClick={createNode} disabled={!form.label.trim()} className="w-full py-2 rounded-lg text-xs font-medium disabled:opacity-30" style={{ backgroundColor: "var(--theme-surface-raised)", color: "var(--theme-text-primary)", border: "1px solid var(--theme-surface-border)" }}>Create Node</button>
               </div>
             </div>
-          </div>
-        )}
+          )}
+            </div>
+          )}
 
-        {/* Graph: Empty state */}
-        {mode === "graph" && nodes.length === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="text-center">
-              <Network className="w-10 h-10 mx-auto mb-3 opacity-20" style={{ color: "var(--theme-text-muted)" }} />
-              <p className="text-sm" style={{ color: "var(--theme-text-muted)" }}>No topology nodes yet</p>
-              <p className="text-xs mt-1" style={{ color: "var(--theme-text-dim)" }}>Click &quot;Add Node&quot; to build your network</p>
-            </div>
-          </div>
-        )}
+        </div>{/* end left pane */}
 
-        {/* Map: Legend */}
-        {mode === "map" && (
-          <div className="absolute bottom-2 left-4 z-[1000] px-3 py-2 rounded-lg text-[10px]" style={{ backgroundColor: "var(--theme-nav-bg)", border: "1px solid var(--theme-surface-border)" }}>
-            <div className="flex items-center gap-3" style={{ color: "var(--theme-text-muted)" }}>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#60a5fa" }} />Site</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#f59e0b" }} />Under attack</span>
-              {replayArcs.length > 0 && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#ef4444" }} />{replayArcs.length} replayed</span>}
-            </div>
-          </div>
-        )}
-
-        {/* Site detail panel */}
-        {selectedSite && (
-          <div className="absolute top-3 right-4 z-[1000] w-72 rounded-lg overflow-hidden" style={{ backgroundColor: "var(--theme-surface-base)", border: "1px solid var(--theme-surface-border)" }}>
-            <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid var(--theme-surface-border)" }}>
-              <h3 className="text-sm font-medium" style={{ color: "var(--theme-text-primary)" }}>{selectedSite.label}</h3>
-              <button onClick={() => setSelectedSite(null)} className="p-1 rounded hover:bg-white/[0.05]" style={{ color: "var(--theme-text-muted)" }}><X className="w-4 h-4" /></button>
-            </div>
-            <div className="px-4 py-3 space-y-2 text-xs">
-              {selectedSite.customer && <div className="flex justify-between"><span style={{ color: "var(--theme-text-muted)" }}>Customer</span><span style={{ color: "var(--theme-text-primary)" }}>{selectedSite.customer}</span></div>}
-              <div className="flex justify-between"><span style={{ color: "var(--theme-text-muted)" }}>Assets</span><span style={{ color: "var(--theme-text-primary)" }}>{selectedSite.nodeCount}</span></div>
-              <div className="flex justify-between"><span style={{ color: "var(--theme-text-muted)" }}>Location</span><span className="font-mono" style={{ color: "var(--theme-text-muted)" }}>{selectedSite.lat.toFixed(4)}, {selectedSite.lng.toFixed(4)}</span></div>
-              <div className="flex justify-between"><span style={{ color: "var(--theme-text-muted)" }}>Attacks</span><span style={{ color: "#f59e0b" }}>{siteAttackCounts.get(`${selectedSite.lat.toFixed(2)}_${selectedSite.lng.toFixed(2)}`) || 0}</span></div>
-            </div>
-          </div>
+        {/* ── Right sidebar (hidden in graph mode) ── */}
+        {mode !== "graph" && (
+          <ThreatSidebar
+            mapData={sidebarMapData}
+            events={sidebarEvents}
+            selectedCountry={selectedCountry}
+            onClearCountry={() => setSelectedCountry(null)}
+            onSelectCountry={setSelectedCountry}
+            customer={customer}
+            activeMode={mode}
+            onModeChange={setMode}
+            customer_scope={customerScope}
+          />
         )}
       </div>
-
-      {/* ── Add Node side panel (graph mode) ── */}
-      {showAddNode && mode === "graph" && (
-        <div className="absolute top-0 right-0 bottom-0 w-72 z-[1000] border-l overflow-y-auto" style={{ backgroundColor: "var(--theme-surface-base)", borderColor: "var(--theme-surface-border)" }}>
-          <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid var(--theme-surface-border)" }}>
-            <h3 className="text-sm font-medium" style={{ color: "var(--theme-text-primary)" }}>Add Node</h3>
-            <button onClick={() => setShowAddNode(false)} className="p-1 rounded hover:bg-white/[0.05]" style={{ color: "var(--theme-text-muted)" }}><X className="w-4 h-4" /></button>
-          </div>
-          <div className="p-4 space-y-3">
-            <Fld label="Label" value={form.label} onChange={v => setForm(f => ({ ...f, label: v }))} placeholder="e.g. Web Server 1" />
-            <div>
-              <label className="text-[10px] uppercase tracking-wider font-medium block mb-1" style={{ color: "var(--theme-text-muted)" }}>Type</label>
-              <select value={form.node_type} onChange={e => setForm(f => ({ ...f, node_type: e.target.value }))} className="w-full text-xs px-3 py-2 rounded-lg" style={{ backgroundColor: "var(--theme-card-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-primary)" }}>
-                {Object.entries(NODE_CFG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="text-[10px] uppercase tracking-wider font-medium block mb-1" style={{ color: "var(--theme-text-muted)" }}>Hostname</label>
-              <div className="relative">
-                <div className="flex items-center rounded-lg" style={{ backgroundColor: "var(--theme-card-bg)", border: "1px solid var(--theme-surface-border)" }}>
-                  <Search className="w-3 h-3 ml-2 shrink-0" style={{ color: "var(--theme-text-dim)" }} />
-                  <input type="text" value={hostnameSearch || form.hostname} placeholder="Search or type hostname..."
-                    onChange={e => { setHostnameSearch(e.target.value); setForm(f => ({ ...f, hostname: e.target.value })); }}
-                    className="w-full text-xs px-2 py-2 bg-transparent outline-none" style={{ color: "var(--theme-text-primary)" }} />
-                  {form.hostname && <button onClick={() => { setForm(f => ({ ...f, hostname: "" })); setHostnameSearch(""); }} className="p-1 mr-1" style={{ color: "var(--theme-text-muted)" }}><X className="w-3 h-3" /></button>}
-                </div>
-                {hostnameSearch && filteredAssets.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-1 rounded-lg max-h-40 overflow-y-auto z-50" style={{ backgroundColor: "var(--theme-card-bg)", border: "1px solid var(--theme-surface-border)" }}>
-                    <button onClick={() => { setForm(f => ({ ...f, hostname: "" })); setHostnameSearch(""); }} className="w-full text-left px-3 py-1.5 text-xs hover:bg-white/[0.05]" style={{ color: "var(--theme-text-muted)" }}>
-                      None (visual only)
-                    </button>
-                    {filteredAssets.slice(0, 20).map(a => (
-                      <button key={a.asset_name} onClick={() => { setForm(f => ({ ...f, hostname: a.asset_name })); setHostnameSearch(""); }}
-                        className="w-full text-left px-3 py-1.5 text-xs hover:bg-white/[0.05] truncate" style={{ color: "var(--theme-text-primary)" }}>
-                        {a.asset_name} <span style={{ color: "var(--theme-text-muted)" }}>({a.count})</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-            <div>
-              <label className="text-[10px] uppercase tracking-wider font-medium block mb-1" style={{ color: "var(--theme-text-muted)" }}>Customer</label>
-              <select value={form.customer} onChange={e => setForm(f => ({ ...f, customer: e.target.value }))} className="w-full text-xs px-3 py-2 rounded-lg" style={{ backgroundColor: "var(--theme-card-bg)", border: "1px solid var(--theme-surface-border)", color: "var(--theme-text-primary)" }}>
-                <option value="">None</option>
-                {customers.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <Fld label="Lat" value={form.lat} onChange={v => setForm(f => ({ ...f, lat: v }))} placeholder="-6.2" type="number" />
-              <Fld label="Lng" value={form.lng} onChange={v => setForm(f => ({ ...f, lng: v }))} placeholder="106.8" type="number" />
-            </div>
-            <p className="text-[9px] flex items-center gap-1" style={{ color: "var(--theme-text-dim)" }}><MapPin className="w-3 h-3" /> Coords used by Map mode</p>
-            <button onClick={createNode} disabled={!form.label.trim()} className="w-full py-2 rounded-lg text-xs font-medium disabled:opacity-30" style={{ backgroundColor: "var(--theme-surface-raised)", color: "var(--theme-text-primary)", border: "1px solid var(--theme-surface-border)" }}>Create Node</button>
-          </div>
-        </div>
-      )}
-
-      {/* ── Attack Feed (bottom, Map mode only) ── */}
-      {mode === "map" && (
-        <div ref={feedRef} className="h-36 overflow-y-auto border-t shrink-0" style={{ backgroundColor: "var(--theme-surface-base)", borderColor: "var(--theme-surface-border)" }}>
-          <div className="sticky top-0 z-10 px-4 py-1.5 text-[10px] uppercase tracking-wider font-medium flex items-center gap-2" style={{ backgroundColor: "var(--theme-surface-base)", borderBottom: "1px solid var(--theme-surface-border)", color: "var(--theme-text-muted)" }}>
-            <Clock className="w-3 h-3" />
-            {replayPlaying ? `Replay Feed · ${replayIndex}/${replayData.length}` : "Live Attack Feed"}
-            <span className="ml-auto font-mono">{replayPlaying ? replayArcs.length : feed.length} events</span>
-          </div>
-          <div className="divide-y" style={{ borderColor: "var(--theme-surface-border)" }}>
-            {(replayPlaying || replayArcs.length > 0 ? [...replayArcs].reverse() : feed).map((f, i) => (
-              <div key={`${f.id}-${i}`} className="flex items-center gap-3 px-4 py-1.5 text-[11px] hover:bg-white/[0.02]">
-                <span className="font-mono w-14 shrink-0" style={{ color: "var(--theme-text-dim)" }}>
-                  {f.time ? new Date(f.time).toLocaleTimeString("id-ID", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "—"}
-                </span>
-                <span className="w-1.5 h-1.5 rounded-sm shrink-0" style={{ backgroundColor: pc(f.priority) }} />
-                <span className="truncate" style={{ color: "var(--theme-text-secondary)" }}>{f.subject || f.category || "Alert"}</span>
-                {f.validation === "True Positive" && <span className="shrink-0 px-1 rounded text-[8px] font-bold" style={{ backgroundColor: "rgba(239,68,68,0.15)", color: "#ef4444" }}>TP</span>}
-                {f.validation === "False Positive" && <span className="shrink-0 px-1 rounded text-[8px] font-bold" style={{ backgroundColor: "rgba(96,165,250,0.15)", color: "#60a5fa" }}>FP</span>}
-                <span style={{ color: "var(--theme-text-dim)" }}>→</span>
-                <span className="font-mono truncate" style={{ color: "var(--theme-text-primary)" }}>{f.asset || "—"}</span>
-                {f.customer && <span className="shrink-0" style={{ color: "var(--theme-text-dim)" }}>{f.customer}</span>}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-      </>)}
-
-      </div>{/* end flex-1 content area */}
 
       {/* ── Alert/Info dialog (replaces alert()) ── */}
       <ConfirmDialog

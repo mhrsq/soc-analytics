@@ -41,6 +41,7 @@ const DEFAULT_DATA_OPTIONS: DataSourceOption[] = [
   { value: "top-alerts", label: "Top Alert Rules", desc: "Most frequent Wazuh alert rules" },
   { value: "analysts", label: "Analyst Performance", desc: "Per-analyst workload and metrics" },
   { value: "live-feed", label: "Live Ticket Feed", desc: "Latest 10 tickets with timestamp, ID, name, and asset" },
+  { value: "threat-map", label: "Live Threat Map", desc: "Real-time global attack map with animated arcs" },
 ];
 
 export function AddWidgetModal({ open, onClose, onAdd, dataSources }: Props) {

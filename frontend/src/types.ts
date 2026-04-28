@@ -226,7 +226,8 @@ export type DataSource =
   | "posture-score"
   | "fp-patterns"
   | "analyst-table"
-  | "team-trend";
+  | "team-trend"
+  | "threat-map";
 
 export interface WidgetConfig {
   id: string;
